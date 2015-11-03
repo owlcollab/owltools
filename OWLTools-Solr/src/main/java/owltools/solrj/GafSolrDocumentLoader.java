@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -423,7 +424,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				ArrayList<String> isap = new ArrayList<String>();
 				isap.add("BFO:0000050");
 				Map<String, String> curr_isap_map = addClosureToAnnAndBio(isap, "isa_partof_closure", "isa_partof_closure_label", "isa_partof_closure_map",
-									                                      cls, graph, annotation_doc, bioentity_doc);
+									                                      cls, graph, annotation_doc, bioentity_doc, a.isNegated());
 				isap_map.putAll(curr_isap_map); // add to aggregate map
 				
 //				// Add to annotation and bioentity isa_partof closures; label and id.
@@ -448,7 +449,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				// Regulates closures.
 				List<String> reg = RelationSets.getRelationSet(RelationSets.COMMON);
 				Map<String, String> curr_reg_map = addClosureToAnnAndBio(reg, "regulates_closure", "regulates_closure_label", "regulates_closure_map",
-						  			               cls, graph, annotation_doc, bioentity_doc);
+						  			               cls, graph, annotation_doc, bioentity_doc, a.isNegated());
 				reg_map.putAll(curr_reg_map); // add to aggregate map
 				
 //				///
@@ -519,8 +520,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 
 			// Let's piggyback on a little of the work above and cache the extra stuff that we'll be adding to the bioenity at the end
 			// for the direct annotations. c5 and ???.
-			String dlbl = graph.getLabel(cls);
-			direct_list_map.put(clsId, dlbl);
+			if (a.isNegated() == false) {
+				String dlbl = graph.getLabel(cls);
+				direct_list_map.put(clsId, dlbl);
+			}
 
 //			Map<String,String> isa_partof_map = new HashMap<String,String>(); // capture labels/ids
 //			OWLObject c = graph.getOWLObjectByIdentifier(clsId);
@@ -805,7 +808,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	 * Not the map for bio.
 	 */
 	private Map<String, String> addClosureToAnnAndBio(List<String> relations, String closureName, String closureNameLabel, String closureMap,
-			OWLObject cls, OWLGraphWrapper graph, SolrInputDocument ann_doc, SolrInputDocument bio_doc){
+			OWLObject cls, OWLGraphWrapper graph, SolrInputDocument ann_doc, SolrInputDocument bio_doc, boolean isNegated){
 		
 		// Add closures to doc; label and id.
 		graph.addPropertyIdsForMaterialization(relations);
@@ -815,11 +818,16 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		
 		ann_doc.addField(closureName, idClosure);
 		ann_doc.addField(closureNameLabel, labelClosure);
-		for( String tid : idClosure){
-			addFieldUnique(bio_doc, closureName, tid);
-		}
-		for( String tlabel : labelClosure){
-			addFieldUnique(bio_doc, closureNameLabel, tlabel);
+		
+		// WARNING this is a side effect for the bio-entity
+		// only add the class and closure, if it is a non-negated annotation
+		if (isNegated == false) {
+			for( String tid : idClosure){
+				addFieldUnique(bio_doc, closureName, tid);
+			}
+			for( String tlabel : labelClosure){
+				addFieldUnique(bio_doc, closureNameLabel, tlabel);
+			}
 		}
 
 		// Compile closure maps to JSON.
@@ -830,7 +838,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			//bio_doc.addField(closureMap, jsonized_cmap);
 		}
 
-		
+		if (isNegated) {
+			// WARNING this is a side effect for the bio-entity
+			// only add the class and closure, if it is a non-negated annotation
+			return Collections.emptyMap();
+		}
 		return cmap;
 	}
 
