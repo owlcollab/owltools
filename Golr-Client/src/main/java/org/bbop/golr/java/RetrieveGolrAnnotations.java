@@ -92,7 +92,7 @@ public class RetrieveGolrAnnotations extends AbstractRetrieveGolr{
 			if (golrDocument.qualifier != null) {
 				for (String qualifier : golrDocument.qualifier) {
 					if ("not".equalsIgnoreCase(qualifier)) {
-						annotation.setIsContributesTo(true);
+						annotation.setIsNegated(true);
 					}
 					else if ("contributes_to".equalsIgnoreCase(qualifier)) {
 						annotation.setIsContributesTo(true);
