@@ -3,9 +3,14 @@ language: java
 jdk:
   - openjdk6
   - openjdk7
-  - openjdk8
+  - oraclejdk8
 
-# build
+# install
+before_install:
+ - free -m
+ - ls -la
+ - cd OWLTools-Parent;mvn install -DskipTests=true;cd ..
+
+# run tests
 script:
-  - free -m
-  - cd owltools/OWLTools-Parent;mvn clean install;cd ../..
+  - cd OWLTools-Parent;mvn test
