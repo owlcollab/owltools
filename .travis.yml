@@ -1,0 +1,11 @@
+language: java
+
+jdk:
+  - openjdk6
+  - openjdk7
+  - openjdk8
+
+# build
+script:
+  - free -m
+  - cd owltools/OWLTools-Parent;mvn clean install;cd ../..
