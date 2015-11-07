@@ -59,6 +59,34 @@ public class RetrieveGolrAnnotationsTest {
 	}
 	
 	@Test
+	public void testGetGolrAnnotationsForGeneWithQualifier() throws Exception {
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://toaster.lbl.gov:9000/solr");
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGene("UniProtKB:O95996");
+		assertNotNull(annotations);
+		int qualifierCounter = 0;
+		for (GolrAnnotationDocument document : annotations) {
+			System.out.println(document.bioentity+"  "+document.annotation_class);
+			if (document.qualifier != null) {
+				System.out.println(document.qualifier);
+				qualifierCounter += 1;
+			}
+		}
+		System.out.println(annotations.size());
+		assertTrue(annotations.size() > 10);
+		assertTrue(qualifierCounter > 0);
+		
+		GafDocument convert = retriever.convert(annotations);
+		int qualifierCounterConverted = 0;
+		for (GeneAnnotation ann : convert.getGeneAnnotations()) {
+			int qualifiers = ann.getQualifiers();
+			if (qualifiers != 0) {
+				qualifierCounterConverted += 1;
+			}
+		}
+		assertEquals(qualifierCounter, qualifierCounterConverted);
+	}
+	
+	@Test
 	public void testGetGolrAnnotationsForGenesProduction() throws Exception {
 		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.geneontology.org/solr") {
 
