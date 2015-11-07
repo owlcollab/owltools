@@ -13,4 +13,4 @@ before_install:
 
 # run tests
 script:
-  - cd OWLTools-Parent;mvn test
+  - cd OWLTools-Parent;mvn clean compile
