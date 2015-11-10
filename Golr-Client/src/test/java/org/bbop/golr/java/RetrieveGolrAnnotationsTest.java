@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.bbop.golr.java.RetrieveGolrAnnotations.GolrAnnotationDocument;
@@ -18,11 +19,19 @@ public class RetrieveGolrAnnotationsTest {
 
 	@Test
 	public void testGetGolrAnnotationsForGene() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org");
-		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org"){
+
+			@Override
+			protected void logRequest(URI uri) {
+				System.out.println(uri);
+			}
+			
+		};
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGenes(
+				Arrays.asList("MGI:MGI:97290"), true);
 		assertNotNull(annotations);
 		for (GolrAnnotationDocument document : annotations) {
-			System.out.println(document.bioentity+"  "+document.annotation_class);
+			System.out.println(document.bioentity+"  "+document.annotation_class+"  "+document.evidence_type);
 		}
 		System.out.println(annotations.size());
 		assertTrue(annotations.size() > 10);
@@ -96,7 +105,8 @@ public class RetrieveGolrAnnotationsTest {
 			}
 			
 		};
-		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGenes(Arrays.asList("MGI:MGI:97290", "UniProtKB:Q0IIF6"));
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGenes(
+				Arrays.asList("MGI:MGI:97290", "UniProtKB:Q0IIF6"));
 		assertNotNull(annotations);
 		for (GolrAnnotationDocument document : annotations) {
 			System.out.println(document.bioentity+"  "+document.annotation_class);
@@ -107,7 +117,7 @@ public class RetrieveGolrAnnotationsTest {
 	
 	@Test
 	public void testGetGolrAnnotationsForSynonym() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.geneontology.org/solr") {
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org") {
 
 			@Override
 			protected void logRequest(URI uri) {
@@ -115,10 +125,11 @@ public class RetrieveGolrAnnotationsTest {
 			}
 			
 		};
-		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForSynonym("TAIR", "AT1G12520");
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForSynonym(
+				"TAIR", Collections.singletonList("AT1G12520"), true);
 		assertNotNull(annotations);
 		for (GolrAnnotationDocument document : annotations) {
-			System.out.println(document.bioentity+"  "+document.annotation_class);
+			System.out.println(document.bioentity+"  "+document.annotation_class+"  "+document.evidence_type);
 		}
 		System.out.println(annotations.size());
 	}

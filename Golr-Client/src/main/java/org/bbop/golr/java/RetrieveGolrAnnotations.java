@@ -158,6 +158,10 @@ public class RetrieveGolrAnnotations extends AbstractRetrieveGolr{
 	}
 	
 	public List<GolrAnnotationDocument> getGolrAnnotationsForGenes(List<String> ids) throws IOException {
+		return getGolrAnnotationsForGenes(ids, false);
+	}
+	
+	public List<GolrAnnotationDocument> getGolrAnnotationsForGenes(List<String> ids, boolean noIEAs) throws IOException {
 		List<String[]> tagvalues = new ArrayList<String[]>();
 		String [] tagvalue = new String[ids.size() + 1];
 		tagvalue[0] = "bioentity";
@@ -165,6 +169,10 @@ public class RetrieveGolrAnnotations extends AbstractRetrieveGolr{
 			tagvalue[i+1] = ids.get(i);
 		}
 		tagvalues.add(tagvalue);
+		if (noIEAs) {
+			// add negative filter for IEAs
+			tagvalues.add(new String[]{"-evidence_type", "IEA"});
+		}
 		final List<GolrAnnotationDocument> documents = getGolrAnnotations(tagvalues);
 		return documents;
 	}
@@ -184,6 +192,10 @@ public class RetrieveGolrAnnotations extends AbstractRetrieveGolr{
 	}
 	
 	public List<GolrAnnotationDocument> getGolrAnnotationsForSynonym(String source, List<String> synonyms) throws IOException {
+		return getGolrAnnotationsForSynonym(source, synonyms, false);
+	}
+	
+	public List<GolrAnnotationDocument> getGolrAnnotationsForSynonym(String source, List<String> synonyms, boolean noIEAs) throws IOException {
 		List<String[]> tagvalues = new ArrayList<String[]>();
 		String [] param1 = new String[2];
 		param1[0] = "source";
@@ -195,7 +207,10 @@ public class RetrieveGolrAnnotations extends AbstractRetrieveGolr{
 			param2[i+1] = synonyms.get(i);
 		}
 		tagvalues.add(param2);
-		
+		if (noIEAs) {
+			// add negative filter for IEAs
+			tagvalues.add(new String[]{"-evidence_type", "IEA"});
+		}
 		final List<GolrAnnotationDocument> documents = getGolrAnnotations(tagvalues);
 
 		return documents;
