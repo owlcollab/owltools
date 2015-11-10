@@ -1,2 +1,4 @@
 target/
 work/
+/fixit/
+/deploy_fixit.sh
