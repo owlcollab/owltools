@@ -762,6 +762,60 @@ public class CommandRunner extends CommandRunnerBase {
 				EdgeTableRenderer tr = new EdgeTableRenderer(out);
 				tr.render(g);				
 			}
+			else if (opts.nextEq("--assert-inferred-svfs")) {
+				opts.info("[-p LIST] [-o OUTPUTFILENAME]",
+						"asserts inferred parents by property using ExtendedReasoner");
+				String out = null;
+				boolean isMerge = false;
+				List<OWLObjectProperty> props = null;
+				OWLObjectProperty gciProperty = null;
+				List<OWLClass> gciFillers = null;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-p|--plist")) {
+						props = this.resolveObjectPropertyListAsList(opts);
+					}
+					else if (opts.nextEq("-o|--output")) {
+						out = opts.nextOpt();
+					}
+					else if (opts.nextEq("-gp|--gci-property")) {
+						gciProperty = this.resolveObjectProperty(opts.nextOpt());
+					}
+					else if (opts.nextEq("-gf|--gci-fillers")) {
+						gciFillers = resolveClassList(opts);
+					}
+					else if (opts.nextEq("-m|--merge")) {
+						isMerge = true;
+					}
+					else {
+						break;
+					}
+				}
+				if (reasoner == null) {
+					System.err.println("REASONER NOT INITIALIZED!");
+				}
+				if (!(reasoner instanceof OWLExtendedReasoner)) {
+					System.err.println("REASONER NOT AN EXTENDED REASONER. Recommended: --reasoner mexr");
+				}
+				OWLExtendedReasoner emr = (OWLExtendedReasoner) reasoner;
+				
+				
+				OWLDataFactory df = g.getDataFactory();
+				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+				for (OWLClass c : g.getAllOWLClasses()) {
+					for (OWLObjectProperty p : props) {
+						for (OWLClass  parent : emr.getSuperClassesOver(c, p, true)) {
+						
+							axioms.add(df.getOWLSubClassOfAxiom(c, 
+									df.getOWLObjectSomeValuesFrom(p, parent)));
+						}
+					}
+				}
+				if (!isMerge) {
+					g.setSourceOntology(g.getManager().createOntology());					
+				}
+				g.getManager().addAxioms(g.getSourceOntology(), axioms);
+				
+			}
 			else if (opts.nextEq("--export-parents")) {
 				opts.info("[-p LIST] [-o OUTPUTFILENAME]",
 						"saves a table of all direct inferred parents by property using ExtendedReasoner");
