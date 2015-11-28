@@ -23,7 +23,6 @@ import owltools.graph.OWLGraphWrapper;
  *             should not be propagated over regulates relations.
  * @see AnnotationTaxonRule
  */
-@Deprecated
 public class TaxonConstraintsEngine {
 
 	private final static Logger LOG = Logger.getLogger(TaxonConstraintsEngine.class);
