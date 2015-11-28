@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.bbop.golr.java.RetrieveGolrAnnotations.GolrAnnotationDocument;
@@ -18,11 +19,19 @@ public class RetrieveGolrAnnotationsTest {
 
 	@Test
 	public void testGetGolrAnnotationsForGene() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org");
-		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org"){
+
+			@Override
+			protected void logRequest(URI uri) {
+				System.out.println(uri);
+			}
+			
+		};
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGenes(
+				Arrays.asList("MGI:MGI:97290"), true);
 		assertNotNull(annotations);
 		for (GolrAnnotationDocument document : annotations) {
-			System.out.println(document.bioentity+"  "+document.annotation_class);
+			System.out.println(document.bioentity+"  "+document.annotation_class+"  "+document.evidence_type);
 		}
 		System.out.println(annotations.size());
 		assertTrue(annotations.size() > 10);
@@ -59,6 +68,34 @@ public class RetrieveGolrAnnotationsTest {
 	}
 	
 	@Test
+	public void testGetGolrAnnotationsForGeneWithQualifier() throws Exception {
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://toaster.lbl.gov:9000/solr");
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGene("UniProtKB:O95996");
+		assertNotNull(annotations);
+		int qualifierCounter = 0;
+		for (GolrAnnotationDocument document : annotations) {
+			System.out.println(document.bioentity+"  "+document.annotation_class);
+			if (document.qualifier != null) {
+				System.out.println(document.qualifier);
+				qualifierCounter += 1;
+			}
+		}
+		System.out.println(annotations.size());
+		assertTrue(annotations.size() > 10);
+		assertTrue(qualifierCounter > 0);
+		
+		GafDocument convert = retriever.convert(annotations);
+		int qualifierCounterConverted = 0;
+		for (GeneAnnotation ann : convert.getGeneAnnotations()) {
+			int qualifiers = ann.getQualifiers();
+			if (qualifiers != 0) {
+				qualifierCounterConverted += 1;
+			}
+		}
+		assertEquals(qualifierCounter, qualifierCounterConverted);
+	}
+	
+	@Test
 	public void testGetGolrAnnotationsForGenesProduction() throws Exception {
 		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.geneontology.org/solr") {
 
@@ -68,7 +105,8 @@ public class RetrieveGolrAnnotationsTest {
 			}
 			
 		};
-		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGenes(Arrays.asList("MGI:MGI:97290", "UniProtKB:Q0IIF6"));
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGenes(
+				Arrays.asList("MGI:MGI:97290", "UniProtKB:Q0IIF6"));
 		assertNotNull(annotations);
 		for (GolrAnnotationDocument document : annotations) {
 			System.out.println(document.bioentity+"  "+document.annotation_class);
@@ -79,7 +117,7 @@ public class RetrieveGolrAnnotationsTest {
 	
 	@Test
 	public void testGetGolrAnnotationsForSynonym() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.geneontology.org/solr") {
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org") {
 
 			@Override
 			protected void logRequest(URI uri) {
@@ -87,10 +125,11 @@ public class RetrieveGolrAnnotationsTest {
 			}
 			
 		};
-		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForSynonym("TAIR", "AT1G12520");
+		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForSynonym(
+				"TAIR", Collections.singletonList("AT1G12520"), true);
 		assertNotNull(annotations);
 		for (GolrAnnotationDocument document : annotations) {
-			System.out.println(document.bioentity+"  "+document.annotation_class);
+			System.out.println(document.bioentity+"  "+document.annotation_class+"  "+document.evidence_type);
 		}
 		System.out.println(annotations.size());
 	}

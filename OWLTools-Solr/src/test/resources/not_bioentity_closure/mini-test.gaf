@@ -1,0 +1,5 @@
+!gaf-version: 2.0
+! test file not valid for submission
+! contains two annotations, one normal one with a NOT qualifier
+FOO	001	FOO-ONE		B:2	PMID:0	IDA		C			protein	taxon:10090	20090709	OTHER		
+FOO	002	FOO-NOT	NOT	B:3	PMID:0	IDA		C			protein	taxon:10090	20090709	OTHER		

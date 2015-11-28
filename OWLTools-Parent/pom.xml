@@ -291,6 +291,11 @@
 				<version>2.2</version>
 			</dependency>
 			<dependency>
+				<groupId>commons-collections</groupId>
+				<artifactId>commons-collections</artifactId>
+				<version>3.2.1-fixit</version> <!-- This version does not contain a zero day exploit class InvokeTransformer -->
+			</dependency>
+			<dependency>
 				<groupId>org.semanticweb.elk</groupId>
 				<artifactId>elk-owlapi</artifactId>
 				<version>0.4.2</version>

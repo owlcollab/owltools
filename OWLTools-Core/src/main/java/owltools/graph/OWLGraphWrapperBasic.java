@@ -236,7 +236,35 @@ public class OWLGraphWrapperBasic {
 		}
 	}
 	
-
+	/**
+	 * Merge a specific ontology from the import closure into the main ontology.
+	 * Removes the import statement.
+	 * 
+	 * @param ontologyIRI id of the ontology to merge
+	 * @throws OWLOntologyCreationException
+	 */
+	public void mergeSpecificImport(IRI ontologyIRI) throws OWLOntologyCreationException {
+		OWLOntologyManager manager = getManager();
+		Set<OWLOntology> imports = sourceOntology.getImportsClosure();
+		for (OWLOntology o : imports) {
+			if (o.equals(sourceOntology))
+				continue;
+			OWLOntologyID ontologyID = o.getOntologyID();
+			if (ontologyID !=  null && ontologyIRI.equals(ontologyID.getOntologyIRI())) {
+				String comment = "Includes "+o;
+				LOG.info(comment);
+				addCommentToOntology(sourceOntology, comment);
+				manager.addAxioms(sourceOntology, o.getAxioms());	
+			}
+		}
+		Set<OWLImportsDeclaration> oids = sourceOntology.getImportsDeclarations();
+		for (OWLImportsDeclaration oid : oids) {
+			if (ontologyIRI.equals(oid.getIRI())) {
+				RemoveImport ri = new RemoveImport(sourceOntology, oid);
+				getManager().applyChange(ri);
+			}
+		}
+	}
 
 
 	/**
