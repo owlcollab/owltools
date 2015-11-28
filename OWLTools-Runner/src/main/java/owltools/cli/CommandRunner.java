@@ -182,6 +182,7 @@ import owltools.mooncat.ontologymetadata.ImportChainExtractor;
 import owltools.mooncat.ontologymetadata.OntologyMetadataMarkdownWriter;
 import owltools.ontologyrelease.OboBasicDagCheck;
 import owltools.ontologyrelease.OntologyMetadata;
+import owltools.reasoner.GCIUtil;
 import owltools.reasoner.GraphReasonerFactory;
 import owltools.reasoner.PrecomputingMoreReasonerFactory;
 import owltools.renderer.markdown.MarkdownRenderer;
@@ -228,7 +229,6 @@ import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
  * annotation, to designate the relevant methods.
  * 
  * @author cjm
- *
  * @see GafCommandRunner
  * @see JsCommandRunner
  * @see SimCommandRunner
@@ -762,8 +762,34 @@ public class CommandRunner extends CommandRunnerBase {
 				EdgeTableRenderer tr = new EdgeTableRenderer(out);
 				tr.render(g);				
 			}
+			else if (opts.nextEq("--materialize-gcis")) {
+				opts.info("[-m]",
+						"infers axioms using GCIUtil");
+				boolean isMerge = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-m|--merge")) {
+						isMerge = true;
+					}
+					else {
+						break;
+					}
+				}
+				if (reasoner == null) {
+					System.err.println("REASONER NOT INITIALIZED!");
+				}
+				
+				OWLDataFactory df = g.getDataFactory();
+				Set<OWLSubClassOfAxiom> axioms = 
+						GCIUtil.getSubClassOfSomeValuesFromAxioms(g.getSourceOntology(), reasoner);
+				
+				if (!isMerge) {
+					g.setSourceOntology(g.getManager().createOntology());					
+				}
+				g.getManager().addAxioms(g.getSourceOntology(), axioms);
+				
+			}
 			else if (opts.nextEq("--assert-inferred-svfs")) {
-				opts.info("[-p LIST] [-o OUTPUTFILENAME]",
+				opts.info("[-p LIST] [-m] [-gp PROPERTY] [-gf FILLER]",
 						"asserts inferred parents by property using ExtendedReasoner");
 				String out = null;
 				boolean isMerge = false;
