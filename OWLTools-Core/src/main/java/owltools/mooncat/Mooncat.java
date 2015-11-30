@@ -711,6 +711,20 @@ public class Mooncat {
 		}
 	}
 	
+	public void removeClassesNotInIDSpace(String idspace, boolean removeDangling) {
+		Set<OWLClass> coreSubset = new HashSet<OWLClass>();
+		LOG.info("Removing classes not in: "+idspace);
+		idspace = idspace.toLowerCase()+":";
+		for (OWLClass c : graph.getSourceOntology().getClassesInSignature()) {
+			String id = graph.getIdentifier(c).toLowerCase();
+			if (id.startsWith(idspace)) {
+				coreSubset.add(c);
+			}
+		}
+		LOG.info("Core size:"+coreSubset.size());
+		removeSubsetComplementClasses(coreSubset, removeDangling);
+	}
+	
 	/**
 	 * Remove a set of classes from the ontology
 	 * 

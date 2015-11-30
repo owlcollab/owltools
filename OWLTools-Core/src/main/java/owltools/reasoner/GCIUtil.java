@@ -3,17 +3,16 @@ package owltools.reasoner;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLQuantifiedRestriction;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.reasoner.Node;
+import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 /**
@@ -24,6 +23,9 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
  *
  */
 public class GCIUtil {
+	
+	private static final Logger LOG = Logger.getLogger(GCIUtil.class);
+
 
 	public static Set<OWLSubClassOfAxiom> getSubClassOfSomeValuesFromAxioms(OWLReasoner reasoner) {
 		return getSubClassOfSomeValuesFromAxioms(reasoner.getRootOntology(), reasoner);
@@ -54,16 +56,33 @@ public class GCIUtil {
 				OWLObjectPropertyExpression p = svf.getProperty();
 				OWLClassExpression filler = svf.getFiller();
 				if (filler.isAnonymous() || c.isAnonymous()) {
+					if (c.isBottomEntity())
+						continue;
+					if (filler.isTopEntity())
+						continue;
+					
 					Set<OWLClass> childSet = reasoner.getEquivalentClasses(c).getEntities();
 					if (childSet.size() == 0) {
 						childSet = reasoner.getSubClasses(c, true).getFlattened();
 					}
 					for (OWLClass childClass : childSet) {
+						if (childClass.isBottomEntity())
+							continue;
+						Set<OWLClass> childClassSuperClasses = 
+								reasoner.getSuperClasses(childClass, false).getFlattened();
 						Set<OWLClass> parentSet = reasoner.getEquivalentClasses(filler).getEntities();
 						if (parentSet.size() == 0) {
 							parentSet = reasoner.getSuperClasses(filler, true).getFlattened();
 						}
-						for (OWLClass parentClass : parentSet) {
+						// TODO: remove additional redundancy (R some X) SubClassOf (R some Y)
+						// Elk cannot test arbitrary entailments
+ 						for (OWLClass parentClass : parentSet) {
+							if (parentClass.isTopEntity())
+								continue;
+							
+							// do not assert C SubClassOf part-of some D, if C SubClassOf D is entailed
+							if (childClassSuperClasses.contains(parentClass))
+								continue;
 							axioms.add(df.getOWLSubClassOfAxiom(childClass, 
 									df.getOWLObjectSomeValuesFrom(p, parentClass)));
 						}
@@ -72,6 +91,7 @@ public class GCIUtil {
 
 			}
 		}
+		LOG.info("Inferred SVFs: "+axioms.size());
 		return axioms;
 	}
 

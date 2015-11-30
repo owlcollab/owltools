@@ -54,7 +54,15 @@ public class CommandRunnerMooncatTest extends AbstractCommandRunnerTest {
 		run("-o -f obo target/tentacle-module.obo");
 		
 	}
-	
+
+	@Test
+	public void testRemoveExternal() throws Exception {
+		load("ceph.obo");
+		run("--remove-external-classes CEPH");
+		run("-o -f obo target/ceph-basic.obo");
+		
+	}
+
 	@Test
 	public void testExtractOntologySubset() throws Exception {
 		load("ceph.obo");

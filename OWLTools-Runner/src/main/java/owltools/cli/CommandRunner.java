@@ -511,7 +511,7 @@ public class CommandRunner extends CommandRunnerBase {
 					iri = Obo2OWLConstants.DEFAULT_IRI_PREFIX+iri;
 				}
 				g = new OWLGraphWrapper(iri);
-				
+
 				if (v != null) {
 					OWLOntologyID oid = new OWLOntologyID(IRI.create(iri), v);
 					SetOntologyID soid;
@@ -549,10 +549,25 @@ public class CommandRunner extends CommandRunnerBase {
 			else if (opts.nextEq("-m") || opts.nextEq("--mcat")) {
 				catOntologies(opts);
 			}
-			else if (opts.nextEq("--remove-external-entities")) {
+			else if (opts.nextEq("--remove-entities-marked-imported")) {
 				opts.info("","Removes all classes, individuals and object properties that are marked with IAO_0000412");
 				Mooncat m = new Mooncat(g);
 				m.removeExternalEntities();
+			}
+			else if (opts.nextEq("--remove-external-classes")) {
+				opts.info("IDSPACE","Removes all classes not in the specified ID space");
+				boolean removeDangling = true;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-k|--keepDangling")) {
+						removeDangling = false;
+					}
+					else {
+						break;
+					}
+				}
+				String idspace = opts.nextOpt();
+				Mooncat m = new Mooncat(g);
+				m.removeClassesNotInIDSpace(idspace, removeDangling);
 			}
 			else if (opts.nextEq("--remove-dangling")) {
 				Mooncat m = new Mooncat(g);
@@ -757,7 +772,7 @@ public class CommandRunner extends CommandRunnerBase {
 				String out = opts.nextOpt();
 				TableRenderer tr = new TableRenderer(out);
 				tr.isWriteHeader = isWriteHeader;
-						
+
 				tr.render(g);				
 			}
 			else if (opts.nextEq("--export-edge-table")) {
@@ -782,16 +797,16 @@ public class CommandRunner extends CommandRunnerBase {
 				if (reasoner == null) {
 					System.err.println("REASONER NOT INITIALIZED!");
 				}
-				
+
 				OWLDataFactory df = g.getDataFactory();
 				Set<OWLSubClassOfAxiom> axioms = 
 						GCIUtil.getSubClassOfSomeValuesFromAxioms(g.getSourceOntology(), reasoner);
-				
+
 				if (!isMerge) {
 					g.setSourceOntology(g.getManager().createOntology());					
 				}
 				g.getManager().addAxioms(g.getSourceOntology(), axioms);
-				
+
 			}
 			else if (opts.nextEq("--assert-inferred-svfs")) {
 				opts.info("[-p LIST] [-m] [-gp PROPERTY] [-gf FILLER]",
@@ -828,14 +843,14 @@ public class CommandRunner extends CommandRunnerBase {
 					System.err.println("REASONER NOT AN EXTENDED REASONER. Recommended: --reasoner mexr");
 				}
 				OWLExtendedReasoner emr = (OWLExtendedReasoner) reasoner;
-				
-				
+
+
 				OWLDataFactory df = g.getDataFactory();
 				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 				for (OWLClass c : g.getAllOWLClasses()) {
 					for (OWLObjectProperty p : props) {
 						for (OWLClass  parent : emr.getSuperClassesOver(c, p, true)) {
-						
+
 							axioms.add(df.getOWLSubClassOfAxiom(c, 
 									df.getOWLObjectSomeValuesFrom(p, parent)));
 						}
@@ -845,7 +860,7 @@ public class CommandRunner extends CommandRunnerBase {
 					g.setSourceOntology(g.getManager().createOntology());					
 				}
 				g.getManager().addAxioms(g.getSourceOntology(), axioms);
-				
+
 			}
 			else if (opts.nextEq("--export-parents")) {
 				opts.info("[-p LIST] [-o OUTPUTFILENAME]",
@@ -1342,7 +1357,7 @@ public class CommandRunner extends CommandRunnerBase {
 					}
 					else
 						break;
-						
+
 				}
 				String dir = opts.nextOpt();
 				MarkdownRenderer mr = new MarkdownRenderer();
@@ -1358,7 +1373,7 @@ public class CommandRunner extends CommandRunnerBase {
 				final String MODE_REPLACE = "replace"; // replace all axioms
 				final String MODE_ADD = "add"; // old mode, which is very broken
 				String mode = MODE_MISSING; // safe default, only add missing axioms
-				
+
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-m|--add-missing")) {
 						mode = MODE_MISSING;
@@ -1379,7 +1394,7 @@ public class CommandRunner extends CommandRunnerBase {
 				}
 				final OWLAnnotationProperty shorthandProperty = df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#shorthand"));
 				final OWLAnnotationProperty xrefProperty = df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasDbXref"));
-				
+
 				for (OWLObjectProperty prop : props) {
 					if (prop.isBuiltIn()) {
 						continue;
@@ -1398,11 +1413,11 @@ public class CommandRunner extends CommandRunnerBase {
 							xrefAxioms.add(axiom);
 						}
 					}
-					
+
 					// check what needs to be added
 					boolean addShortHand = false;
 					boolean addXref = false;
-					
+
 					if (MODE_REPLACE.equals(mode)) {
 						// replace existing axioms
 						removeAxioms.addAll(shorthandAxioms);
@@ -1420,7 +1435,7 @@ public class CommandRunner extends CommandRunnerBase {
 						addShortHand = true;
 						addXref = true;
 					}
-					
+
 					// create required axioms
 					if (addShortHand) {
 						// shorthand
@@ -1448,7 +1463,7 @@ public class CommandRunner extends CommandRunnerBase {
 						addAxioms.add(ax);
 						LOG.info(ax);
 					}
-					
+
 				}
 				// update axioms
 				if (removeAxioms.isEmpty() == false) {
@@ -4364,7 +4379,7 @@ public class CommandRunner extends CommandRunnerBase {
 			}
 			else if (opts.nextEq("--always-assert-super-classes")) {
 				opts.info("", "if specified, always assert a superclass, " +
-							"even if there exists an equivalence axiom is trivially entails in in solation");	
+						"even if there exists an equivalence axiom is trivially entails in in solation");	
 				alwaysAssertSuperClasses = true;
 			}
 			else {
@@ -4383,7 +4398,7 @@ public class CommandRunner extends CommandRunnerBase {
 			IOUtils.closeQuietly(reportWriter);
 		}
 	}
-	
+
 	@CLIMethod("--remove-redundant-superclass")
 	public void removeRedundantSubclasses(Opts opts) throws Exception {
 		if (g == null) {
@@ -4521,6 +4536,115 @@ public class CommandRunner extends CommandRunnerBase {
 		manager.addAxioms(g.getSourceOntology(), result.getPredictions());
 
 		manager.saveOntology(g.getSourceOntology(), targetFileIRI);
+	}
+
+	@CLIMethod("--remove-redundant-svfs")
+	public void removeRedundantSVFs(Opts opts) throws Exception {
+		opts.info("", "removes redundant existentials: X R Some C, X R Some D, C SubClassOf* D");
+		if (g == null) {
+			LOG.error("No current ontology loaded");
+			exit(-1);
+		}
+		if (reasoner == null) {
+			LOG.error("No reasoner available for the current ontology");
+			exit(-1);
+		}
+		while (opts.hasOpts()) {
+			if (opts.nextEq("--report-file")) {
+				//reportFile = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		Set<OWLSubClassOfAxiom> axioms = g.getSourceOntology().getAxioms(AxiomType.SUBCLASS_OF);
+		Set<OWLSubClassOfAxiom> rmAxioms = new HashSet<OWLSubClassOfAxiom>();
+		LOG.info("Candidates: " + axioms.size());
+		for (OWLSubClassOfAxiom axiom : axioms) {
+			if (axiom.getSubClass().isAnonymous())
+				continue;
+			OWLClass subClass = (OWLClass)axiom.getSubClass();
+			if (axiom.getSuperClass() instanceof OWLObjectSomeValuesFrom) {
+				//LOG.info("  TESTING " + axiom);
+				OWLObjectSomeValuesFrom svf = ((OWLObjectSomeValuesFrom)axiom.getSuperClass());
+				for (OWLSubClassOfAxiom msAxiom : g.getSourceOntology().getSubClassAxiomsForSubClass(subClass)) {
+					if (msAxiom.getSuperClass() instanceof OWLObjectSomeValuesFrom) {
+						OWLObjectSomeValuesFrom mssvf = ((OWLObjectSomeValuesFrom)msAxiom.getSuperClass());
+						if (mssvf.getProperty().equals(svf.getProperty())) {
+							if (!svf.getFiller().isAnonymous()) {
+								if (reasoner.getSuperClasses(mssvf.getFiller(), false).
+										containsEntity((OWLClass) svf.getFiller())) {
+									LOG.info(axiom+" IS_REDUNDANT: "+mssvf.getFiller() +
+											" more-specific-than "+svf.getFiller());
+									rmAxioms.add(axiom);
+								}
+							}
+						}
+					}
+					else if (!msAxiom.getSuperClass().isAnonymous()) {
+						// TODO
+					}
+				}
+			}
+		}
+		g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);
+	}
+
+	@CLIMethod("--remove-redundant-inferred-svfs")
+	public void removeRedundantInferredSVFs(Opts opts) throws Exception {
+		opts.info("", "removes redundant existentials using extended reasoner");
+		if (g == null) {
+			LOG.error("No current ontology loaded");
+			exit(-1);
+		}
+		if (reasoner == null) {
+			LOG.error("No reasoner available for the current ontology");
+			exit(-1);
+		}
+		if (!(reasoner instanceof OWLExtendedReasoner)) {
+			LOG.error("Reasoner is not extended");
+			exit(-1);
+		}
+		OWLExtendedReasoner exr = (OWLExtendedReasoner)reasoner;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("--report-file")) {
+				//reportFile = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
+		Set<OWLSubClassOfAxiom> axioms = g.getSourceOntology().getAxioms(AxiomType.SUBCLASS_OF);
+		Set<OWLSubClassOfAxiom> rmAxioms = new HashSet<OWLSubClassOfAxiom>();
+		LOG.info("Candidates: " + axioms.size());
+		int n = 0;
+		for (OWLSubClassOfAxiom axiom : axioms) {
+			n++;
+			if (n % 100 == 0) {
+				LOG.info("Testing axiom #" +n);
+			}
+			if (axiom.getSubClass().isAnonymous())
+				continue;
+			OWLClass subClass = (OWLClass)axiom.getSubClass();
+			if (axiom.getSuperClass() instanceof OWLObjectSomeValuesFrom) {
+				OWLObjectSomeValuesFrom svf = ((OWLObjectSomeValuesFrom)axiom.getSuperClass());
+				if (svf.getProperty().isAnonymous())
+					continue;
+				if (svf.getFiller().isAnonymous())
+					continue;
+				OWLObjectProperty p = (OWLObjectProperty)svf.getProperty();
+				Set<OWLClass> directParents = exr.getSuperClassesOver(subClass, p, true);
+				if (!directParents.contains(svf.getFiller())) {
+					rmAxioms.add(axiom);
+					LOG.info("  IS_REDUNDANT: "+owlpp.render(axiom)+" as filler not in "+directParents);
+					for (OWLClass dp : directParents) {
+						LOG.info("DIRECT_PARENT_OVER "+owlpp.render(p)+" "+owlpp.render(dp));
+					}
+				}
+			}
+		}
+		g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);
 	}
 
 	@CLIMethod("--remove-redundant-inferred-super-classes")
