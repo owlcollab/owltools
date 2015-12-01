@@ -43,6 +43,16 @@ public class CommandRunnerMaterializeExistentialsTest extends AbstractCommandRun
 		
 	}
 	
+	@Test
+	public void testRemoveRedundantInferred2() throws Exception {
+		//run("--create-ontology test2");
+		load("existential-redundancy-test.obo");
+		run("--reasoner mexr --remove-redundant-inferred-svfs");
+		run("-o -f obo target/er-nr-inf.obo");
+		
+		
+	}
+	
 
 
 	

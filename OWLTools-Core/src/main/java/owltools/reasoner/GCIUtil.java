@@ -70,6 +70,7 @@ public class GCIUtil {
 							continue;
 						Set<OWLClass> childClassSuperClasses = 
 								reasoner.getSuperClasses(childClass, false).getFlattened();
+						childClassSuperClasses.addAll(reasoner.getEquivalentClasses(childClass).getEntities());
 						Set<OWLClass> parentSet = reasoner.getEquivalentClasses(filler).getEntities();
 						if (parentSet.size() == 0) {
 							parentSet = reasoner.getSuperClasses(filler, true).getFlattened();
