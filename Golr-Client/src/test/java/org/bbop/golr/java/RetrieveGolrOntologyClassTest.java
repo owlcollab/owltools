@@ -1,6 +1,6 @@
 package org.bbop.golr.java;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.net.URI;
 import java.util.List;
@@ -35,6 +35,23 @@ public class RetrieveGolrOntologyClassTest {
 			
 		};
 		List<GolrOntologyClassDocument> entities = golr.getGolrOntologyCls("PO:0001040");
+		assertEquals(1, entities.size());
+	}
+	
+	/*
+	 * WB:WBGene00001674
+	 */
+	@Test
+	public void testGetGolrBioentitesNoctua() throws Exception {
+		RetrieveGolrOntologyClass golr = new RetrieveGolrOntologyClass("http://noctua-golr.berkeleybop.org/", 2){
+
+			@Override
+			protected void logRequest(URI uri) {
+				System.out.println(uri);
+			}
+			
+		};
+		List<GolrOntologyClassDocument> entities = golr.getGolrOntologyCls("WB:WBGene00001674");
 		assertEquals(1, entities.size());
 	}
 }
