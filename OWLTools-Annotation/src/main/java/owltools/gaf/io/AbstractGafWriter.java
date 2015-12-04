@@ -154,7 +154,7 @@ public abstract class AbstractGafWriter  {
 	
 	private String createTaxonString(GeneAnnotation ann, Bioentity e) {
 		StringBuilder sb = new StringBuilder();
-		if (e != null) {
+		if (e != null && e.getNcbiTaxonId() != null) {
 			sb.append(StringUtils.replace(e.getNcbiTaxonId(), TaxonTools.NCBI, TaxonTools.TAXON_PREFIX));
 			Pair<String, String> actsOnTaxonId = ann.getActsOnTaxonId();
 			if (actsOnTaxonId != null && actsOnTaxonId.getLeft() != null) {
