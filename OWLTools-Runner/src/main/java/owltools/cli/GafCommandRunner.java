@@ -1248,7 +1248,7 @@ public class GafCommandRunner extends CommandRunner {
 	
 	@CLIMethod("--experimental-gaf-prediction")
 	public void createExperimentalPredictions(Opts opts) throws Exception {
-		GoAnnotationExperimentalPredictionRule experimentalPrediction = new GoAnnotationExperimentalPredictionRule(g);
+		GoAnnotationExperimentalPredictionRule experimentalPrediction = new GoAnnotationExperimentalPredictionRule();
 		List<Prediction> predictions = experimentalPrediction.getPredictedAnnotations(gafdoc, g);
 		System.out.println("Predictions: "+predictions.size());
 		AnnotationRulesEngineResult result = new AnnotationRulesEngineResult();
