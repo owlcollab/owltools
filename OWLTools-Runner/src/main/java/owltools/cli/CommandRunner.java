@@ -4979,7 +4979,12 @@ public class CommandRunner extends CommandRunnerBase {
 			}
 
 			// obsolete
-			final List<String> missingObsoletes = Lists.newArrayList(Sets.difference(previousObsoletes, currentObsoletes));
+			Set<String> differenceObsolete = Sets.difference(previousObsoletes, currentObsoletes);
+			if (!differenceObsolete.isEmpty()) {
+				// special case: obsolete ids might be resurrected as valid ids
+				differenceObsolete = Sets.difference(differenceObsolete, currentIdLabels.keySet());
+			}
+			final List<String> missingObsoletes = Lists.newArrayList(differenceObsolete);
 			if (!missingObsoletes.isEmpty()) {
 				Collections.sort(missingObsoletes);
 				hasErrors = true;

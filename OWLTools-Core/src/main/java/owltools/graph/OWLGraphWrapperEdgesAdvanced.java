@@ -1027,6 +1027,18 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		return Collections.emptySet();
 	}
 	
+	public Map<String, String> getOnlyInTaxonLabelMap(OWLObject x, List<String> sargs) {
+		Set<OWLClass> classes = getOnlyInTaxonSvfClasses(x);
+		if (classes.isEmpty() == false) {
+			Map<String, String> labelMap = new HashMap<String, String>();
+			for(OWLClass cls : classes) {
+				labelMap.put(getIdentifier(cls), getLabelOrDisplayId(cls));
+			}
+			return labelMap;
+		}
+		return Collections.emptyMap();
+	}
+	
 	private Set<OWLClass> getOnlyInTaxonSvfClasses(OWLObject x) {
 		if (x != null && x instanceof OWLClass) {
 			OWLClass c = (OWLClass) x;

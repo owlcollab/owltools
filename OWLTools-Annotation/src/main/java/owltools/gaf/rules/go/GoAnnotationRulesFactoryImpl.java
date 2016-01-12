@@ -87,7 +87,7 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 		namedRules.put(GoMultipleTaxonRule.PERMANENT_JAVA_ID, new GoMultipleTaxonRule(graph));
 		namedRules.put(GoNoHighLevelTermAnnotationRule.PERMANENT_JAVA_ID, new GoNoHighLevelTermAnnotationRule(graph, eco));
 		namedRules.put(GoAnnotationPredictionRule.PERMANENT_JAVA_ID, new GoAnnotationPredictionRule(graph));
-		namedRules.put(GoAnnotationExperimentalPredictionRule.PERMANENT_JAVA_ID, new GoAnnotationExperimentalPredictionRule(graph));
+		namedRules.put(GoAnnotationExperimentalPredictionRule.PERMANENT_JAVA_ID, new GoAnnotationExperimentalPredictionRule());
 		logger.info("Finished preparing ontology checks");
 	}
 

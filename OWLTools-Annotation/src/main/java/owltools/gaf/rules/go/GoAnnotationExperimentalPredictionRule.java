@@ -1,21 +1,13 @@
 package owltools.gaf.rules.go;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 
-import owltools.gaf.Bioentity;
-import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
-import owltools.gaf.inference.AnnotationPredictor;
-import owltools.gaf.inference.FoldBasedPredictor;
 import owltools.gaf.inference.Prediction;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
@@ -23,7 +15,7 @@ import owltools.graph.OWLGraphWrapper;
 
 public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRule {
 	
-	private static final Logger LOG = Logger.getLogger(GoAnnotationExperimentalPredictionRule.class);
+	static final Logger LOG = Logger.getLogger(GoAnnotationExperimentalPredictionRule.class);
 
 	/**
 	 * The string to identify this class in the annotation_qc.xml and related factories.
@@ -31,11 +23,8 @@ public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRu
 	 */
 	public static final String PERMANENT_JAVA_ID = "org.geneontology.gold.rules.GoAnnotationExperimentalPredictionRule";
 	
-	private final OWLGraphWrapper source;
-
-	public GoAnnotationExperimentalPredictionRule(OWLGraphWrapper source) {
+	public GoAnnotationExperimentalPredictionRule() {
 		super();
-		this.source = source;
 	}
 
 	@Override
@@ -52,51 +41,8 @@ public class GoAnnotationExperimentalPredictionRule extends AbstractAnnotationRu
 
 	@Override
 	public List<Prediction> getPredictedAnnotations(GafDocument gafDoc, OWLGraphWrapper graph) {
-		List<Prediction> predictions = new ArrayList<Prediction>();
-		
-		Map<Bioentity, Set<GeneAnnotation>> allAnnotations = new HashMap<Bioentity, Set<GeneAnnotation>>();
-		boolean hasC16Annotations = false;
-		
-		for(GeneAnnotation annotation : gafDoc.getGeneAnnotations()) {
-			List<List<ExtensionExpression>> expressions = annotation.getExtensionExpressions();
-			if (expressions != null && expressions.isEmpty() == false) {
-				hasC16Annotations = true;
-			}
-			Bioentity e = annotation.getBioentityObject();
-			String id = e.getId();
-			Set<GeneAnnotation> anns = allAnnotations.get(id);
-			if (anns == null) {
-				anns = new HashSet<GeneAnnotation>();
-				allAnnotations.put(e, anns);
-			}
-			anns.add(annotation);
-		}
-		
-		AnnotationPredictor predictor = null;
-		if (hasC16Annotations) {
-		LOG.info("Use c16 extension for fold based prediction");
-			try {
-				predictor = new FoldBasedPredictor(gafDoc, source, false);
-				if (predictor.isInitialized()) {
-					LOG.info("Start experimental prediction for "+allAnnotations.size()+" bioentities");
-					List<Prediction> foldBasedPredictions = predictor.predictForBioEntities(allAnnotations);
-					if (foldBasedPredictions != null) {
-						predictions.addAll(foldBasedPredictions);
-					}
-				}
-				else {
-					LOG.error("Could not create predictions.");
-				}
-			}
-			finally {
-				if (predictor != null) {
-					predictor.dispose();
-				}
-				predictor = null;
-			}
-		}
-		LOG.info("Done creating experimental predictions");
-		return predictions;
+		// currently there are no experimental methods
+		return Collections.emptyList();
 	}
 	
 	@Override

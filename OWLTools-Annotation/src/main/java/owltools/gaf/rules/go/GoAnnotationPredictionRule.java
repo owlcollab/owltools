@@ -11,10 +11,12 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 
 import owltools.gaf.Bioentity;
+import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.inference.AnnotationPredictor;
 import owltools.gaf.inference.BasicAnnotationPropagator;
+import owltools.gaf.inference.FoldBasedPredictor;
 import owltools.gaf.inference.Prediction;
 import owltools.gaf.rules.AbstractAnnotationRule;
 import owltools.gaf.rules.AnnotationRuleViolation;
@@ -56,8 +58,13 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 		List<Prediction> predictions = new ArrayList<Prediction>();
 		
 		Map<Bioentity, Set<GeneAnnotation>> allAnnotations = new HashMap<Bioentity, Set<GeneAnnotation>>();
+		boolean hasC16Annotations = false;
 		
 		for(GeneAnnotation annotation : gafDoc.getGeneAnnotations()) {
+			List<List<ExtensionExpression>> expressions = annotation.getExtensionExpressions();
+			if (expressions != null && expressions.isEmpty() == false) {
+				hasC16Annotations = true;
+			}
 			Bioentity e = annotation.getBioentityObject();
 			String id = e.getId();
 			Set<GeneAnnotation> anns = allAnnotations.get(id);
@@ -68,9 +75,10 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 			anns.add(annotation);
 		}
 		
-		AnnotationPredictor predictor = null;
+		
 		if (USE_BASIC_PROPAGATION_RULE) {
 			LOG.info("Start creating predictions using basic propagation");
+			AnnotationPredictor predictor = null;
 			try {
 				predictor = new BasicAnnotationPropagator(gafDoc, source, false);
 				if (predictor.isInitialized()) {
@@ -88,8 +96,33 @@ public class GoAnnotationPredictionRule extends AbstractAnnotationRule {
 				}
 				predictor = null;
 			}
+			LOG.info("Done creating predictions using basic propagation");
 		}
-		LOG.info("Done creating predictions");
+		if (hasC16Annotations) {
+			LOG.info("Use c16 extension for fold based prediction");
+			AnnotationPredictor predictor = null;
+			try {
+				predictor = new FoldBasedPredictor(gafDoc, source, false);
+				if (predictor.isInitialized()) {
+					LOG.info("Start prediction for "+allAnnotations.size()+" bioentities");
+					List<Prediction> foldBasedPredictions = predictor.predictForBioEntities(allAnnotations);
+					if (foldBasedPredictions != null) {
+						predictions.addAll(foldBasedPredictions);
+					}
+				}
+				else {
+					LOG.error("Could not create predictions.");
+				}
+			}
+			finally {
+				if (predictor != null) {
+					predictor.dispose();
+				}
+				predictor = null;
+			}
+			LOG.info("Done creating fold based prediction");
+		}
+		
 		return predictions;
 	}
 	
