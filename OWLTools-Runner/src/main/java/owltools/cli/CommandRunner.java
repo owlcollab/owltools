@@ -177,6 +177,7 @@ import owltools.mooncat.ProvenanceReasonerWrapper;
 import owltools.mooncat.QuerySubsetGenerator;
 import owltools.mooncat.SpeciesMergeUtil;
 import owltools.mooncat.SpeciesSubsetterUtil;
+import owltools.mooncat.TransformationUtils;
 import owltools.mooncat.ontologymetadata.ImportChainDotWriter;
 import owltools.mooncat.ontologymetadata.ImportChainExtractor;
 import owltools.mooncat.ontologymetadata.OntologyMetadataMarkdownWriter;
@@ -843,7 +844,6 @@ public class CommandRunner extends CommandRunnerBase {
 					System.err.println("REASONER NOT AN EXTENDED REASONER. Recommended: --reasoner mexr");
 				}
 				OWLExtendedReasoner emr = (OWLExtendedReasoner) reasoner;
-
 
 				OWLDataFactory df = g.getDataFactory();
 				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
@@ -3286,6 +3286,28 @@ public class CommandRunner extends CommandRunnerBase {
 				OWLClass c = (OWLClass) resolveEntity( opts);
 
 				g.getConfig().excludeMetaClass = c;	
+			}
+			else if (opts.nextEq("--label-abox")) {
+				opts.info("[-e]", "Auto-add labels for individuals, using class label");
+				boolean isUseEntailed = false;
+				boolean isOverwrite = false;
+				while (opts.hasOpts()) {
+					if (opts.nextEq("-e|--entailed")) {
+						isUseEntailed = true;
+					}
+					if (opts.nextEq("-w|--overwrite")) {
+						isOverwrite = true;
+					}
+					else {
+						break;
+					}
+				}
+				for (OWLNamedIndividual i : g.getSourceOntology().getIndividualsInSignature(true)) {
+					if (g.getLabel(i) != null && !isOverwrite) {
+						continue;
+					}
+					TransformationUtils.addLabel(i, g, reasoner);
+				}
 			}
 			else if (opts.nextEq("--create-abox-subset")) {
 				opts.info("CLASS",
