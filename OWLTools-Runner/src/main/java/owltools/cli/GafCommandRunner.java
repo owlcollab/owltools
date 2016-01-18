@@ -918,19 +918,29 @@ public class GafCommandRunner extends CommandRunner {
 	 */
 	@CLIMethod("--ontology-pre-check")
 	public void runOntologyPreCheck(Opts opts) throws Exception {
+		String unsatisfiableModule = null;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("-m|--unsatisfiable-module")) {
+				opts.info("", "create a module for the unsatisfiable classes.");
+				unsatisfiableModule = opts.nextOpt();
+			}
+			else {
+				break;
+			}
+		}
 		if (g == null) {
 			LOG.error("The ontology needs to be loaded first.");
 			exit(-1);
 			return;
 		}
-		int code = preCheckOntology("The ontology is inconsistent.", "There are unsatisfiable classes.");
+		int code = preCheckOntology("The ontology is inconsistent.", "There are unsatisfiable classes.", unsatisfiableModule);
 		if (code != 0) {
 			exit(-1);
 			return;
 		}
 	}
 	
-	protected int preCheckOntology(String inConsistentMsg, String unsatisfiableMsg) {
+	protected int preCheckOntology(String inConsistentMsg, String unsatisfiableMsg, String unsatisfiableModule) throws OWLException, IOException {
 		// pre-check: only try to load ontology iff:
 		// * ontology is consistent 
 		// * no unsatisfiable classes
@@ -953,6 +963,16 @@ public class GafCommandRunner extends CommandRunner {
 				for (OWLClass owlClass : unsatisfiable) {
 					LOG.error("Unsatisfiable: "+prettyPrinter.render(owlClass));
 				}
+				LOG.info("Creating module for unsatisfiable classes in file: "+unsatisfiableModule);
+				ModuleType mtype = ModuleType.BOT;
+				OWLOntologyManager m = g.getManager();
+				SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, g.getSourceOntology(), mtype );
+				Set<OWLEntity> seeds = new HashSet<OWLEntity>(unsatisfiable);
+				Set<OWLAxiom> axioms = sme.extract(seeds);
+				OWLOntology module = m.createOntology();
+				m.addAxioms(module, axioms);
+				File moduleFile = new File(unsatisfiableModule).getCanonicalFile();
+				m.saveOntology(module, IRI.create(moduleFile));
 				return -1;
 			}
 		}
@@ -981,7 +1001,7 @@ public class GafCommandRunner extends CommandRunner {
 				
 				// pre-check ontology
 				int code = preCheckOntology("Can't validate with an inconsistent ontology", 
-						"Can't validate with an ontology with unsatisfiable classes");
+						"Can't validate with an ontology with unsatisfiable classes", null);
 				if (code != 0) {
 					exit(code);
 					return;

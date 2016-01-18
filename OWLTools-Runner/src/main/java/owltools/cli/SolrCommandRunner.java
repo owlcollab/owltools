@@ -251,7 +251,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	public void flexLoadOntologySolr(Opts opts) throws Exception {
 		// pre-check ontology
 		int code = preCheckOntology("Can't process an inconsistent ontology for solr", 
-				"Can't process an ontology with unsatisfiable classes for solr");
+				"Can't process an ontology with unsatisfiable classes for solr", null);
 		if (code != 0) {
 			exit(code);
 			return;
