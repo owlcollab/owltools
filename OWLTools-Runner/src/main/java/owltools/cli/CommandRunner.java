@@ -246,7 +246,7 @@ public class CommandRunner extends CommandRunnerBase {
 			//String opt = opts.nextOpt();
 			//System.out.println("processing arg: "+opt);
 			if (opts.nextEq("--pellet")) {
-				System.err.println("The Pellet reasoner is no longer supported, use Hermit '--hermit', JFACT '--jfact', or ELK '--elk' instead");
+				System.err.println("The Pellet reasoner is no longer supported, use Hermit '--hermit', or ELK '--elk' instead");
 				exit(-1);
 				return;
 			}
@@ -257,10 +257,14 @@ public class CommandRunner extends CommandRunnerBase {
 				reasonerName = "elk";
 			}
 			else if (opts.nextEq("--jfact")) {
-				reasonerName = "jfact";
+				System.err.println("The JFact reasoner is no longer supported, use Hermit '--hermit', or ELK '--elk' instead");
+				exit(-1);
+				return;
 			}
 			else if (opts.nextEq("--more")) {
-				reasonerName = "more";
+				System.err.println("The MORE reasoner is no longer supported, use Hermit '--hermit', or ELK '--elk' instead");
+				exit(-1);
+				return;
 			}
 			else if (opts.nextEq("--use-reasoner|--set-reasoner-name")) {
 				reasonerName =  opts.nextOpt();
