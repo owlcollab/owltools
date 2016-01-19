@@ -139,7 +139,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			// import source
 			OWLOntology source = g.getSourceOntology();
 			OWLOntologyID sourceId = source.getOntologyID();
-			OWLImportsDeclaration sourceImportDeclaration = f.getOWLImportsDeclaration(sourceId.getOntologyIRI());
+			OWLImportsDeclaration sourceImportDeclaration = f.getOWLImportsDeclaration(sourceId.getOntologyIRI().get());
 			m.applyChange(new AddImport(generatedContainer, sourceImportDeclaration));
 		}
 		catch(Exception e) {

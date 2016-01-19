@@ -23,7 +23,6 @@ import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.reasoner.InferenceType;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
@@ -31,11 +30,8 @@ import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import de.tudresden.inf.lat.jcel.owlapi.main.JcelReasoner;
 import owltools.graph.OWLGraphWrapper;
 import owltools.sim2.OwlSim;
-import uk.ac.manchester.cs.factplusplus.owlapiv3.FaCTPlusPlusReasonerFactory;
-import uk.ac.manchester.cs.jfact.JFactFactory;
 
 /**
  * 
@@ -227,21 +223,11 @@ public class OWLServer extends AbstractHandler
 				return graph.getReasoner();
 			reasonerFactory = new ElkReasonerFactory();
 		}
-		else if (reasonerName == null || reasonerName.equals("factpp"))
-			reasonerFactory = new FaCTPlusPlusReasonerFactory();
 		else if (reasonerName.equals("hermit")) {
-			reasonerFactory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();			
+			reasonerFactory = new org.semanticweb.HermiT.ReasonerFactory();
 		}
 		else if (reasonerName.equals("elk")) {
 			reasonerFactory = new ElkReasonerFactory();	
-		}
-		else if (reasonerName.equals("jfact")) {
-			reasonerFactory = new JFactFactory();	
-		}
-		else if (reasonerName.equals("jcel")) {
-			reasoner = new JcelReasoner(ont);
-			reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-			return reasoner;
 		}
 		else if (reasonerName.equals("structural")) {
 			reasonerFactory = new StructuralReasonerFactory();

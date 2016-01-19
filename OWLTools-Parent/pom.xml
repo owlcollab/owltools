@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.bbop</groupId>
 	<artifactId>OWLTools-Parent</artifactId>
-	<version>0.2.2-SNAPSHOT</version>
+	<version>0.3.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>OWLTools-Parent</name>
 	<url>https://github.com/owlcollab/owltools</url>
@@ -18,7 +18,7 @@
 	</issueManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<owlapi.version>3.5.1</owlapi.version>
+		<owlapi.version>4.1.3</owlapi.version>
 	</properties>
 
 	<profiles>
@@ -48,8 +48,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.2</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -212,41 +212,14 @@
 				</exclusions>
 			</dependency>
 			<dependency>
-				<groupId>uk.ac.manchester.cs</groupId>
-				<artifactId>factplusplus</artifactId>
-				<version>1.5.2</version>
-			</dependency>
-			<dependency>
-				<groupId>com.hermit-reasoner</groupId>
+				<groupId>net.sourceforge.owlapi</groupId>
 				<artifactId>org.semanticweb.hermit</artifactId>
-				<version>1.3.8.2</version>
-				<exclusions>
-					<exclusion>
-						<groupId>org.apache.geronimo.specs</groupId>
-						<artifactId>geronimo-activation_1.1_spec</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>org.apache.geronimo.specs</groupId>
-						<artifactId>geronimo-javamail_1.4_spec</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>org.apache.geronimo.specs</groupId>
-						<artifactId>geronimo-stax-api_1.0_spec</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>org.apache.james</groupId>
-						<artifactId>apache-mime4j-core</artifactId>
-					</exclusion>
-					<exclusion>
-						<groupId>org.codehaus.woodstox</groupId>
-						<artifactId>woodstox-core-asl</artifactId>
-					</exclusion>
-				</exclusions>
+				<version>1.3.8.413</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bbop</groupId>
 				<artifactId>oboformat-tools</artifactId>
-				<version>0.6.0</version>
+				<version>0.7.0</version>
 			</dependency>
 			<dependency>
 				<groupId>uk.ac.ebi.interpro</groupId>
@@ -262,17 +235,6 @@
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-math</artifactId>
 				<version>2.1</version>
-			</dependency>
-			<dependency>
-				<groupId>jcel</groupId>
-				<artifactId>jcel.owlapi</artifactId>
-				<version>0.15.0</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>owlapi</artifactId>
-						<groupId>owlapi</groupId>
-					</exclusion>
-				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>de.derivo</groupId>
@@ -298,28 +260,12 @@
 			<dependency>
 				<groupId>org.semanticweb.elk</groupId>
 				<artifactId>elk-owlapi</artifactId>
-				<version>0.4.2</version>
+				<version>0.4.3</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.code.gson</groupId>
 				<artifactId>gson</artifactId>
 				<version>2.2.4</version>
-			</dependency>
-			<dependency>
-				<groupId>org.coode</groupId>
-				<artifactId>oppl2</artifactId>
-				<version>1.5.5</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>owlapi</artifactId>
-						<groupId>owlapi</groupId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<groupId>net.sourceforge.owlapi</groupId>
-				<artifactId>jfact</artifactId>
-				<version>1.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>rhino</groupId>
@@ -338,11 +284,6 @@
 				</exclusions>
 			</dependency>
 			<dependency>
-				<groupId>org.semanticweb.more</groupId>
-				<artifactId>more-reasoner</artifactId>
-				<version>0.1.5-BBOP-1</version>
-			</dependency>
-			<dependency>
 				<groupId>org.apache.geronimo.specs</groupId>
 				<artifactId>geronimo-javamail_1.4_spec</artifactId>
 				<version>1.6</version>
@@ -350,7 +291,7 @@
 			<dependency>
 				<groupId>org.geneontology</groupId>
 				<artifactId>expression-materializing-reasoner</artifactId>
-				<version>0.0.5</version>
+				<version>0.1.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

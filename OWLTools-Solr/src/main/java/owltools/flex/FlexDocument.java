@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 /**
  * Pull defined sources into a middle state for output, loading into Solr, etc.
  * 
@@ -13,7 +11,6 @@ import org.apache.log4j.Logger;
  */
 public class FlexDocument implements Iterable<FlexLine> {
 	
-	//private static Logger LOG = Logger.getLogger(FlexDocument.class);	
 	protected List<FlexLine> lines = null;
 	
 	/**

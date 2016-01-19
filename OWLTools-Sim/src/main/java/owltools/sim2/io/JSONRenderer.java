@@ -19,7 +19,6 @@ import owltools.io.OWLPrettyPrinter;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.scores.AttributePairScores;
 import owltools.sim2.scores.ElementPairScores;
-import owltools.sim2.scores.PairScores;
 
 public class JSONRenderer extends AbstractRenderer implements SimResultRenderer {
 

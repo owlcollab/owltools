@@ -1,23 +1,17 @@
 package owltools.gaf.owl;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.OWLToolsTestBasics;
-import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
-import owltools.gaf.owl.GAFOWLBridge.Vocab;
 import owltools.gaf.owl.mapping.BasicABox;
 import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
@@ -43,7 +37,7 @@ public class BasicAboxBridgeTest extends OWLToolsTestBasics{
 		bridge.setTargetOntology(gafOnt);
 		bridge.translate(gafdoc);
 		
-		OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
+		OWLDocumentFormat owlFormat = new RDFXMLDocumentFormat();
 		g.getManager().saveOntology(gafOnt, owlFormat, IRI.create(new File("target/foo.owl")));
 		
 		for (OWLAxiom ax : gafOnt.getAxioms()) {

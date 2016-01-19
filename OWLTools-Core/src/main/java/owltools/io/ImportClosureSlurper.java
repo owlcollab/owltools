@@ -15,6 +15,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
+import com.google.common.base.Optional;
+
 public class ImportClosureSlurper {
 	
 	private static final Logger LOGGER = Logger.getLogger(ImportClosureSlurper.class);
@@ -67,7 +69,10 @@ public class ImportClosureSlurper {
 			IRI iri = null;
 			OWLOntologyID ontologyID = ont.getOntologyID();
 			if (ontologyID != null) {
-				iri = ontologyID.getOntologyIRI();
+				Optional<IRI> optional = ontologyID.getOntologyIRI();
+				if (optional.isPresent()) {
+					iri = optional.get();
+				}
 			}
 			if (iri == null) {
 				iri = IRI.generateDocumentIRI();

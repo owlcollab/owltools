@@ -7,11 +7,10 @@ import static org.junit.Assert.*;
 
 import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
-import org.semanticweb.owlapi.expression.ParserException;
+import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.ClassExpressionNotInProfileException;
 import org.semanticweb.owlapi.reasoner.FreshEntitiesException;
@@ -48,15 +47,15 @@ public abstract class AbstractReasonerTest extends OWLToolsTestBasics {
 		return rf.createReasoner(g.getSourceOntology());
 	}
 	
-	protected OWLClassExpression parseOMN(String expr) throws ParserException {
+	protected OWLClassExpression parseOMN(String expr) throws OWLParserException {
 		return parser.parseManchesterExpression(expr);
 	}
 	
-	protected Set<OWLClass> findDescendants(OWLReasoner r, String expr) throws TimeOutException, FreshEntitiesException, InconsistentOntologyException, ClassExpressionNotInProfileException, ReasonerInterruptedException, ParserException {
+	protected Set<OWLClass> findDescendants(OWLReasoner r, String expr) throws TimeOutException, FreshEntitiesException, InconsistentOntologyException, ClassExpressionNotInProfileException, ReasonerInterruptedException, OWLParserException {
 		return findDescendants(r, expr, null);
 	}
 	
-	protected Set<OWLClass> findDescendants(OWLReasoner r, String expr, Integer numExpected) throws TimeOutException, FreshEntitiesException, InconsistentOntologyException, ClassExpressionNotInProfileException, ReasonerInterruptedException, ParserException {
+	protected Set<OWLClass> findDescendants(OWLReasoner r, String expr, Integer numExpected) throws TimeOutException, FreshEntitiesException, InconsistentOntologyException, ClassExpressionNotInProfileException, ReasonerInterruptedException, OWLParserException {
 		System.out.println("Query: "+expr);
 		OWLClassExpression qc = parseOMN(expr);
 		Set<OWLClass> clzs = r.getSubClasses(qc, false).getFlattened();
@@ -76,7 +75,7 @@ public abstract class AbstractReasonerTest extends OWLToolsTestBasics {
 
 
 	
-	protected Set<OWLNamedIndividual> findIndividuals(OWLReasoner r, String expr, Integer numExpected) throws TimeOutException, FreshEntitiesException, InconsistentOntologyException, ClassExpressionNotInProfileException, ReasonerInterruptedException, ParserException {
+	protected Set<OWLNamedIndividual> findIndividuals(OWLReasoner r, String expr, Integer numExpected) throws TimeOutException, FreshEntitiesException, InconsistentOntologyException, ClassExpressionNotInProfileException, ReasonerInterruptedException, OWLParserException {
 		System.out.println("Query: "+expr);
 		Set<OWLNamedIndividual> inds = r.getInstances(parseOMN(expr), false).getFlattened();
 		for (OWLNamedIndividual i : inds) {

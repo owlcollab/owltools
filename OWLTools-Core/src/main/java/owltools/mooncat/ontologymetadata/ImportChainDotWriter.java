@@ -272,7 +272,7 @@ public class ImportChainDotWriter {
 
 
 	private CharSequence nodeId(OWLOntology ont) {
-		return nodeId(ont.getOntologyID().getOntologyIRI());
+		return nodeId(ont.getOntologyID().getOntologyIRI().get());
 	}
 
 	private CharSequence nodeId(IRI iri) {

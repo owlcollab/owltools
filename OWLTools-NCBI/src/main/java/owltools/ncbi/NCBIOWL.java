@@ -43,7 +43,7 @@ public class NCBIOWL extends NCBIConverter {
 	 * Create OWLAPI utilities: An ontology manager.
 	 */
 	protected final static OWLOntologyManager manager =
-		OWLManager.createOWLOntologyManager(dataFactory);
+		OWLManager.createOWLOntologyManager();
 
 	/**
 	 * Names of the NCBI ranks.

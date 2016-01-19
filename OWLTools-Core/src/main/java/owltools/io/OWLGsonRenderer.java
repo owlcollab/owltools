@@ -98,7 +98,7 @@ public class OWLGsonRenderer {
 
 	public Object convert(OWLOntology ont) {
 		Map<String,Object> m = new HashMap<String,Object>();
-		m.put("iri", convert(ont.getOntologyID().getOntologyIRI()));
+		m.put("iri", convert(ont.getOntologyID().getOntologyIRI().get()));
 		m.put("annotations", convertSet(ont.getAnnotations()));
 		m.put("axioms", convertSet(ont.getAxioms()));
 		m.put("imports", convertSet(ont.getImportsDeclarations()));

@@ -133,7 +133,7 @@ public class OWLGraphEdge {
 		setSingleQuantifiedProperty(qp);
 	}
 
-	public OWLGraphEdge(OWLRestriction<?, ?, ?> s, OWLObject t,
+	public OWLGraphEdge(OWLRestriction s, OWLObject t,
 			OWLQuantifiedProperty el, OWLOntology o) {
 		super();
 		this.source = s;

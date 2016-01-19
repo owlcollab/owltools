@@ -4,19 +4,13 @@ package owltools.panther;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.log4j.Logger;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.shunt.OWLShuntGraph;
 import owltools.panther.PANTHERTree;
 
 public class PANTHERTreeTest {

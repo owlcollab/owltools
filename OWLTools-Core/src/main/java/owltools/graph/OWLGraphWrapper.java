@@ -24,6 +24,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
 
+import owltools.util.OwlHelper;
+
 /**
  * Wraps one or more OWLOntology objects providing convenient OBO-like operations 
  * 
@@ -142,7 +144,7 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 	@Deprecated
 	public void useImportClosureForQueries() throws UnknownOWLOntologyException, OWLOntologyCreationException {
 		this.ontology = 
-			OWLManager.createOWLOntologyManager().createOntology(sourceOntology.getOntologyID().getOntologyIRI(), sourceOntology.getImportsClosure());
+			OWLManager.createOWLOntologyManager().createOntology(sourceOntology.getOntologyID().getOntologyIRI().get(), sourceOntology.getImportsClosure());
 	}
 
 	@Deprecated
@@ -150,7 +152,7 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 		Set<OWLAxiom> axioms = ontology.getAxioms();
 		axioms.addAll(extOnt.getAxioms());
 		this.ontology = 
-			OWLManager.createOWLOntologyManager().createOntology(axioms, sourceOntology.getOntologyID().getOntologyIRI());	
+			OWLManager.createOWLOntologyManager().createOntology(axioms, sourceOntology.getOntologyID().getOntologyIRI().get());	
 	}
 
 	@Deprecated
@@ -176,7 +178,7 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 		OWLAnnotationProperty lap = getDataFactory().getOWLAnnotationProperty(IRI.create(DEFAULT_IRI_PREFIX + "IAO_0000118")); 
 		Set<OWLAnnotation>anns = null;
 		if (c instanceof OWLEntity) {
-			anns = ((OWLEntity) c).getAnnotations(sourceOntology,lap);
+			anns = OwlHelper.getAnnotations((OWLEntity) c, lap, sourceOntology);
 		}
 		else {
 			return null;
@@ -333,8 +335,8 @@ public class OWLGraphWrapper extends OWLGraphWrapperEdgesAdvanced {
 
 	private Set<ISynonym> getOBOSynonyms(OWLEntity e, Obo2OWLVocabulary vocabulary, OWLOntology ont) {
 		OWLAnnotationProperty synonymProperty = getDataFactory().getOWLAnnotationProperty(vocabulary.getIRI());
-		Set<OWLAnnotation> anns = e.getAnnotations(ont, synonymProperty);
-		Set<OWLAnnotationAssertionAxiom> annotationAssertionAxioms = e.getAnnotationAssertionAxioms(ont);
+		Set<OWLAnnotation> anns = OwlHelper.getAnnotations(e, synonymProperty, ont);
+		Set<OWLAnnotationAssertionAxiom> annotationAssertionAxioms = ont.getAnnotationAssertionAxioms(e.getIRI());
 		if (anns != null && !anns.isEmpty()) {
 			Set<ISynonym> set = new HashSet<ISynonym>();
 			for (OWLAnnotation a : anns) {

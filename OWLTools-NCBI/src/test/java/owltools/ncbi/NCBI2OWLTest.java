@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.junit.Test;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -18,7 +19,7 @@ import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 import owltools.ncbi.NCBIOWL;
 import owltools.ncbi.NCBI2OWL;
@@ -168,7 +169,7 @@ public class NCBI2OWLTest {
 			ontology.containsClassInSignature(iri));
 
 		// Check axioms
-		Set<OWLClassAxiom> axioms = ontology.getAxioms(taxon);
+		Set<OWLClassAxiom> axioms = ontology.getAxioms(taxon, Imports.EXCLUDED);
 		assertEquals("Count class axioms for Bacteria", 1, axioms.size());
 		assertEquals("SubClassOf(<http://purl.obolibrary.org/obo/NCBITaxon_2> <http://purl.obolibrary.org/obo/NCBITaxon_131567>)", axioms.toArray()[0].toString());
 
@@ -203,7 +204,7 @@ public class NCBI2OWLTest {
 			ontology.containsClassInSignature(iri));
 
 		// Check axioms
-		Set<OWLClassAxiom> axioms = ontology.getAxioms(taxon);
+		Set<OWLClassAxiom> axioms = ontology.getAxioms(taxon, Imports.EXCLUDED);
 		assertEquals("Count class axioms for Actinobacteria", 1, axioms.size());
 		assertEquals("SubClassOf(<http://purl.obolibrary.org/obo/NCBITaxon_201174> <http://purl.obolibrary.org/obo/NCBITaxon_2>)", axioms.toArray()[0].toString());
 
@@ -228,7 +229,7 @@ public class NCBI2OWLTest {
 
 	private String expandLabel(String subject, String property,
 			String value) {
-		RDFXMLOntologyFormat format = OWLConverter.format;
+		RDFXMLDocumentFormat format = OWLConverter.format;
 		// TODO: Why is "Annotation" always doubled?
 		return "AnnotationAssertion(" +
 			property + " <" +
@@ -238,7 +239,7 @@ public class NCBI2OWLTest {
 
 	private String expandAnnotation(String subject, String property,
 			String value) {
-		RDFXMLOntologyFormat format = OWLConverter.format;
+		RDFXMLDocumentFormat format = OWLConverter.format;
 		// TODO: Why is "Annotation" always doubled?
 		return "AnnotationAssertion(<" +
 			format.getIRI(property) + "> <" +
@@ -248,7 +249,7 @@ public class NCBI2OWLTest {
 
 	private String expandAnnotation(String subject, String property,
 			IRI value) {
-		RDFXMLOntologyFormat format = OWLConverter.format;
+		RDFXMLDocumentFormat format = OWLConverter.format;
 		// TODO: Why is "Annotation" always doubled?
 		return "AnnotationAssertion(<" +
 			format.getIRI(property) + "> <" +
@@ -258,7 +259,7 @@ public class NCBI2OWLTest {
 
 	private String expandSynonym(String subject, String type, 
 			String property, String value) {
-		RDFXMLOntologyFormat format = OWLConverter.format;
+		RDFXMLDocumentFormat format = OWLConverter.format;
 		return "AnnotationAssertion(Annotation(<" +
 			format.getIRI("oio:hasSynonymType").toString() + "> <" +
 			format.getIRI(type).toString() + ">) <" +
@@ -276,7 +277,7 @@ public class NCBI2OWLTest {
 			ontology.containsClassInSignature(iri));
 		
 		// Check axioms
-		Set<OWLClassAxiom> axioms = ontology.getAxioms(taxon);
+		Set<OWLClassAxiom> axioms = ontology.getAxioms(taxon, Imports.EXCLUDED);
 		assertEquals("Count class axioms", 1, axioms.size());
 		assertEquals("SubClassOf(<http://purl.obolibrary.org/obo/NCBITaxon_species> <http://purl.obolibrary.org/obo/NCBITaxon#_taxonomic_rank>)", axioms.toArray()[0].toString());
 
@@ -301,7 +302,7 @@ public class NCBI2OWLTest {
 			ontology.containsAnnotationPropertyInSignature(iri));
 		
 		// Check axioms
-		Set<OWLAnnotationAxiom> axioms = ontology.getAxioms(property);
+		Set<OWLAnnotationAxiom> axioms = ontology.getAxioms(property, Imports.EXCLUDED);
 		assertEquals("Count class axioms", 0, axioms.size());
 
 		// Check annotations

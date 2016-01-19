@@ -27,6 +27,9 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
+
+import com.google.common.base.Optional;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
@@ -57,7 +60,7 @@ public class BioChebiGenerator {
 		final OWLDataFactory factory = manager.getOWLDataFactory();
 		
 		// scan axioms
-		Set<OWLSubClassOfAxiom> axioms = ontology.getAxioms(AxiomType.SUBCLASS_OF, true);
+		Set<OWLSubClassOfAxiom> axioms = ontology.getAxioms(AxiomType.SUBCLASS_OF, Imports.INCLUDED);
 		for (OWLSubClassOfAxiom axiom : axioms) {
 			OWLClassExpression superCE = axiom.getSuperClass();
 			OWLClassExpression subCE = axiom.getSubClass();
@@ -113,9 +116,9 @@ public class BioChebiGenerator {
 	private void appendOntologyId(OWLOntologyID ontologyID, StringBuilder sb) {
 		if (ontologyID != null) {
 			sb.append("Ontology(id=").append(ontologyID.getOntologyIRI());
-			IRI versionIRI = ontologyID.getVersionIRI();
-			if (versionIRI != null) {
-				sb.append(", version=").append(versionIRI);
+			Optional<IRI> versionIRI = ontologyID.getVersionIRI();
+			if (versionIRI .isPresent()) {
+				sb.append(", version=").append(versionIRI.get());
 			}
 			sb.append(")");
 			

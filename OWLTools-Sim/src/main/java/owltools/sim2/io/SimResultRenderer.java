@@ -11,8 +11,6 @@ import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.scores.AttributePairScores;
 import owltools.sim2.scores.ElementPairScores;
-import owltools.sim2.scores.PairScores;
-import owltools.util.ClassExpressionPair;
 
 public interface SimResultRenderer {
 

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -38,9 +37,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
-import owltools.reasoner.PlaceholderJcelFactory;
-import owltools.reasoner.PrecomputingMoreReasonerFactory;
-import uk.ac.manchester.cs.jfact.JFactFactory;
+import owltools.util.OwlHelper;
 
 /**
  * This class build inferred axioms of an ontology.
@@ -52,12 +49,7 @@ public class InferenceBuilder{
 	protected final static Logger logger = Logger .getLogger(InferenceBuilder.class);
 
 	public static final String REASONER_HERMIT = "hermit";
-	public static final String REASONER_JCEL = "jcel";
 	public static final String REASONER_ELK = "elk";
-	public static final String REASONER_JFACT = "jfact";
-	public static final String REASONER_MORE = "more";
-	public static final String REASONER_MORE_HERMIT = "more-hermit";
-	public static final String REASONER_MORE_JFACT = "more-jfact";
 
 	private final OWLReasonerFactory reasonerFactory;
 	private volatile OWLReasoner reasoner = null;
@@ -67,7 +59,7 @@ public class InferenceBuilder{
 	List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = new ArrayList<OWLEquivalentClassesAxiom>();
 	
 	public InferenceBuilder(OWLGraphWrapper graph){
-		this(graph, new Reasoner.ReasonerFactory(), false);
+		this(graph, new org.semanticweb.HermiT.ReasonerFactory(), false);
 	}
 	
 	public InferenceBuilder(OWLGraphWrapper graph, String reasonerName){
@@ -88,22 +80,10 @@ public class InferenceBuilder{
 	
 	public static OWLReasonerFactory getFactory(String reasonerName) {
 		if (REASONER_HERMIT.equals(reasonerName)) {
-			return new Reasoner.ReasonerFactory();
-		}
-		else if (REASONER_JCEL.equals(reasonerName)) {
-			return new PlaceholderJcelFactory();
+			return new org.semanticweb.HermiT.ReasonerFactory();
 		}
 		else if (REASONER_ELK.equals(reasonerName)) {
 			return new ElkReasonerFactory();
-		}
-		else if (REASONER_JFACT.equals(reasonerName)) {
-			return new JFactFactory();
-		}
-		else if (REASONER_MORE.equals(reasonerName) || REASONER_MORE_HERMIT.equals(reasonerName)) {
-			return PrecomputingMoreReasonerFactory.getMoreHermitFactory();
-		}
-		else if (REASONER_MORE_JFACT.equals(reasonerName)) {
-			return PrecomputingMoreReasonerFactory.getMoreJFactFactory();
 		}
 		throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
 	}
@@ -327,7 +307,7 @@ public class InferenceBuilder{
 			if (!doInferencesForClass(cls, ontology)) {
 				continue;
 			}
-			for (OWLClassExpression ec : cls.getEquivalentClasses(ontology)) {
+			for (OWLClassExpression ec : OwlHelper.getEquivalentClasses(cls, ontology)) {
 				//System.out.println(cls+"=EC="+ec);
 				if (alwaysAssertSuperClasses) {
 					if (ec instanceof OWLObjectIntersectionOf) {
@@ -395,7 +375,7 @@ public class InferenceBuilder{
 				// we do not want to report inferred subclass links
 				// if they are already asserted in the ontology
 				boolean isAsserted = false;
-				for (OWLClassExpression asc : cls.getSuperClasses(ontology.getImportsClosure())) {
+				for (OWLClassExpression asc : OwlHelper.getSuperClasses(cls, ontology.getImportsClosure())) {
 					if (asc.equals(sc)) {
 						// we don't want to report this
 						isAsserted = true;
@@ -405,9 +385,7 @@ public class InferenceBuilder{
 				if (!alwaysAssertSuperClasses) {
 					// when generating obo, we do NOT want equivalence axioms treated as
 					// assertions
-					for (OWLClassExpression ec : cls
-							.getEquivalentClasses(ontology)) {
-
+					for (OWLClassExpression ec : OwlHelper.getEquivalentClasses(cls, ontology)) {
 						if (ec instanceof OWLObjectIntersectionOf) {
 							OWLObjectIntersectionOf io = (OWLObjectIntersectionOf) ec;
 							for (OWLClassExpression op : io.getOperands()) {

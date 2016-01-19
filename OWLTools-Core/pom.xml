@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>OWLTools-Parent</artifactId>
 		<groupId>org.bbop</groupId>
-		<version>0.2.2-SNAPSHOT</version>
+		<version>0.3.0-SNAPSHOT</version>
 		<relativePath>../OWLTools-Parent/pom.xml</relativePath>
 	</parent>
 
@@ -60,11 +60,7 @@
 			<artifactId>log4j</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>uk.ac.manchester.cs</groupId>
-			<artifactId>factplusplus</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.hermit-reasoner</groupId>
+			<groupId>net.sourceforge.owlapi</groupId>
 			<artifactId>org.semanticweb.hermit</artifactId>
 		</dependency>
 		<dependency>
@@ -82,10 +78,6 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>jcel</groupId>
-			<artifactId>jcel.owlapi</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>de.derivo</groupId>
@@ -110,20 +102,8 @@
 			<artifactId>gson</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.coode</groupId>
-			<artifactId>oppl2</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.sourceforge.owlapi</groupId>
-			<artifactId>jfact</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>jline</groupId>
 			<artifactId>jline</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.semanticweb.more</groupId>
-			<artifactId>more-reasoner</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.geneontology</groupId>

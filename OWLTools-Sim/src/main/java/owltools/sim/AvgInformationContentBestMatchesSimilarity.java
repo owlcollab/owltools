@@ -1,7 +1,6 @@
 package owltools.sim;
 
 import java.util.HashMap;
-import java.io.OutputStream;
 import java.io.PrintStream;
 
 import java.util.HashSet;

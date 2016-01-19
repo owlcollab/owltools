@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.owlapi.expression.ParserException;
+import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -14,6 +14,7 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.RemoveImport;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.graph.OWLGraphWrapper;
@@ -50,7 +51,7 @@ public class QuerySubsetGenerator {
 			}
 			createSubSet(targetGraph, subset, toMerge);
 
-		} catch (ParserException e) {
+		} catch (OWLParserException e) {
 			LOG.error("Could not parse query: "+dlQueryString, e);
 			// TODO throw Exception?
 			return;
@@ -115,7 +116,7 @@ public class QuerySubsetGenerator {
 		Set<OWLAxiom> importAxioms = new HashSet<OWLAxiom>();
 		for (OWLOntology mergeOntology : toMerge) {
 			for (OWLClass cls : subset) {
-				importAxioms.addAll(mergeOntology.getAxioms(cls));
+				importAxioms.addAll(mergeOntology.getAxioms(cls, Imports.EXCLUDED));
 			}
 		}
 
@@ -123,7 +124,7 @@ public class QuerySubsetGenerator {
 		OWLOntologyManager targetManager = targetOntology.getOWLOntologyManager();
 		List<OWLOntologyChange> removeImports = new ArrayList<OWLOntologyChange>();
 		for(OWLOntology m : toMerge) {
-			removeImports.add(new RemoveImport(targetOntology, new OWLImportsDeclarationImpl(m.getOntologyID().getOntologyIRI())));
+			removeImports.add(new RemoveImport(targetOntology, new OWLImportsDeclarationImpl(m.getOntologyID().getOntologyIRI().get())));
 		}
 		targetManager.applyChanges(removeImports);
 
@@ -142,8 +143,8 @@ public class QuerySubsetGenerator {
 			mooncat.addSubAnnotationProperties(axioms);
 
 			// add missing axioms
-			int count = targetManager.addAxioms(targetOntology, axioms).size();
-			LOG.info("Added "+count+" axioms to the query ontology");
+			targetManager.addAxioms(targetOntology, axioms);
+			LOG.info("Added "+axioms.size()+" axioms to the query ontology");
 		}
 		
 		if (isRemoveDangling) {

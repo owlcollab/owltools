@@ -31,12 +31,16 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+
+import owltools.util.OwlHelper;
 
 /**
  * Methods to extract values from entities in the graph with potential multiple
@@ -110,7 +114,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 */
 	public boolean isObsolete(OWLObject c) {
 		for (OWLOntology ont : getAllOntologies()) {
-			for (OWLAnnotation ann : ((OWLEntity)c).getAnnotations(ont)) {
+			for (OWLAnnotation ann : OwlHelper.getAnnotations((OWLEntity) c, ont)) {
 				if (ann.isDeprecatedIRIAnnotation()) {
 					return true;
 				}
@@ -192,7 +196,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		Set<OWLAnnotation>anns = new HashSet<OWLAnnotation>();
 		if (c instanceof OWLEntity) {
 			for (OWLOntology ont : getAllOntologies()) {
-				anns.addAll(((OWLEntity) c).getAnnotations(ont,lap));
+				anns.addAll(OwlHelper.getAnnotations((OWLEntity) c, lap, ont));
 			}
 		}
 		else {
@@ -218,7 +222,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		Set<OWLAnnotation>anns = new HashSet<OWLAnnotation>();
 		if (c instanceof OWLEntity) {
 			for (OWLOntology ont : getAllOntologies()) {
-				anns.addAll(((OWLEntity) c).getAnnotations(ont,lap));
+				anns.addAll(OwlHelper.getAnnotations((OWLEntity) c, lap, ont));
 			}
 		}
 		else {
@@ -360,35 +364,31 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 
 	/**
-	 * It returns the value of the domain tag
+	 * It returns the (first) value of the domain tag
 	 * 
 	 * @param prop
 	 * @return domain string or null
 	 */
 	public String getDomain(OWLObjectProperty prop){
-		Set<OWLClassExpression> domains = prop.getDomains(sourceOntology);
-
-		for(OWLClassExpression ce: domains){
+		for (OWLPropertyDomainAxiom<?> axiom : sourceOntology.getObjectPropertyDomainAxioms(prop)) {
+			OWLClassExpression ce = axiom.getDomain();
 			return getIdentifier(ce);
 		}
-
 		return null;
 	}
 
 
 	/**
-	 * It returns the value of the range tag
+	 * It returns the (first) value of the range tag
 	 * 
 	 * @param prop
 	 * @return range or null
 	 */
 	public String getRange(OWLObjectProperty prop){
-		Set<OWLClassExpression> domains = prop.getRanges(sourceOntology);
-
-		for(OWLClassExpression ce: domains){
+		for(OWLObjectPropertyRangeAxiom axiom : sourceOntology.getObjectPropertyRangeAxioms(prop)) {
+			OWLClassExpression ce = axiom.getRange();
 			return getIdentifier(ce);
 		}
-
 		return null;
 	}
 
@@ -785,7 +785,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		if (c instanceof OWLEntity) {
 			List<String> list = new ArrayList<String>();
 			for (OWLOntology ont : getAllOntologies()) {
-				Set<OWLAnnotationAssertionAxiom> axioms = ((OWLEntity) c).getAnnotationAssertionAxioms(ont);
+				Set<OWLAnnotationAssertionAxiom> axioms = ont.getAnnotationAssertionAxioms(((OWLEntity) c).getIRI());
 				for (OWLAnnotationAssertionAxiom axiom :axioms){
 					if(lap.equals(axiom.getProperty())){
 						for(OWLAnnotation annotation: axiom.getAnnotations(xap)){
@@ -894,7 +894,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 			for (OWLOntology o : getAllOntologies()) {
 				for(OWLObjectProperty p : o.getObjectPropertiesInSignature()) {
 					// check for short hand or obo ID in owl
-					Set<OWLAnnotation> annotations = p.getAnnotations(o);
+					Set<OWLAnnotation> annotations = OwlHelper.getAnnotations(p, o);
 					if (annotations != null) {
 						for (OWLAnnotation owlAnnotation : annotations) {
 							OWLAnnotationProperty property = owlAnnotation.getProperty();

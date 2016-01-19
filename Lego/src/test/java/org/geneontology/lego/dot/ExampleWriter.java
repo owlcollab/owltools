@@ -11,6 +11,7 @@ import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
@@ -29,7 +30,7 @@ public class ExampleWriter {
 		final OWLOntology ontology = p.parseOWL(iri);
 		final OWLGraphWrapper g = new OWLGraphWrapper(ontology);
 
-		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
+		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(Imports.INCLUDED);
 
 		OWLReasonerFactory factory = new ElkReasonerFactory();
 		

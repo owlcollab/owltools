@@ -1,6 +1,5 @@
 package sim1;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;
 

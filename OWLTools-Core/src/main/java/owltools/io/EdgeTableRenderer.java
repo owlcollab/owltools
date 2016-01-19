@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
@@ -31,8 +32,8 @@ public class EdgeTableRenderer extends AbstractRenderer implements GraphRenderer
 	public void render(OWLGraphWrapper g) {
 		graph = g;
 		
-		Set<OWLObject> objs = new HashSet<OWLObject>(g.getSourceOntology().getClassesInSignature(false));
-		objs.addAll(g.getSourceOntology().getIndividualsInSignature(false));
+		Set<OWLObject> objs = new HashSet<OWLObject>(g.getSourceOntology().getClassesInSignature(Imports.EXCLUDED));
+		objs.addAll(g.getSourceOntology().getIndividualsInSignature(Imports.EXCLUDED));
 
 		for (OWLObject obj : objs) {
 			if (obj.equals(g.getDataFactory().getOWLNothing()))

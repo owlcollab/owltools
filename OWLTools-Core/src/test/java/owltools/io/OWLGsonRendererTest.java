@@ -14,8 +14,8 @@ import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphEdge;
@@ -67,7 +67,7 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 		if (RENDER_FLAG) {
 			System.out.println(stringWriter.toString());
 			ParserWrapper pw = new ParserWrapper();
-			OWLOntologyFormat owlFormat = new OWLJSONFormat();
+			OWLDocumentFormat owlFormat = new OWLJSONFormat();
 			File foo = folder.newFile("foo.json");
 			pw.saveOWL(wrapper.getSourceOntology(), owlFormat , foo.getAbsolutePath());
 		}

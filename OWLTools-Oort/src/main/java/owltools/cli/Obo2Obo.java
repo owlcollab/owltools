@@ -62,15 +62,15 @@ public class Obo2Obo {
 			}
 			else if (opts.nextEq("--use-catalog") || opts.nextEq("--use-catalog-xml")) {
 				opts.info("", "uses default catalog-v001.xml");
-				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper("catalog-v001.xml"));
+				pw.getManager().getIRIMappers().add(new CatalogXmlIRIMapper("catalog-v001.xml"));
 			}
 			else if (opts.nextEq("--catalog-xml")) {
 				opts.info("CATALOG-FILE", "uses the specified file as a catalog");
-				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper(opts.nextOpt()));
+				pw.getManager().getIRIMappers().add(new CatalogXmlIRIMapper(opts.nextOpt()));
 			}
 			else if (opts.nextEq("--skip-obo-checks")) {
 				opts.info("CATALOG-FILE", "uses the specified file as a catalog");
-				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper(opts.nextOpt()));
+				pw.getManager().getIRIMappers().add(new CatalogXmlIRIMapper(opts.nextOpt()));
 			}
 			else{
 				String string = opts.nextOpt();

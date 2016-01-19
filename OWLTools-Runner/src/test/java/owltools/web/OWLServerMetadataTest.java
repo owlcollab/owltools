@@ -1,40 +1,27 @@
 package owltools.web;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.util.log.Log;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.OWLClass;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 import owltools.sim2.OwlSim;
 import owltools.sim2.OwlSimFactory;
-import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSimFactory;
 import owltools.sim2.preprocessor.ABoxUtils;
-import owltools.sim2.preprocessor.NullSimPreProcessor;
-import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
  * Simple test for the client server communication for the OWLTools web server.

@@ -31,7 +31,7 @@ import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.parser.XrefExpander;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
-import org.obolibrary.owl.LabelFunctionalSyntaxOntologyStorer;
+import org.obolibrary.owl.LabelFunctionalSyntaxStorerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
@@ -41,6 +41,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
@@ -49,7 +50,6 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -57,10 +57,13 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.SetOntologyID;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
+
+import com.google.common.base.Optional;
 
 import owltools.InferenceBuilder;
 import owltools.InferenceBuilder.ConsistencyReport;
@@ -88,6 +91,7 @@ import owltools.ontologyrelease.logging.TraceReportFileHandler;
 import owltools.ontologyverification.OntologyCheck;
 import owltools.ontologyverification.OntologyCheckHandler;
 import owltools.ontologyverification.OntologyCheckHandler.CheckSummary;
+import owltools.util.OwlHelper;
 import uk.ac.manchester.cs.owl.owlapi.OWLImportsDeclarationImpl;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
@@ -666,7 +670,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		final String version = handleVersion(ontologyId);
 
 		if (oortConfig.isWriteLabelOWL()) {
-			mooncat.getManager().addOntologyStorer(new LabelFunctionalSyntaxOntologyStorer());
+			mooncat.getManager().getOntologyStorers().add(new LabelFunctionalSyntaxStorerFactory());
 		}
 		
 		// ----------------------------------------
@@ -678,7 +682,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			logInfo("expanding macros");
 			if (oortConfig.getMacroStrategy() == MacroStrategy.GCI) {
 				MacroExpansionGCIVisitor gciVisitor = 
-					new MacroExpansionGCIVisitor(mooncat.getOntology(), mooncat.getManager());
+					new MacroExpansionGCIVisitor(mooncat.getOntology(), mooncat.getManager(), false);
 				gciOntology = gciVisitor.createGCIOntology();
 				logInfo("GCI Ontology has "+gciOntology.getAxiomCount()+" axioms");
 				gciVisitor.dispose();
@@ -796,11 +800,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 				logInfo("Removing query term from ontology: "+namedQuery);
 				OWLOntology owlOntology = mooncat.getGraph().getSourceOntology();
 				Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
-				axioms.addAll(owlOntology.getAxioms(namedQuery));
+				axioms.addAll(owlOntology.getAxioms(namedQuery, Imports.EXCLUDED));
 				axioms.addAll(owlOntology.getDeclarationAxioms(namedQuery));
 				OWLOntologyManager manager = owlOntology.getOWLOntologyManager();
-				List<OWLOntologyChange> removed = manager.removeAxioms(owlOntology, axioms);
-				logInfo("Finished removing query term, removed axiom count: "+removed.size());
+				manager.removeAxioms(owlOntology, axioms);
+				logInfo("Finished removing query term, removed axiom count: "+axioms.size());
 			}
 			
 			logInfo("Finished building ontology from query.");
@@ -1113,9 +1117,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	private void createModule(String ontologyId, String moduleName, Set<OWLEntity> signature)
 			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException 
 	{
-		// create a new manager, re-use factory
-		// avoid unnecessary change events
-		final OWLOntologyManager m = OWLManager.createOWLOntologyManager(mooncat.getManager().getOWLDataFactory());
+		// create a new manager, avoid unnecessary change events
+		final OWLOntologyManager m = OWLManager.createOWLOntologyManager();
 		
 		// extract module
 		SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, mooncat.getOntology(), ModuleType.BOT);
@@ -1316,17 +1319,17 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		String version;
 		OWLOntology ontology = mooncat.getOntology();
 		OWLOntologyID owlOntologyId = ontology.getOntologyID();
-		IRI versionIRI = owlOntologyId.getVersionIRI();
-		if (versionIRI == null) {
+		Optional<IRI> versionIRI = owlOntologyId.getVersionIRI();
+		if (versionIRI.isPresent() == false) {
 			// set a new version IRI using the current date
 			version = OntologyVersionTools.format(new Date());
-			versionIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+ontologyId+"/"+oortConfig.getVersionSubdirectory()+"/"+version+"/"+ontologyId+".owl");
+			versionIRI = Optional.of(IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+ontologyId+"/"+oortConfig.getVersionSubdirectory()+"/"+version+"/"+ontologyId+".owl"));
 			
 			OWLOntologyManager m = mooncat.getManager();
 			m.applyChange(new SetOntologyID(ontology, new OWLOntologyID(owlOntologyId.getOntologyIRI(), versionIRI)));
 		}
 		else {
-			String versionIRIString = versionIRI.toString();
+			String versionIRIString = versionIRI.get().toString();
 			version = OntologyVersionTools.parseVersion(versionIRIString);
 			if (version == null) {
 				// use the whole IRI? escape?
@@ -1535,10 +1538,10 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			OWLClass subClass = subClassExpression.asOWLClass();
 			OWLClass superClass = superClassExpression.asOWLClass();
 			
-			if (subClass.getEquivalentClasses(ont).isEmpty()) {
+			if (OwlHelper.getEquivalentClasses(subClass, ont).isEmpty()) {
 				continue;
 			}
-			if (superClass.getEquivalentClasses(ont).isEmpty()) {
+			if (OwlHelper.getEquivalentClasses(superClass, ont).isEmpty()) {
 				continue;
 			}
 			if (markedClasses != null) {
@@ -1641,7 +1644,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			// create temporary version IRI
 			// pattern: OBO_PREFIX / ID-SPACE / VERSION / NAME .owl
 			final IRI newVersionIRI = IRI.create(Obo2OWLConstants.DEFAULT_IRI_PREFIX+idspace+"/"+version+"/"+fileNameBase+".owl");
-			final OWLOntologyID newOWLOntologyID = new OWLOntologyID(newOntologyIRI, newVersionIRI);
+			final OWLOntologyID newOWLOntologyID = new OWLOntologyID(Optional.of(newOntologyIRI), Optional.of(newVersionIRI));
 			manager.applyChange(new SetOntologyID(ontologyToSave, newOWLOntologyID));
 			
 			// create change axiom with original id
@@ -1722,7 +1725,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 	}
 	
-	private void write(OWLOntologyManager manager, OWLOntology ont, OWLOntologyFormat format, OutputStream out) throws OWLOntologyStorageException {
+	private void write(OWLOntologyManager manager, OWLOntology ont, OWLDocumentFormat format, OutputStream out) throws OWLOntologyStorageException {
 		try {
 			manager.saveOntology(ont, format, out);
 		} finally {
@@ -1765,7 +1768,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 
 	private boolean isBridgingOntology(OWLOntology ont) {
-		for (OWLClass c : ont.getClassesInSignature(true)) {
+		for (OWLClass c : ont.getClassesInSignature(Imports.INCLUDED)) {
 
 			if (ont.getDeclarationAxioms(c).size() > 0) {
 				if (mooncat.getOntology().getDeclarationAxioms(c).size() >0) {

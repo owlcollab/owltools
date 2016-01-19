@@ -10,12 +10,10 @@ import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
@@ -26,7 +24,8 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.reasoner.InferenceType;
+import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
@@ -133,7 +132,7 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 	private void assertOntologyContainsSubClassOf(String c, String p) {
 		OWLSubClassOfAxiom testAx = 
 			g.getDataFactory().getOWLSubClassOfAxiom(resolveClass(c), resolveClass(p));
-		assertTrue(g.getSourceOntology().containsAxiom(testAx, true));
+		assertTrue(g.getSourceOntology().containsAxiom(testAx, Imports.INCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS));
 
 	}
 	

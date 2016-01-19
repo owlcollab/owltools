@@ -24,9 +24,11 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.OwlHelper;
 
 /**
  * This utility is for making "composite" ontologies from the combination of a
@@ -175,7 +177,7 @@ public class SpeciesMergeUtil {
 		 * eqmap.put(vc, x); }
 		 */
 		for (OWLEquivalentClassesAxiom eca : ont.getAxioms(
-				AxiomType.EQUIVALENT_CLASSES, true)) {
+				AxiomType.EQUIVALENT_CLASSES, Imports.INCLUDED)) {
 			//LOG.info("TESTING ECA: " + eca);
 
 			// Looking for: FBbt:nnn = Ubr:nnn and part_of some NCBITaxon:7997
@@ -238,7 +240,7 @@ public class SpeciesMergeUtil {
 
 			Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 			Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
-			axioms.addAll(ont.getAxioms(c));
+			axioms.addAll(ont.getAxioms(c, Imports.EXCLUDED));
 			axioms.addAll(ont.getAnnotationAssertionAxioms(c.getIRI()));
 			for (OWLClass p : reasoner.getSuperClasses(c, true).getFlattened()) {
 				axioms.add(fac.getOWLSubClassOfAxiom(c, p));
@@ -419,8 +421,7 @@ public class SpeciesMergeUtil {
 	}
 
 	public boolean isSkippable(OWLClass c) {
-		Set<OWLAnnotation> anns = c.getAnnotations(ont);
-		boolean isSkip = false;
+		Set<OWLAnnotation> anns = OwlHelper.getAnnotations(c, ont);
 		for (OWLAnnotation ann : anns) {
 			String ap = ann.getProperty().getIRI().toString();
 			OWLAnnotationValue v = ann.getValue();

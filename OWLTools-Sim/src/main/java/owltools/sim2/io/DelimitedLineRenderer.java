@@ -9,7 +9,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import owltools.graph.OWLGraphWrapper;
@@ -17,7 +16,6 @@ import owltools.io.OWLPrettyPrinter;
 import owltools.sim2.SimpleOwlSim.ScoreAttributePair;
 import owltools.sim2.scores.AttributePairScores;
 import owltools.sim2.scores.ElementPairScores;
-import owltools.sim2.scores.PairScores;
 
 public class DelimitedLineRenderer extends AbstractRenderer implements SimResultRenderer {
 	

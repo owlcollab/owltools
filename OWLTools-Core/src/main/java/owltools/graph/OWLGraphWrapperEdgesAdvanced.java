@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.geneontology.reasoner.ExpressionMaterializingReasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
@@ -34,6 +35,7 @@ import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
 import owltools.graph.shunt.OWLShuntNode;
+import owltools.util.OwlHelper;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -399,6 +401,11 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 						}
 					}
 				}
+
+				@Override
+				public void visit(OWLAnnotationProperty property) {
+					// ignoe
+				}
 			});
 		}
 	}
@@ -728,6 +735,11 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 						relation_map.put(id, label);
 					}
 				}
+
+				@Override
+				public void visit(OWLAnnotationProperty property) {
+					// ignore
+				}
 			});
 		}
 	}
@@ -880,7 +892,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	 */
 	@Deprecated
 	public String[] getSubClassesNames(OWLClass cls){
-		Set<OWLClassExpression> st = cls.getSubClasses(sourceOntology);
+		Set<OWLClassExpression> st = OwlHelper.getSubClasses(cls, sourceOntology);
 
 
 		List<String> ar = new ArrayList<String>();

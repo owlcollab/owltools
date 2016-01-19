@@ -13,7 +13,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderListener;
 
 import owltools.OWLToolsTestBasics;
-import owltools.io.CatalogXmlIRIMapper;
 
 public class LocalMirrorIRIMapperTest extends OWLToolsTestBasics {
 

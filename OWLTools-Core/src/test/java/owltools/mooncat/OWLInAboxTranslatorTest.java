@@ -2,9 +2,8 @@ package owltools.mooncat;
 
 import java.io.FileOutputStream;
 
-import org.apache.log4j.Logger;
-import org.coode.owlapi.turtle.TurtleOntologyFormat;
 import org.junit.Test;
+import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.OWLToolsTestBasics;
@@ -18,11 +17,6 @@ import owltools.io.ParserWrapper;
  */
 public class OWLInAboxTranslatorTest extends OWLToolsTestBasics {
 
-	private static boolean RENDER_ONTOLOGY_FLAG = false;
-	
-	private Logger LOG = Logger.getLogger(OWLInAboxTranslatorTest.class);
-
-	
 	@Test
 	public void testTranslate() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
@@ -32,7 +26,7 @@ public class OWLInAboxTranslatorTest extends OWLToolsTestBasics {
 		OWLOntology abox = t.translate();
 		
 		o.getOWLOntologyManager().saveOntology(abox,
-				new TurtleOntologyFormat(),
+				new TurtleDocumentFormat(),
 				new FileOutputStream("target/shadow-abox.ttl"));
 	}
 

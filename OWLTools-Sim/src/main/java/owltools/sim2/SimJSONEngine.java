@@ -3,7 +3,6 @@ package owltools.sim2;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,18 +12,15 @@ import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.reasoner.impl.OWLClassNode;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.sim2.FastOwlSim.ClassCount;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
-import owltools.sim2.OwlSim.Stat;
 import owltools.sim2.OwlSim.StatsPerIndividual;
 import owltools.sim2.scores.ElementPairScores;
+import uk.ac.manchester.cs.owl.owlapi.OWLClassImpl;
 
 import com.google.gson.Gson;
-
-import uk.ac.manchester.cs.owl.owlapi.OWLClassImpl;
 
 /**
  * @author cjm

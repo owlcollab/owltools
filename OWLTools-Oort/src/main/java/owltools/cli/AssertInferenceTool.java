@@ -29,9 +29,9 @@ import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
+import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
@@ -40,17 +40,19 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
+import org.semanticweb.owlapi.model.parameters.ChangeApplied;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
@@ -126,11 +128,11 @@ public class AssertInferenceTool {
 			}
 			else if (opts.nextEq("--use-catalog") || opts.nextEq("--use-catalog-xml")) {
 				opts.info("", "uses default catalog-v001.xml");
-				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper("catalog-v001.xml"));
+				pw.getManager().getIRIMappers().add(new CatalogXmlIRIMapper("catalog-v001.xml"));
 			}
 			else if (opts.nextEq("--catalog-xml")) {
 				opts.info("CATALOG-FILE", "uses the specified file as a catalog");
-				pw.getManager().addIRIMapper(new CatalogXmlIRIMapper(opts.nextOpt()));
+				pw.getManager().getIRIMappers().add(new CatalogXmlIRIMapper(opts.nextOpt()));
 			}
 			else if (opts.nextEq("--markIsInferred")) {
 				useIsInferred = true;
@@ -337,12 +339,12 @@ public class AssertInferenceTool {
 			}
 		}
 		else {
-			OWLOntologyFormat format = new RDFXMLOntologyFormat();
+			OWLDocumentFormat format = new RDFXMLDocumentFormat();
 			if ("owx".equals(outputFileFormat)) {
-				format = new OWLXMLOntologyFormat();
+				format = new OWLXMLDocumentFormat();
 			}
 			else if ("ofn".equals(outputFileFormat)) {
-				format = new OWLFunctionalSyntaxOntologyFormat(); 
+				format = new FunctionalSyntaxDocumentFormat(); 
 			}
 			FileOutputStream outputStream = null;
 			try {
@@ -696,9 +698,8 @@ public class AssertInferenceTool {
 	private static void createModule(String moduleName, Set<OWLEntity> signature, OWLOntology ont)
 			throws OWLOntologyCreationException, IOException, OWLOntologyStorageException 
 	{
-		// create a new manager, re-use factory
-		// avoid unnecessary change events
-		final OWLOntologyManager m = OWLManager.createOWLOntologyManager(ont.getOWLOntologyManager().getOWLDataFactory());
+		// create a new manager avoid unnecessary change events
+		final OWLOntologyManager m = OWLManager.createOWLOntologyManager();
 		
 		// extract module
 		SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, ont, ModuleType.BOT);
@@ -754,10 +755,10 @@ public class AssertInferenceTool {
 		List<OWLOntologyChange> removeImportChanges = new ArrayList<OWLOntologyChange>();
 		Set<OWLOntology> supportOntologySet = graph.getSupportOntologySet();
 		for (OWLOntology support : supportOntologySet) {
-			IRI ontologyIRI = support.getOntologyID().getOntologyIRI();
+			IRI ontologyIRI = support.getOntologyID().getOntologyIRI().get();
 			OWLImportsDeclaration importDeclaration = factory.getOWLImportsDeclaration(ontologyIRI);
-			List<OWLOntologyChange> change = manager.applyChange(new AddImport(ontology, importDeclaration));
-			if (!change.isEmpty()) {
+			ChangeApplied status = manager.applyChange(new AddImport(ontology, importDeclaration));
+			if (ChangeApplied.SUCCESSFULLY == status) {
 				// the change was successful, create remove import for later
 				removeImportChanges.add(new RemoveImport(ontology, importDeclaration));
 			}
@@ -924,7 +925,7 @@ public class AssertInferenceTool {
 			logger.info("Start check all");
 			// check all classes from the main ontology
 			AllInferenceReport report = new AllInferenceReport();
-			Set<OWLClass> classes = ontology.getClassesInSignature(false);
+			Set<OWLClass> classes = ontology.getClassesInSignature(Imports.EXCLUDED);
 			int count = 0;
 			int total = ids != null ? ids.size() : classes.size();
 			int step = 100;
@@ -937,7 +938,7 @@ public class AssertInferenceTool {
 				}
 				count += 1;
 				// get axioms for the current class
-				Set<OWLClassAxiom> axioms = ontology.getAxioms(owlClass);
+				Set<OWLClassAxiom> axioms = ontology.getAxioms(owlClass, Imports.EXCLUDED);
 				
 				handleAxioms(owlClass, axioms, ontology, manager, factory, reasoner, report);
 //				handleAxioms2(owlClass, axioms, ontology, manager, factory, reasoner, report);

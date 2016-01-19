@@ -28,21 +28,22 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
+import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLException;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.cli.tools.CLIMethod;
@@ -448,7 +449,7 @@ public class GafCommandRunner extends CommandRunner {
 		OWLOntology translated = bridge.translate(gafdoc);
 		File outputFile = new File(out);
 		OWLOntologyManager manager = translated.getOWLOntologyManager();
-		OWLOntologyFormat ontologyFormat= new OWLFunctionalSyntaxOntologyFormat();
+		OWLDocumentFormat ontologyFormat= new FunctionalSyntaxDocumentFormat();
 		manager.saveOntology(translated, ontologyFormat, IRI.create(outputFile));
 	}
 
@@ -538,7 +539,7 @@ public class GafCommandRunner extends CommandRunner {
 			if (bridge.isGenerateIndividuals()) {
 				LOG.info("Generating minimal model based on individuals");
 
-				Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
+				Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(Imports.INCLUDED);
 				if (individuals.isEmpty()) {
 					LOG.info("No individuals found skipping minimization step.");
 				}
@@ -550,7 +551,7 @@ public class GafCommandRunner extends CommandRunner {
 				LOG.info("Generating minimal model using named classes of annotations");
 				// find all classes with a line number annotation
 				OWLAnnotationProperty property = fac.getOWLAnnotationProperty(GAFOWLBridge.GAF_LINE_NUMBER_ANNOTATION_PROPERTY_IRI);
-				Set<OWLClass> allClasses = ontology.getClassesInSignature(true);
+				Set<OWLClass> allClasses = ontology.getClassesInSignature(Imports.INCLUDED);
 				for (OWLClass cls : allClasses) {
 					Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAnnotationAssertionAxioms(cls.getIRI());
 					for (OWLAnnotationAssertionAxiom axiom : axioms) {
@@ -789,7 +790,7 @@ public class GafCommandRunner extends CommandRunner {
 				}
 			}
 			else if (opts.nextEq("--use-support-ontology")) {
-				for (OWLClass c : g.getSupportOntologySet().iterator().next().getClassesInSignature(true)) {
+				for (OWLClass c : g.getSupportOntologySet().iterator().next().getClassesInSignature(Imports.INCLUDED)) {
 					subsetObjs.add(c);
 				}
 			}

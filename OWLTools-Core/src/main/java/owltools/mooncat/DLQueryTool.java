@@ -6,7 +6,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.expression.ParserException;
+import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -38,11 +38,11 @@ public class DLQueryTool {
 	 * @param graph
 	 * @param reasonerFactory
 	 * @return set of {@link OWLClass} which 
-	 * @throws ParserException
+	 * @throws OWLParserException
 	 * @throws OWLOntologyCreationException
 	 */
 	public static Set<OWLClass> executeDLQuery(String dlQuery, OWLGraphWrapper graph, 
-			OWLReasonerFactory reasonerFactory) throws ParserException, OWLOntologyCreationException 
+			OWLReasonerFactory reasonerFactory) throws OWLParserException, OWLOntologyCreationException 
 	{
 		// create parser and parse DL query string
 		ManchesterSyntaxTool parser = null;

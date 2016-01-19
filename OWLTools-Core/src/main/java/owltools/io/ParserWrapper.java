@@ -14,7 +14,6 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
@@ -23,16 +22,15 @@ import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.OBODocNameProvider;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.io.OWLParserFactory;
-import org.semanticweb.owlapi.io.OWLParserFactoryRegistry;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.OBODocumentFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyDocumentAlreadyExistsException;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderListener;
@@ -56,42 +54,27 @@ public class ParserWrapper {
 	
 	
 	public ParserWrapper() {
-		manager = OWLManager.createOWLOntologyManager(); // persist?
-		removeOldOwlApiObo(manager);
+		manager = OWLManager.createOWLOntologyManager();
 		OWLOntologyLoaderListener listener = new OWLOntologyLoaderListener() {
+
+			// generated
+			private static final long serialVersionUID = 8475800207882525640L;
 
 			@Override
 			public void startedLoadingOntology(LoadingStartedEvent event) {
-				IRI id = event.getOntologyID().getOntologyIRI();
+				IRI id = event.getOntologyID().getOntologyIRI().get();
 				IRI source = event.getDocumentIRI();
 				LOG.info("Start loading ontology: "+id+" from: "+source);
 			}
 
 			@Override
 			public void finishedLoadingOntology(LoadingFinishedEvent event) {
-				IRI id = event.getOntologyID().getOntologyIRI();
+				IRI id = event.getOntologyID().getOntologyIRI().get();
 				IRI source = event.getDocumentIRI();
 				LOG.info("Finished loading ontology: "+id+" from: "+source);
 			}
 		};
 		manager.addOntologyLoaderListener(listener);
-	}
-	
-	/**
-	 * This will try to remove the old OBO parser from the OWL-API.
-	 * 
-	 * @param manager
-	 */
-	public static void removeOldOwlApiObo(OWLOntologyManager manager) {
-		synchronized (manager) {
-			OWLParserFactoryRegistry registry = OWLParserFactoryRegistry.getInstance();
-			List<OWLParserFactory> factories = new ArrayList<OWLParserFactory>(registry.getParserFactories());
-			for (OWLParserFactory parserFactory : factories) {
-				if (parserFactory.getClass().getName().equals("org.coode.owlapi.obo12.parser.OBO12ParserFactory")) {
-					registry.unregisterParserFactory(parserFactory);
-				}
-			}
-		}
 	}
 	
 	public OWLOntologyManager getManager() {
@@ -110,11 +93,11 @@ public class ParserWrapper {
 	}
 
 	public void addIRIMapper(OWLOntologyIRIMapper mapper) {
-		manager.addIRIMapper(mapper);
+		manager.getIRIMappers().add(mapper);
 		mappers.add(0, mapper);
 	}
 	public void removeIRIMapper(OWLOntologyIRIMapper mapper) {
-		manager.removeIRIMapper(mapper);
+		manager.getIRIMappers().remove(mapper);
 		mappers.remove(mapper);
 	}
 	public List<OWLOntologyIRIMapper> getIRIMappers() {
@@ -203,11 +186,11 @@ public class ParserWrapper {
 	}
 
 	public void saveOWL(OWLOntology ont, String file) throws OWLOntologyStorageException {
-		OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
+		OWLDocumentFormat owlFormat = new RDFXMLDocumentFormat();
 		saveOWL(ont, owlFormat, file);
 	}
-	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat, String file) throws OWLOntologyStorageException {
-		if ((owlFormat instanceof OBOOntologyFormat) || (owlFormat instanceof OWLJSONFormat)) {
+	public void saveOWL(OWLOntology ont, OWLDocumentFormat owlFormat, String file) throws OWLOntologyStorageException {
+		if ((owlFormat instanceof OBODocumentFormat) || (owlFormat instanceof OWLJSONFormat)){
 			try {
 				FileOutputStream os = new FileOutputStream(new File(file));
 				saveOWL(ont, owlFormat, os);
@@ -226,9 +209,9 @@ public class ParserWrapper {
 			manager.saveOntology(ont, owlFormat, iri);
 		}
 	}
-	public void saveOWL(OWLOntology ont, OWLOntologyFormat owlFormat,
+	public void saveOWL(OWLOntology ont, OWLDocumentFormat owlFormat,
 			OutputStream outputStream) throws OWLOntologyStorageException {
-		if (owlFormat instanceof OBOOntologyFormat && this.isCheckOboDoc == false) {
+		if (owlFormat instanceof OBODocumentFormat && this.isCheckOboDoc == false) {
 			// special work-around for skipping the OBO validation before write
 			// see also OWL-API issue: https://github.com/owlcs/owlapi/issues/290
 			// see also saveOWL(OWLOntology, OWLOntologyFormat, String) for redundant code

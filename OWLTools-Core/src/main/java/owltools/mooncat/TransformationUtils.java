@@ -3,13 +3,11 @@ package owltools.mooncat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.semanticweb.owlapi.model.ClassExpressionType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -24,6 +22,9 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.parameters.Imports;
+
+import owltools.util.OwlHelper;
 
 /**
  * Static methods for performing common logical transforms and view creation on OWL ontologies
@@ -83,7 +84,8 @@ public class TransformationUtils {
 						mgr.addAxiom(tgtOntology, df.getOWLEquivalentClassesAxiom(c, svf));
 						qmap.put(c, svf);
 						if (isAddLabels) {
-							for (OWLAnnotation ann : filler.getAnnotations(srcOntology, df.getRDFSLabel())) {
+							Set<OWLAnnotation> anns = OwlHelper.getAnnotations(filler, df.getRDFSLabel(), ont);
+							for (OWLAnnotation ann : anns) {
 								mgr.addAxiom(tgtOntology, df.getOWLAnnotationAssertionAxiom(c.getIRI(), ann));
 							}
 						}
@@ -107,17 +109,17 @@ public class TransformationUtils {
 		OWLDataFactory df = mgr.getOWLDataFactory();
 		
 		String plabel = "";
-		for (OWLAnnotation ann : p.getAnnotations(srcOntology, df.getRDFSLabel())) {
+		for (OWLAnnotation ann : OwlHelper.getAnnotations(p, df.getRDFSLabel(), srcOntology)) {
 			plabel = ((OWLLiteral) ann.getValue()).getLiteral();
 		}
-		for (OWLClass filler : srcOntology.getClassesInSignature(true)) {
+		for (OWLClass filler : srcOntology.getClassesInSignature(Imports.INCLUDED)) {
 			IRI iri = getSkolemIRI(filler, p);
 			OWLClass c = df.getOWLClass(iri);
 			OWLObjectSomeValuesFrom svf = df.getOWLObjectSomeValuesFrom(p, filler);
 			mgr.addAxiom(tgtOntology, df.getOWLEquivalentClassesAxiom(c, svf));
 			qmap.put(filler, c);
 			if (isAddLabels) {
-				for (OWLAnnotation ann : filler.getAnnotations(srcOntology, df.getRDFSLabel())) {
+				for (OWLAnnotation ann : OwlHelper.getAnnotations(filler, df.getRDFSLabel(), srcOntology)) {
 					String label = ((OWLLiteral) ann.getValue()).getLiteral();
 					mgr.addAxiom(tgtOntology, df.getOWLAnnotationAssertionAxiom(ann.getProperty(),
 							c.getIRI(), 

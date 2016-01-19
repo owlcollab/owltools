@@ -26,7 +26,6 @@ import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.TaxonTools;
-import owltools.gaf.parser.BuilderTools;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.RelationSets;
 import owltools.panther.PANTHERForest;

@@ -1,7 +1,5 @@
 package owltools.sim2.legacy;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.util.Set;
 
@@ -26,7 +24,6 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.sim2.OwlSim.ScoreAttributeSetPair;
-import owltools.sim2.OwlSim;
 import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;

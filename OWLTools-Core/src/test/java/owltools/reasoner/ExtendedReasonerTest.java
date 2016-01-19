@@ -9,7 +9,7 @@ import org.geneontology.reasoner.OWLExtendedReasoner;
 import org.junit.Test;
 import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.expression.ParserException;
+import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -37,7 +37,7 @@ public class ExtendedReasonerTest extends AbstractReasonerTest {
 	OWLExtendedReasoner reasoner;
 
 	protected Set<OWLClass> findAncestors(String expr, 
-			OWLObjectProperty p, boolean direct, Integer numExpected) throws TimeOutException, FreshEntitiesException, InconsistentOntologyException, ClassExpressionNotInProfileException, ReasonerInterruptedException, ParserException {
+			OWLObjectProperty p, boolean direct, Integer numExpected) throws TimeOutException, FreshEntitiesException, InconsistentOntologyException, ClassExpressionNotInProfileException, ReasonerInterruptedException, OWLParserException {
 		System.out.println("Query: "+expr+" "+p+" Direct="+direct);
 		OWLClassExpression qc = parseOMN(expr);
 		System.out.println("QueryC: "+qc);

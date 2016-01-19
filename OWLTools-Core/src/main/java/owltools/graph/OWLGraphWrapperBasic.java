@@ -71,7 +71,7 @@ public class OWLGraphWrapperBasic {
 	 * @param extOnt
 	 */
 	public void addImport(OWLOntology extOnt) {
-		AddImport ai = new AddImport(getSourceOntology(), getDataFactory().getOWLImportsDeclaration(extOnt.getOntologyID().getOntologyIRI()));
+		AddImport ai = new AddImport(getSourceOntology(), getDataFactory().getOWLImportsDeclaration(extOnt.getOntologyID().getOntologyIRI().get()));
 		getManager().applyChange(ai);
 	}
 
@@ -191,7 +191,7 @@ public class OWLGraphWrapperBasic {
 		OWLDataFactory factory = getDataFactory();
 		for (OWLOntology  o : getSupportOntologySet()) {
 			OWLImportsDeclaration importsDeclaration = 
-					factory.getOWLImportsDeclaration(o.getOntologyID().getOntologyIRI());
+					factory.getOWLImportsDeclaration(o.getOntologyID().getOntologyIRI().get());
 			AddImport ai = new AddImport(sourceOntology, importsDeclaration);
 			LOG.info("Applying: "+ai);
 			getManager().applyChange(ai);
@@ -200,7 +200,7 @@ public class OWLGraphWrapperBasic {
 	}
 
 	public void remakeOntologiesFromImportsClosure() throws OWLOntologyCreationException {
-		remakeOntologiesFromImportsClosure((new OWLOntologyID()).getOntologyIRI());
+		remakeOntologiesFromImportsClosure((new OWLOntologyID()).getOntologyIRI().get());
 	}
 
 	public void remakeOntologiesFromImportsClosure(IRI ontologyIRI) throws OWLOntologyCreationException {

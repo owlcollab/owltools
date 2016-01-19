@@ -27,7 +27,6 @@ import org.apache.solr.common.SolrException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAnnotationValueVisitorEx;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
@@ -41,6 +40,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import com.google.common.base.Optional;
 import com.google.gson.Gson;
 
 import owltools.cli.tools.CLIMethod;
@@ -281,7 +281,15 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 				String ont_id = "unknown";
 				String ont_version = "unknown";
 				try {
-					ont_id = o.getOntologyID().getOntologyIRI().toURI().toString();
+					if (o.getOntologyID() !=  null) {
+						Optional<IRI> optional = o.getOntologyID().getOntologyIRI();
+						if (optional.isPresent()) {
+							ont_id = optional.get().toString();
+						}
+						else {
+							LOG.info("Failed to get ID of: " + o.toString() + "!");
+						}
+					}
 				} catch (NullPointerException e) {
 					LOG.info("Failed to get ID of: " + o.toString() + "!");
 				}

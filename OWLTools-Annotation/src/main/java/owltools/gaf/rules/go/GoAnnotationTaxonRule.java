@@ -63,7 +63,7 @@ public class GoAnnotationTaxonRule extends AnnotationTaxonRule {
 			LOG.info("Creating module for unsatisfiable classes in taxon rule.");
 			// create a new manager, re-use factory
 			// avoid unnecessary change events
-			final OWLOntologyManager m = OWLManager.createOWLOntologyManager(ont.getOWLOntologyManager().getOWLDataFactory());
+			final OWLOntologyManager m = OWLManager.createOWLOntologyManager();
 			
 			// extract module
 			SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(m, ont, ModuleType.BOT);

@@ -12,6 +12,9 @@ import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.parameters.Imports;
+
+import owltools.util.OwlHelper;
 
 /**
  * uses all properties as view properties, no role chains
@@ -27,7 +30,7 @@ public class AutomaticSimPreProcessor extends LCSEnabledSimPreProcessor {
 	
 	public void preprocess() {
 		
-		for (OWLIndividual ind : inputOntology.getIndividualsInSignature(true)) {
+		for (OWLIndividual ind : inputOntology.getIndividualsInSignature(Imports.INCLUDED)) {
 			gatherProperties(ind);
 		}
 		
@@ -51,10 +54,10 @@ public class AutomaticSimPreProcessor extends LCSEnabledSimPreProcessor {
 		}
 		LOG.info("Gathering props from: "+ind);
 		visited.add(ind);
-		for (OWLClassExpression x : ind.getTypes(inputOntology)) {
+		for (OWLClassExpression x : OwlHelper.getTypes(ind, inputOntology)) {
 			gatherProperties(x);
 		}
-		Map<OWLObjectPropertyExpression, Set<OWLIndividual>> pvs = ind.getObjectPropertyValues(inputOntology);
+		Map<OWLObjectPropertyExpression, Set<OWLIndividual>> pvs = OwlHelper.getObjectPropertyValues(ind, inputOntology);
 		for (OWLObjectPropertyExpression pe : pvs.keySet()) {
 			gatherProperties(pe);
 			for (OWLIndividual k : pvs.get(pe)) {

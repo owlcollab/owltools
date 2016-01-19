@@ -178,7 +178,7 @@ public class AnnotationRulesEngine {
 				if (sourceId != null && sourceId.getDefaultDocumentIRI() != null) {
 					// use import
 					OWLDataFactory f = m.getOWLDataFactory();
-					m.applyChange(new AddImport(translated, f.getOWLImportsDeclaration(sourceId.getDefaultDocumentIRI())));
+					m.applyChange(new AddImport(translated, f.getOWLImportsDeclaration(sourceId.getDefaultDocumentIRI().get())));
 					
 				}
 				else {

@@ -18,6 +18,7 @@ import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
+import owltools.util.OwlHelper;
 
 public class FoldBasedPredictorTest extends OWLToolsTestBasics{
 
@@ -38,7 +39,7 @@ public class FoldBasedPredictorTest extends OWLToolsTestBasics{
 
 		FoldBasedPredictor fbp = new FoldBasedPredictor(gafdoc, g, true);
 		OWLClass ecp = (OWLClass) g.getOWLObjectByLabel("epithelial cell proliferation");
-		for (OWLClassExpression ex : ecp.getEquivalentClasses(g.getSourceOntology())) {
+		for (OWLClassExpression ex : OwlHelper.getEquivalentClasses(ecp, g.getSourceOntology())) {
 			LOG.info("ECA="+ex);
 			// expect:  ObjectIntersectionOf(<http://purl.obolibrary.org/obo/GO_0008283> ObjectSomeValuesFrom(<http://purl.obolibrary.org/obo/TEST_1234567> <http://purl.obolibrary.org/obo/CL_0000066>))
 		}

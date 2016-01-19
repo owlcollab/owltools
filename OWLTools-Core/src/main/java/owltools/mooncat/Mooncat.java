@@ -45,6 +45,7 @@ import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
@@ -361,7 +362,7 @@ public class Mooncat {
 	 */
 	public Set<OWLEntity> getExternalReferencedEntities() {
 		OWLOntology ont = graph.getSourceOntology();
-		Set<OWLEntity> objs = ont.getSignature(false);
+		Set<OWLEntity> objs = ont.getSignature(Imports.EXCLUDED);
 		Set<OWLEntity> refObjs = new HashSet<OWLEntity>();
 		LOG.info("testing "+objs.size()+" objs to see if they are contained in: "+getReferencedOntologies());
 		for (OWLEntity obj : objs) {
@@ -412,11 +413,12 @@ public class Mooncat {
 		for (OWLObject obj : objs) {
 			if (obj instanceof OWLEntity) {
 				for (OWLOntology refOnt : this.getReferencedOntologies()) {
-					for (OWLAnnotationAssertionAxiom aaa : ((OWLEntity)obj).getAnnotationAssertionAxioms(refOnt)) {
+					for (OWLAnnotationAssertionAxiom aaa : refOnt.getAnnotationAssertionAxioms(((OWLEntity)obj).getIRI())) {
 						extraObjs.add(aaa.getProperty());
 						extraObjs.add(aaa.getValue());
 					}
-					for (OWLAxiom ax : ((OWLEntity)obj).getReferencingAxioms(refOnt)) {
+					
+					for (OWLAxiom ax : refOnt.getReferencingAxioms((OWLEntity)obj)) {
 						extraObjs.addAll(ax.getObjectPropertiesInSignature());
 					}
 				}
@@ -497,10 +499,10 @@ public class Mooncat {
 					}
 					// includes SubClassOf(obj,?), disjoints, equivalents, ..
 					final OWLClass c = (OWLClass) obj;
-					axioms.addAll(refOnt.getAxioms(c));
+					axioms.addAll(refOnt.getAxioms(c, Imports.EXCLUDED));
 					Set<? extends OWLAxiom> declarationAxioms = refOnt.getDeclarationAxioms(c);
 					if (!declarationAxioms.isEmpty()) {
-						OWLAnnotationValue value = refOnt.getOntologyID().getOntologyIRI();
+						OWLAnnotationValue value = refOnt.getOntologyID().getOntologyIRI().get();
 						OWLAnnotationProperty property = dataFactory.getOWLAnnotationProperty(importedMarkerIRI);
 						axioms.add(dataFactory.getOWLAnnotationAssertionAxiom(property , c.getIRI(), value));
 						axioms.addAll(declarationAxioms);
@@ -509,28 +511,28 @@ public class Mooncat {
 				else if (obj instanceof OWLObjectProperty) {
 					final OWLObjectProperty p = (OWLObjectProperty) obj;
 					if (!refOnt.getDeclarationAxioms(p).isEmpty()) {
-						OWLAnnotationValue value = refOnt.getOntologyID().getOntologyIRI();
+						OWLAnnotationValue value = refOnt.getOntologyID().getOntologyIRI().get();
 						OWLAnnotationProperty property = dataFactory.getOWLAnnotationProperty(importedMarkerIRI);
 						axioms.add(dataFactory.getOWLAnnotationAssertionAxiom(property , p.getIRI(), value));
 					}
-					axioms.addAll(refOnt.getAxioms(p));
+					axioms.addAll(refOnt.getAxioms(p, Imports.EXCLUDED));
 				}
 				else if (obj instanceof OWLNamedIndividual) {
 					final OWLNamedIndividual i = (OWLNamedIndividual) obj;
 					if(!refOnt.getDeclarationAxioms(i).isEmpty()) {
-						OWLAnnotationValue value = refOnt.getOntologyID().getOntologyIRI();
+						OWLAnnotationValue value = refOnt.getOntologyID().getOntologyIRI().get();
 						OWLAnnotationProperty property = dataFactory.getOWLAnnotationProperty(importedMarkerIRI);
 						axioms.add(dataFactory.getOWLAnnotationAssertionAxiom(property , i.getIRI(), value));
 					}
-					axioms.addAll(refOnt.getAxioms(i));
+					axioms.addAll(refOnt.getAxioms(i, Imports.EXCLUDED));
 				}
 				else if (obj instanceof OWLDataProperty) {
-					axioms.addAll(refOnt.getAxioms((OWLDataProperty) obj));
+					axioms.addAll(refOnt.getAxioms((OWLDataProperty) obj, Imports.EXCLUDED));
 				}
 				else {
 					// TODO
 				}
-				axioms.addAll(((OWLEntity) obj).getAnnotationAssertionAxioms(refOnt));
+				axioms.addAll(refOnt.getAnnotationAssertionAxioms(((OWLEntity) obj).getIRI()));
 			}
 			finalAxioms.addAll(axioms);
 			LOG.info("closure axioms:"+axioms.size());
@@ -552,7 +554,7 @@ public class Mooncat {
 
 				for (OWLEntity e : a.getSignature()) {
 
-					if (e.getIRI().toURI().equals(OWL2Datatype.XSD_STRING.getURI())) {
+					if (e.getIRI().equals(OWL2Datatype.XSD_STRING.getIRI())) {
 						// datatypes are included in the signature - ignore these for filtering purposes
 						// TODO: handle this more elegantly 
 					}
@@ -608,7 +610,7 @@ public class Mooncat {
 	 */
 	public boolean isDangling(OWLOntology ont, OWLEntity obj) {
 		// TODO - import closure
-		if (obj.getAnnotationAssertionAxioms(ont).size()  == 0 ) {
+		if (ont.getAnnotationAssertionAxioms(obj.getIRI()).isEmpty()) {
 			// in future also consider logical axioms;
 			/// problematic - e.g. for symmetric axioms like disjointWith
 			return true;
@@ -702,8 +704,8 @@ public class Mooncat {
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		LOG.info("Num of classes to be removed = "+rmSet.size());
 		for (OWLClass c : rmSet) {
-			rmAxioms.addAll(c.getAnnotationAssertionAxioms(o));
-			rmAxioms.addAll(o.getAxioms(c));
+			rmAxioms.addAll(o.getAnnotationAssertionAxioms(c.getIRI()));
+			rmAxioms.addAll(o.getAxioms(c, Imports.EXCLUDED));
 		}
 		graph.getManager().removeAxioms(o, rmAxioms);
 		if (removeDangling) {
@@ -735,8 +737,8 @@ public class Mooncat {
 		OWLOntology o = getOntology();
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		for (OWLClass c : rmSet) {
-			rmAxioms.addAll(c.getAnnotationAssertionAxioms(o));
-			rmAxioms.addAll(o.getAxioms(c));
+			rmAxioms.addAll(o.getAnnotationAssertionAxioms(c.getIRI()));
+			rmAxioms.addAll(o.getAxioms(c, Imports.EXCLUDED));
 		}
 		LOG.info("Removing "+rmAxioms.size() +" axioms");
 		graph.getManager().removeAxioms(o, rmAxioms);
@@ -973,7 +975,7 @@ public class Mooncat {
 	 * @param ont
 	 */
 	public void removeExternalEntities(boolean isMain, OWLOntology ont) {
-		Set<OWLEntity> objs = ont.getSignature(false);
+		Set<OWLEntity> objs = ont.getSignature(Imports.EXCLUDED);
 		Set<OWLClass> rmClasses = new HashSet<OWLClass>();
 		Set<OWLObjectProperty> rmProperties = new HashSet<OWLObjectProperty>();
 		Set<OWLIndividual> rmIndividuals = new HashSet<OWLIndividual>();
@@ -999,17 +1001,17 @@ public class Mooncat {
 		}
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 		for (OWLClass c : rmClasses) {
-			rmAxioms.addAll(c.getAnnotationAssertionAxioms(ont));
+			rmAxioms.addAll(ont.getAnnotationAssertionAxioms(c.getIRI()));
 			rmAxioms.addAll(ont.getDeclarationAxioms(c));
-			rmAxioms.addAll(ont.getAxioms(c));
+			rmAxioms.addAll(ont.getAxioms(c, Imports.EXCLUDED));
 		}
 		for (OWLObjectProperty p : rmProperties) {
-			rmAxioms.addAll(p.getAnnotationAssertionAxioms(ont));
+			rmAxioms.addAll(ont.getAnnotationAssertionAxioms(p.getIRI()));
 			rmAxioms.addAll(ont.getDeclarationAxioms(p));
-			rmAxioms.addAll(ont.getAxioms(p));
+			rmAxioms.addAll(ont.getAxioms(p, Imports.EXCLUDED));
 		}
 		for (OWLIndividual i : rmIndividuals) {
-			rmAxioms.addAll(ont.getAxioms(i));
+			rmAxioms.addAll(ont.getAxioms(i, Imports.EXCLUDED));
 		}
 		if (!rmAxioms.isEmpty()) {
 			LOG.info("Removing "+rmAxioms.size()+" external axioms for: "+
@@ -1117,7 +1119,7 @@ public class Mooncat {
 	 * @param dataFactory
 	 */
 	public static void translateDisjointsToEquivalents(OWLOntology ont, OWLOntologyManager manager, OWLDataFactory dataFactory) {
-		for (OWLDisjointClassesAxiom dca : ont.getAxioms(AxiomType.DISJOINT_CLASSES, true)) {
+		for (OWLDisjointClassesAxiom dca : ont.getAxioms(AxiomType.DISJOINT_CLASSES, Imports.INCLUDED)) {
 			for (OWLClassExpression ce1 : dca.getClassExpressions()) {
 				for (OWLClassExpression ce2 : dca.getClassExpressions()) {
 					if (ce1.compareTo(ce2) <= 0)
@@ -1241,11 +1243,10 @@ public class Mooncat {
 
 
 	public void extractModules(OWLOntology ont) {
-		boolean isIncludeClosure = true;
 		Set<OWLOntology> ionts = ont.getImports();
 		Set<OWLClass> iclasses = new HashSet<OWLClass>();
 		for (OWLOntology iont : ionts) {
-			iclasses.addAll(iont.getClassesInSignature(isIncludeClosure));
+			iclasses.addAll(iont.getClassesInSignature(Imports.INCLUDED));
 		}
 		extractModules(ont.getClassesInSignature(), iclasses);
 		
@@ -1272,8 +1273,8 @@ public class Mooncat {
 			if (iriStr.contains("/"+idspace.toLowerCase()+"_")) {
 				LOG.info("MATCH: "+c);
 				axioms.addAll(getOntology().getDeclarationAxioms(c));
-				axioms.addAll(getOntology().getAxioms(c));
-				axioms.addAll(c.getAnnotationAssertionAxioms(getOntology()));
+				axioms.addAll(getOntology().getAxioms(c, Imports.EXCLUDED));
+				axioms.addAll(getOntology().getAnnotationAssertionAxioms(c.getIRI()));
 			}
 		}
 		LOG.info("Transferring "+axioms.size()+" axioms from "+getOntology()+" to "+subOnt);
