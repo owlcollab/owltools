@@ -180,9 +180,9 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				}
 			}
 		}
-		if (modelId == null) {
+		if (modelId == null && model.getOntologyID().getOntologyIRI().isPresent()) {
 			// fallback
-			modelId = model.getOntologyID().getOntologyIRI().toString();
+			modelId = model.getOntologyID().getOntologyIRI().get().toString();
 		}
 
 		Set<OWLObjectPropertyAssertionAxiom> axioms = model.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);

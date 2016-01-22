@@ -37,6 +37,8 @@ import org.semanticweb.owlapi.model.OWLOntologyLoaderListener;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
+import com.google.common.base.Optional;
+
 import owltools.graph.OWLGraphWrapper;
 
 /**
@@ -62,14 +64,14 @@ public class ParserWrapper {
 
 			@Override
 			public void startedLoadingOntology(LoadingStartedEvent event) {
-				IRI id = event.getOntologyID().getOntologyIRI().get();
+				IRI id = event.getOntologyID().getOntologyIRI().orNull();
 				IRI source = event.getDocumentIRI();
 				LOG.info("Start loading ontology: "+id+" from: "+source);
 			}
 
 			@Override
 			public void finishedLoadingOntology(LoadingFinishedEvent event) {
-				IRI id = event.getOntologyID().getOntologyIRI().get();
+				IRI id = event.getOntologyID().getOntologyIRI().orNull();
 				IRI source = event.getDocumentIRI();
 				LOG.info("Finished loading ontology: "+id+" from: "+source);
 			}
@@ -169,7 +171,8 @@ public class ParserWrapper {
 			ont = manager.getOntology(duplicate);
 			if (ont == null) {
 				for(OWLOntology managed : manager.getOntologies()) {
-					if(duplicate.equals(managed.getOntologyID().getOntologyIRI())) {
+					Optional<IRI> managedIRI = managed.getOntologyID().getOntologyIRI();
+					if(managedIRI.isPresent() && duplicate.equals(managedIRI.get())) {
 						LOG.info("Skip already loaded ontology: "+iri);
 						ont = managed;
 						break;

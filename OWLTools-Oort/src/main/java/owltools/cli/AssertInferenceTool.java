@@ -58,6 +58,8 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
 
+import com.google.common.base.Optional;
+
 import owltools.InferenceBuilder;
 import owltools.InferenceBuilder.ConsistencyReport;
 import owltools.InferenceBuilder.OWLClassFilter;
@@ -755,12 +757,15 @@ public class AssertInferenceTool {
 		List<OWLOntologyChange> removeImportChanges = new ArrayList<OWLOntologyChange>();
 		Set<OWLOntology> supportOntologySet = graph.getSupportOntologySet();
 		for (OWLOntology support : supportOntologySet) {
-			IRI ontologyIRI = support.getOntologyID().getOntologyIRI().get();
-			OWLImportsDeclaration importDeclaration = factory.getOWLImportsDeclaration(ontologyIRI);
-			ChangeApplied status = manager.applyChange(new AddImport(ontology, importDeclaration));
-			if (ChangeApplied.SUCCESSFULLY == status) {
-				// the change was successful, create remove import for later
-				removeImportChanges.add(new RemoveImport(ontology, importDeclaration));
+			Optional<IRI> supportIRI = support.getOntologyID().getOntologyIRI();
+			if(supportIRI.isPresent()) {
+				IRI ontologyIRI = supportIRI.get();
+				OWLImportsDeclaration importDeclaration = factory.getOWLImportsDeclaration(ontologyIRI);
+				ChangeApplied status = manager.applyChange(new AddImport(ontology, importDeclaration));
+				if (ChangeApplied.SUCCESSFULLY == status) {
+					// the change was successful, create remove import for later
+					removeImportChanges.add(new RemoveImport(ontology, importDeclaration));
+				}
 			}
 		}
 		return removeImportChanges;

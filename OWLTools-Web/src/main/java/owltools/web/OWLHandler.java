@@ -71,6 +71,7 @@ import owltools.sim2.UnknownOWLClassException;
 import owltools.version.VersionInfo;
 import owltools.vocab.OBOUpperVocabulary;
 
+import com.google.common.base.Optional;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -988,11 +989,11 @@ public class OWLHandler {
 
 	private OWLClass resolveClass() {
 		String id = getParam(Param.id);
-		return graph.getOWLClassByIdentifier(id);
+		return graph.getOWLClassByIdentifierNoAltIds(id);
 	}
 	private OWLClass resolveClass(Param p) {
 		String id = getParam(p);
-		return graph.getOWLClassByIdentifier(id);
+		return graph.getOWLClassByIdentifierNoAltIds(id);
 	}
 	private OWLClass resolveClassByLabel() {
 		String id = getParam(Param.label);
@@ -1040,10 +1041,13 @@ public class OWLHandler {
 	private OWLOntology resolveOntology(Param p) {
 		String oid = getParam(p);
 		for (OWLOntology ont : graph.getManager().getOntologies()) {
-			String iri = ont.getOntologyID().getOntologyIRI().toString();
-			// HACK
-			if (iri.endsWith("/"+oid)) {
-				return ont;
+			Optional<IRI> ontologyIRI = ont.getOntologyID().getOntologyIRI();
+			if (ontologyIRI.isPresent()) {
+				String iri = ontologyIRI.get().toString();
+				// HACK
+				if (iri.endsWith("/"+oid)) {
+					return ont;
+				}
 			}
 		}
 		return null;

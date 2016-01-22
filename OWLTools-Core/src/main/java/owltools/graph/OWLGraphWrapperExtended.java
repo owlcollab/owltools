@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
+import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
@@ -39,6 +40,8 @@ import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+
+import com.google.common.base.Optional;
 
 import owltools.util.OwlHelper;
 
@@ -918,7 +921,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 
 		// otherwise use the obo2owl method
-		Obo2Owl b = new Obo2Owl();
+		Obo2Owl b = new Obo2Owl(getManager()); // re-use manager, creating a new one can be expensive as this is a highly used code path
 		b.setObodoc(new OBODoc());
 		return b.oboIdToIRI(id);
 	}
@@ -970,6 +973,54 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 */
 	public OWLClass getOWLClassByIdentifier(String id) {
 		return getOWLClassByIdentifier(id, false);
+	}
+	
+	
+	/**
+	 * Given an OBO-style ID, return the corresponding OWLClass, if it is declared and not an alt_id - otherwise null
+	 * 
+	 * @param id
+	 * @return OWLClass with id or null
+	 */
+	public OWLClass getOWLClassByIdentifierNoAltIds(String id) {
+		OWLClass cls = getOWLClassByIdentifier(id, false);
+		if (cls != null && isOboAltId(cls)) {
+			return null;
+		}
+		return cls;
+	}
+	
+	boolean isOboAltId(OWLEntity e) {
+		Set<OWLAnnotationAssertionAxiom> axioms = new HashSet<>();
+		for(OWLOntology ont : getAllOntologies()) {
+			axioms.addAll(ont.getAnnotationAssertionAxioms(e.getIRI()));
+		}
+		return isOboAltId(axioms);
+	}
+	
+	static boolean isOboAltId(Set<OWLAnnotationAssertionAxiom> annotations) {
+		boolean hasReplacedBy = false;
+		boolean isMerged = false;
+		boolean isDeprecated = false;
+		for (OWLAnnotationAssertionAxiom axiom : annotations) {
+			OWLAnnotationProperty prop = axiom.getProperty();
+			if (prop.isDeprecated()) {
+				isDeprecated = true;
+			} else if (Obo2OWLConstants.IRI_IAO_0000231.equals(prop.getIRI())) {
+				OWLAnnotationValue value = axiom.getValue();
+				Optional<IRI> asIRI = value.asIRI();
+				if (asIRI.isPresent()) {
+					isMerged = Obo2OWLConstants.IRI_IAO_0000227.equals(asIRI.get());
+				}
+			} else if (Obo2OWLVocabulary.IRI_IAO_0100001.getIRI().equals(prop.getIRI())) {
+				OWLAnnotationValue value = axiom.getValue();
+				Optional<OWLLiteral> asLiteral = value.asLiteral();
+				Optional<IRI> asIRI = value.asIRI();
+				hasReplacedBy = asLiteral.isPresent() || asIRI.isPresent();
+			}
+		}
+		boolean result = hasReplacedBy && isMerged && isDeprecated;
+		return result;
 	}
 	
 	/**

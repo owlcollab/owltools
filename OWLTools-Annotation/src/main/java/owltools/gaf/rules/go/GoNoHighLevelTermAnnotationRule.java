@@ -47,7 +47,7 @@ public class GoNoHighLevelTermAnnotationRule extends AbstractAnnotationRule {
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {
 		String cls = a.getCls();
 		if (cls != null) {
-			OWLClass owlClass = go.getOWLClassByIdentifier(cls);
+			OWLClass owlClass = go.getOWLClassByIdentifierNoAltIds(cls);
 			if (owlClass != null) {
 				List<String> subsets = go.getSubsets(owlClass);
 				if (subsets != null && !subsets.isEmpty()) {

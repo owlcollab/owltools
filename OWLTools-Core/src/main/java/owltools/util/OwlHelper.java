@@ -62,6 +62,20 @@ public class OwlHelper {
 		return annotations;
 	}
 	
+	public static Set<OWLAnnotation> getAnnotations(OWLEntity e, Set<OWLOntology> ontolgies) {
+		Set<OWLAnnotation> annotations;
+		if (e != null && ontolgies != null && !ontolgies.isEmpty()) {
+			annotations = new HashSet<>();
+			for(OWLOntology ont : ontolgies) {
+				annotations.addAll(getAnnotations(e, ont));
+			}
+		}
+		else {
+			annotations = Collections.emptySet();
+		}
+		return annotations;
+	}
+	
 	public static Set<OWLClassExpression> getEquivalentClasses(OWLClass cls, OWLOntology ont) {
 		Set<OWLClassExpression> expressions;
 		if (cls != null && ont != null) {

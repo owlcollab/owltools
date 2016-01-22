@@ -114,8 +114,9 @@ public class BioChebiGenerator {
 	}
 	
 	private void appendOntologyId(OWLOntologyID ontologyID, StringBuilder sb) {
-		if (ontologyID != null) {
-			sb.append("Ontology(id=").append(ontologyID.getOntologyIRI());
+		Optional<IRI> ontologyIRI = ontologyID.getOntologyIRI();
+		if (ontologyIRI.isPresent()) {
+			sb.append("Ontology(id=").append(ontologyIRI.get());
 			Optional<IRI> versionIRI = ontologyID.getVersionIRI();
 			if (versionIRI .isPresent()) {
 				sb.append(", version=").append(versionIRI.get());

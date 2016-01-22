@@ -30,8 +30,8 @@ public class SimJSONEngine {
 
 	private Logger LOG = Logger.getLogger(SimJSONEngine.class);
 
-	OwlSim sos;
-	OWLGraphWrapper g;
+	final OwlSim sos;
+	final OWLGraphWrapper g;
 
 	/**
 	 * @param g

@@ -187,18 +187,10 @@ import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
 import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
 import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
-import com.github.jsonldjava.core.JSONLD;
-import com.github.jsonldjava.core.JSONLDTripleCallback;
-import com.github.jsonldjava.core.Options;
-import com.github.jsonldjava.impl.JenaRDFParser;
-import com.github.jsonldjava.impl.JenaTripleCallback;
-import com.github.jsonldjava.utils.JSONUtils;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
 
 import de.derivo.sparqldlapi.Query;
 import de.derivo.sparqldlapi.QueryArgument;
@@ -2612,10 +2604,10 @@ public class CommandRunner extends CommandRunnerBase {
 						if (recapOnt == null) {
 							LOG.error("Cannot find ontology: "+ontIRI+" from "+g.getManager().getOntologies().size());
 							for (OWLOntology ont : g.getManager().getOntologies()) {
-								LOG.error("  I have: "+ont.getOntologyID().getOntologyIRI().toString());
+								LOG.error("  I have: "+ont.getOntologyID());
 							}
 							for (OWLOntology ont : g.getSourceOntology().getImportsClosure()) {
-								LOG.error("  IC: "+ont.getOntologyID().getOntologyIRI().toString());
+								LOG.error("  IC: "+ont.getOntologyID());
 							}
 						}
 					}
@@ -2955,8 +2947,8 @@ public class CommandRunner extends CommandRunnerBase {
 				OWLDocumentFormat ofmt = new RDFXMLDocumentFormat();
 
 				String ontURIStr = "";
-				if ( g.getSourceOntology().getOntologyID() != null && g.getSourceOntology().getOntologyID().getOntologyIRI() != null) {
-					ontURIStr = g.getSourceOntology().getOntologyID().getOntologyIRI().toString();
+				if ( g.getSourceOntology().getOntologyID() != null && g.getSourceOntology().getOntologyID().getOntologyIRI().isPresent()) {
+					ontURIStr = g.getSourceOntology().getOntologyID().getOntologyIRI().get().toString();
 				}
 				while (opts.hasOpts()) {
 					if (opts.nextEq("-f")) {
@@ -3086,7 +3078,7 @@ public class CommandRunner extends CommandRunnerBase {
 			else if (opts.nextEq("--split-ontology")) {
 				opts.info("[-p IRI-PREFIX] [-s IRI-SUFFIX] [-d OUTDIR] [-l IDSPACE1 ... IDPSPACEn]", 
 						"Takes current only extracts all axioms in ID spaces and writes to separate ontology PRE+lc(IDSPACE)+SUFFIX saving to outdir. Also adds imports");
-				String prefix = g.getSourceOntology().getOntologyID().getOntologyIRI().toString().replace(".owl", "/");
+				String prefix = g.getSourceOntology().getOntologyID().getOntologyIRI().get().toString().replace(".owl", "/");
 				String suffix = "_import.owl";
 				String outdir = ".";
 				Set<String> idspaces = new HashSet<String>();
@@ -3453,7 +3445,7 @@ public class CommandRunner extends CommandRunnerBase {
 					LOG.info("Reading IDs from: "+fileName);
 					Set<String> unmatchedIds = new HashSet<String>();
 					for (String line : FileUtils.readLines(new File(fileName))) {
-						OWLClass c = g.getOWLClassByIdentifier(line);
+						OWLClass c = g.getOWLClassByIdentifierNoAltIds(line);
 						if (c == null) {
 							unmatchedIds.add(line);
 							continue;
@@ -3569,9 +3561,15 @@ public class CommandRunner extends CommandRunnerBase {
 				}
 				if (dcSource == null) {	
 					OWLOntologyID oid = baseOnt.getOntologyID();
-					dcSource = oid.getVersionIRI().get();
-					if (dcSource == null) {
-						dcSource = oid.getOntologyIRI().get();
+					Optional<IRI> versionIRI = oid.getVersionIRI();
+					if (versionIRI.isPresent()) {
+						dcSource = versionIRI.get();
+					}
+					else {
+						Optional<IRI> ontologyIRI = oid.getOntologyIRI();
+						if (ontologyIRI.isPresent()) {
+							dcSource = ontologyIRI.get();
+						}
 					}
 				}
 				g.getManager().addAxioms(modOnt, modAxioms);
@@ -4040,8 +4038,10 @@ public class CommandRunner extends CommandRunnerBase {
 			else {
 				Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>(axiom.getAnnotations());
 				for (OWLOntology hit : hits) {
-					OWLOntologyID id = hit.getOntologyID();
-					annotations.add(df.getOWLAnnotation(p, id.getOntologyIRI().get()));
+					Optional<IRI> hitIRI = hit.getOntologyID().getOntologyIRI();
+					if(hitIRI.isPresent()) {
+						annotations.add(df.getOWLAnnotation(p, hitIRI.get()));
+					}
 				}
 				traced.add(AxiomAnnotationTools.changeAxiomAnnotations(axiom, annotations, df));
 			}
@@ -5057,55 +5057,55 @@ public class CommandRunner extends CommandRunnerBase {
 		}
 	}
 
-	@CLIMethod("--rdf-to-json-ld")
-	public void rdfToJsonLd(Opts opts) throws Exception {
-		String ofn = null;
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-o")) {
-				ofn = opts.nextOpt();
-				LOG.info("SAVING JSON TO: "+ofn);
-			}
-			else {
-				break;
-			}
-		}
-		File inputFile = opts.nextFile();
-		LOG.info("input rdf: "+inputFile);
-		FileInputStream s = new FileInputStream(inputFile);
-		final Model modelResult = ModelFactory.createDefaultModel().read(
-				s, "", "RDF/XML");
-		final JenaRDFParser parser = new JenaRDFParser();
-		Options jsonOpts = new Options();
-
-		final Object json = JSONLD.fromRDF(modelResult, jsonOpts , parser);
-		FileOutputStream out = new FileOutputStream(ofn);
-		String jsonStr = JSONUtils.toPrettyString(json);
-		IOUtils.write(jsonStr, out);
-	}
-
-	@CLIMethod("--json-ld-to-rdf")
-	public void jsonLdToRdf(Opts opts) throws Exception {
-		String ofn = null;
-		while (opts.hasOpts()) {
-			if (opts.nextEq("-o")) {
-				ofn = opts.nextOpt();
-			}
-			else {
-				break;
-			}
-		}
-		final JSONLDTripleCallback callback = new JenaTripleCallback();
-
-		FileInputStream s = new FileInputStream(opts.nextFile());
-		Object json = JSONUtils.fromInputStream(s);
-		final Model model = (Model) JSONLD.toRDF(json, callback);
-
-		final StringWriter w = new StringWriter();
-		model.write(w, "TURTLE");
-
-		FileOutputStream out = new FileOutputStream(ofn);
-		IOUtils.write(w.toString(), out);
-	}
+//	@CLIMethod("--rdf-to-json-ld")
+//	public void rdfToJsonLd(Opts opts) throws Exception {
+//		String ofn = null;
+//		while (opts.hasOpts()) {
+//			if (opts.nextEq("-o")) {
+//				ofn = opts.nextOpt();
+//				LOG.info("SAVING JSON TO: "+ofn);
+//			}
+//			else {
+//				break;
+//			}
+//		}
+//		File inputFile = opts.nextFile();
+//		LOG.info("input rdf: "+inputFile);
+//		FileInputStream s = new FileInputStream(inputFile);
+//		final Model modelResult = ModelFactory.createDefaultModel().read(
+//				s, "", "RDF/XML");
+//		final JenaRDFParser parser = new JenaRDFParser();
+//		Options jsonOpts = new Options();
+//
+//		final Object json = JSONLD.fromRDF(modelResult, jsonOpts , parser);
+//		FileOutputStream out = new FileOutputStream(ofn);
+//		String jsonStr = JSONUtils.toPrettyString(json);
+//		IOUtils.write(jsonStr, out);
+//	}
+//
+//	@CLIMethod("--json-ld-to-rdf")
+//	public void jsonLdToRdf(Opts opts) throws Exception {
+//		String ofn = null;
+//		while (opts.hasOpts()) {
+//			if (opts.nextEq("-o")) {
+//				ofn = opts.nextOpt();
+//			}
+//			else {
+//				break;
+//			}
+//		}
+//		final JSONLDTripleCallback callback = new JenaTripleCallback();
+//
+//		FileInputStream s = new FileInputStream(opts.nextFile());
+//		Object json = JSONUtils.fromInputStream(s);
+//		final Model model = (Model) JSONLD.toRDF(json, callback);
+//
+//		final StringWriter w = new StringWriter();
+//		model.write(w, "TURTLE");
+//
+//		FileOutputStream out = new FileOutputStream(ofn);
+//		IOUtils.write(w.toString(), out);
+//	}
 
 	@CLIMethod("--extract-annotation-value")
 	public void extractAnnotationValue(Opts opts) throws Exception {
@@ -5258,7 +5258,7 @@ public class CommandRunner extends CommandRunnerBase {
 			}
 			else if (opts.nextEq("-t|--term")) {
 				String term = opts.nextOpt();
-				OWLClass owlClass = g.getOWLClassByIdentifier(term);
+				OWLClass owlClass = g.getOWLClassByIdentifierNoAltIds(term);
 				if (owlClass != null) {
 					rootTerms.add(owlClass);
 				}
@@ -5395,7 +5395,7 @@ public class CommandRunner extends CommandRunnerBase {
 			}
 			else if (opts.nextEq("-t|--term")) {
 				String term = opts.nextOpt();
-				OWLClass owlClass = g.getOWLClassByIdentifier(term);
+				OWLClass owlClass = g.getOWLClassByIdentifierNoAltIds(term);
 				if (owlClass != null) {
 					rootTerms.add(owlClass);
 				}
@@ -5423,7 +5423,12 @@ public class CommandRunner extends CommandRunnerBase {
 
 		// update ontology ID
 		final OWLOntologyID oldId = work.getOntologyID();
-		final IRI oldVersionIRI = oldId != null ? oldId.getVersionIRI().get() : null;
+		final IRI oldVersionIRI;
+		if(oldId != null && oldId.getVersionIRI().isPresent()) {
+			oldVersionIRI = oldId.getVersionIRI().get();
+		} else {
+			oldVersionIRI = null;
+		}
 
 		final OWLOntologyID newID;
 		final IRI newOntologyIRI = IRI.create(ontologyIRI);
@@ -5656,19 +5661,19 @@ public class CommandRunner extends CommandRunnerBase {
 	private void addId(String id, Set<OWLClass> seeds, Map<String, OWLObject> altIds) {
 		id = StringUtils.trimToNull(id);
 		if (id != null) {
+			// #1 check alt_ids
+			OWLObject owlObject = altIds.get(id);
+			if (owlObject != null && owlObject instanceof OWLClass) {
+				LOG.warn("Retrieving class "+g.getIdentifier(owlObject)+" by alt_id: "+id+"\nPlease consider updating your idenitifers.");
+				seeds.add((OWLClass) owlObject);
+			}
+			// #2 use normal code path
 			OWLClass cls = g.getOWLClassByIdentifier(id);
 			if (cls != null) {
 				seeds.add(cls);
 			}
 			else {
-				OWLObject owlObject = altIds.get(id);
-				if (owlObject != null && owlObject instanceof OWLClass) {
-					LOG.warn("Retrieving class "+g.getIdentifier(owlObject)+" by alt_id: "+id+"\nPlease consider updating your idenitifers.");
-					seeds.add((OWLClass) owlObject);
-				}
-				else {
-					LOG.warn("Could not find a class for id: "+id);
-				}
+				LOG.warn("Could not find a class for id: "+id);
 			}
 		}
 	}

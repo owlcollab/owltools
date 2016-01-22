@@ -737,7 +737,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		Set<OWLClass> classes = new HashSet<OWLClass>();
 		for (GeneAnnotation ann : annotations) {
 			if(aspect.equals(ann.getAspect())) {
-				OWLClass cls = g.getOWLClassByIdentifier(ann.getCls());
+				OWLClass cls = g.getOWLClassByIdentifierNoAltIds(ann.getCls());
 				if (cls != null) {
 					// may not find a class, if an alt_id is used
 					classes.add(cls);	

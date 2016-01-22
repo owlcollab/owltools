@@ -137,8 +137,16 @@ public class MarkdownRenderer {
 
 		tellToIndex();
 		renderSection("Ontology");
-		renderTagValue("OID", o.getOntologyID().getOntologyIRI());
-		renderTagValue("Version", o.getOntologyID().getVersionIRI());
+		IRI oidValue = null;
+		IRI versionValue = null;
+		if(o.getOntologyID().getOntologyIRI().isPresent()) {
+			oidValue = o.getOntologyID().getOntologyIRI().get();
+		}
+		if (o.getOntologyID().getVersionIRI().isPresent()) {
+			versionValue = o.getOntologyID().getVersionIRI().get();
+		}
+		renderTagValue("OID", oidValue);
+		renderTagValue("Version", versionValue);
 
 		renderSection("Classes");
 		for (OWLClass c : o.getClassesInSignature()) {

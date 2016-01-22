@@ -359,7 +359,7 @@ public class GafCommandRunner extends CommandRunner {
 					break;
 				}
 				String clsId = ann.getCls();
-				OWLClass cls = g.getOWLClassByIdentifier(clsId);
+				OWLClass cls = g.getOWLClassByIdentifierNoAltIds(clsId);
 				if (cls == null) {
 					LOG.warn(clsId+" not found");
 					outcome = "CLASS_NOT_FOUND";
@@ -379,7 +379,7 @@ public class GafCommandRunner extends CommandRunner {
 							break;
 						}
 						else {
-							OWLClass cls2 = g.getOWLClassByIdentifier(clsId2);
+							OWLClass cls2 = g.getOWLClassByIdentifierNoAltIds(clsId2);
 							Set<OWLObject> ancs2 = g.getAncestors(cls2);
 							if (ancs2.contains(cls)) {
 								outcome = "MATCHES_MORE_SPECIFIC";
@@ -742,7 +742,7 @@ public class GafCommandRunner extends CommandRunner {
 		LOG.info("Annotations: "+gafdoc.getGeneAnnotations().size());
 		Set<String> unmatchedIds = new HashSet<String>();
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
-			OWLClass c = g.getOWLClassByIdentifier(a.getCls());
+			OWLClass c = g.getOWLClassByIdentifierNoAltIds(a.getCls());
 			//LOG.info(" C:"+c);
 			if (c == null) {
 				unmatchedIds.add(a.getCls());
@@ -834,7 +834,7 @@ public class GafCommandRunner extends CommandRunner {
 		int num = 0;
 		for (GeneAnnotation a : gafdoc.getGeneAnnotations()) {
 			num++;
-			OWLClass c = g.getOWLClassByIdentifier(a.getCls());
+			OWLClass c = g.getOWLClassByIdentifierNoAltIds(a.getCls());
 			if (ssm.containsKey(c) && ssm.get(c).size() > 0) {
 				nmapped++;
 				Set<OWLObject> mapped = ssm.get(c);

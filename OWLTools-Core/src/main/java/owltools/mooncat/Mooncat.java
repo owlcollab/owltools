@@ -50,6 +50,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 import owltools.graph.OWLGraphEdge;
@@ -477,6 +478,11 @@ public class Mooncat {
 		// we will later filter these
 		for (OWLOntology refOnt : getReferencedOntologies()) {
 			LOG.info("refOnt:"+refOnt);
+			IRI refOntIRI = null;
+			Optional<IRI> ontologyIRI = refOnt.getOntologyID().getOntologyIRI();
+			if (ontologyIRI.isPresent()) {
+				refOntIRI = ontologyIRI.get();
+			}
 			Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 			for (OWLObject obj : objs) {
 				if (!(obj instanceof OWLEntity))
@@ -502,27 +508,26 @@ public class Mooncat {
 					axioms.addAll(refOnt.getAxioms(c, Imports.EXCLUDED));
 					Set<? extends OWLAxiom> declarationAxioms = refOnt.getDeclarationAxioms(c);
 					if (!declarationAxioms.isEmpty()) {
-						OWLAnnotationValue value = refOnt.getOntologyID().getOntologyIRI().get();
-						OWLAnnotationProperty property = dataFactory.getOWLAnnotationProperty(importedMarkerIRI);
-						axioms.add(dataFactory.getOWLAnnotationAssertionAxiom(property , c.getIRI(), value));
+						if(refOntIRI != null) {
+							OWLAnnotationProperty property = dataFactory.getOWLAnnotationProperty(importedMarkerIRI);
+							axioms.add(dataFactory.getOWLAnnotationAssertionAxiom(property , c.getIRI(), refOntIRI));
+						}
 						axioms.addAll(declarationAxioms);
 					}
 				}
 				else if (obj instanceof OWLObjectProperty) {
 					final OWLObjectProperty p = (OWLObjectProperty) obj;
-					if (!refOnt.getDeclarationAxioms(p).isEmpty()) {
-						OWLAnnotationValue value = refOnt.getOntologyID().getOntologyIRI().get();
+					if (!refOnt.getDeclarationAxioms(p).isEmpty() && refOntIRI != null) {
 						OWLAnnotationProperty property = dataFactory.getOWLAnnotationProperty(importedMarkerIRI);
-						axioms.add(dataFactory.getOWLAnnotationAssertionAxiom(property , p.getIRI(), value));
+						axioms.add(dataFactory.getOWLAnnotationAssertionAxiom(property , p.getIRI(), refOntIRI));
 					}
 					axioms.addAll(refOnt.getAxioms(p, Imports.EXCLUDED));
 				}
 				else if (obj instanceof OWLNamedIndividual) {
 					final OWLNamedIndividual i = (OWLNamedIndividual) obj;
-					if(!refOnt.getDeclarationAxioms(i).isEmpty()) {
-						OWLAnnotationValue value = refOnt.getOntologyID().getOntologyIRI().get();
+					if(!refOnt.getDeclarationAxioms(i).isEmpty() && refOntIRI != null) {
 						OWLAnnotationProperty property = dataFactory.getOWLAnnotationProperty(importedMarkerIRI);
-						axioms.add(dataFactory.getOWLAnnotationAssertionAxiom(property , i.getIRI(), value));
+						axioms.add(dataFactory.getOWLAnnotationAssertionAxiom(property , i.getIRI(), refOntIRI));
 					}
 					axioms.addAll(refOnt.getAxioms(i, Imports.EXCLUDED));
 				}
@@ -1014,8 +1019,7 @@ public class Mooncat {
 			rmAxioms.addAll(ont.getAxioms(i, Imports.EXCLUDED));
 		}
 		if (!rmAxioms.isEmpty()) {
-			LOG.info("Removing "+rmAxioms.size()+" external axioms for: "+
-					ont.getOntologyID().getOntologyIRI());
+			LOG.info("Removing "+rmAxioms.size()+" external axioms for: "+ ont.getOntologyID());
 			ont.getOWLOntologyManager().removeAxioms(ont, rmAxioms);
 		}
 	}

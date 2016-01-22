@@ -31,6 +31,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLQuantifiedProperty;
 
+import com.google.common.base.Optional;
 import com.google.gson.Gson;
 
 /**
@@ -139,7 +140,10 @@ public class OWLGsonParser {
 
 	public Object convert(OWLOntology ont) {
 		Map<String,Object> m = new HashMap<String,Object>();
-		m.put("iri", convert(ont.getOntologyID().getOntologyIRI().get()));
+		Optional<IRI> ontologyIRI = ont.getOntologyID().getOntologyIRI();
+		if(ontologyIRI.isPresent()) {
+			m.put("iri", convert(ontologyIRI.get()));
+		}
 		m.put("annotations", convertSet(ont.getAnnotations()));
 		m.put("axioms", convertSet(ont.getAxioms()));
 		m.put("imports", convertSet(ont.getImportsDeclarations()));

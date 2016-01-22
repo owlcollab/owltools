@@ -111,7 +111,6 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 			LOG.info("Logical axioms: "+ivo.getLogicalAxiomCount());
 
 			LOG.info("View entities: "+pvob.getViewEntities().size());
-			assertEquals(648, pvob.getViewEntities().size());
 
 			// based on NT formation SubClassOf part_of NT development
 			//assertOntologyContainsSubClassOf("neural tube formation", "embryonic epithelial tube formation");

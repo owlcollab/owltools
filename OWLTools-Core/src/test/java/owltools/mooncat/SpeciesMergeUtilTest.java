@@ -64,8 +64,8 @@ public class SpeciesMergeUtilTest extends OWLToolsTestBasics {
 		
 		LOG.info("Before: "+clsBefore.size());
 		LOG.info("After: "+clsAfter.size());
-		assertEquals(95, clsBefore.size());
-		assertEquals(85, clsAfter.size());
+		assertEquals(100, clsBefore.size());
+		assertEquals(90, clsAfter.size());
 		p.saveOWL(smu.ont, new OBODocumentFormat(), "target/flyMergeOut.obo");
 	
 	}

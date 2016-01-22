@@ -1506,7 +1506,7 @@ public class OWLGraphManipulator {
         Set<OWLClass> descendants          = new HashSet<OWLClass>();
     	for (String allowedRootId: allowedSubgraphRootIds) {
     		OWLClass allowedRoot = 
-    				this.getOwlGraphWrapper().getOWLClassByIdentifier(allowedRootId);
+    				this.getOwlGraphWrapper().getOWLClassByIdentifierNoAltIds(allowedRootId);
     		
     		if (allowedRoot != null) {
     			allowedSubgraphRoots.add(allowedRoot);

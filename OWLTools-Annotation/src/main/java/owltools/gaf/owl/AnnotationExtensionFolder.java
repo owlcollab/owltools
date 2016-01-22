@@ -136,7 +136,7 @@ public class AnnotationExtensionFolder extends GAFOWLBridge {
 				labelBuilder.append(" and ");
 				labelBuilder.append(ext.getRelation());
 				labelBuilder.append(" some ");
-				OWLClass xc = graph.getOWLClassByIdentifier(ext.getCls());
+				OWLClass xc = graph.getOWLClassByIdentifierNoAltIds(ext.getCls());
 				if (xc != null) {
 					labelBuilder.append(graph.getLabelOrDisplayId(xc));
 				}

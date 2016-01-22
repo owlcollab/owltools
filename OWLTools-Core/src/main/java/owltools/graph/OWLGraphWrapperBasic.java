@@ -27,6 +27,8 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import com.google.common.base.Optional;
+
 import owltools.io.ParserWrapper;
 
 /**
@@ -71,8 +73,14 @@ public class OWLGraphWrapperBasic {
 	 * @param extOnt
 	 */
 	public void addImport(OWLOntology extOnt) {
-		AddImport ai = new AddImport(getSourceOntology(), getDataFactory().getOWLImportsDeclaration(extOnt.getOntologyID().getOntologyIRI().get()));
-		getManager().applyChange(ai);
+		Optional<IRI> ontologyIRI = extOnt.getOntologyID().getOntologyIRI();
+		if (ontologyIRI.isPresent()) {
+			AddImport ai = new AddImport(getSourceOntology(), getDataFactory().getOWLImportsDeclaration(ontologyIRI.get()));
+			getManager().applyChange(ai);
+		}
+		else {
+			throw new RuntimeException("Could not add ontology as import, missing ontology ID: "+extOnt);
+		}
 	}
 
 	/**
@@ -99,10 +107,25 @@ public class OWLGraphWrapperBasic {
 		}
 	}
 
+	/**
+	 * @deprecated use {@link #mergeSupportOntology(IRI, boolean)} instead
+	 * 
+	 * @param ontologyIRI
+	 * @param isRemoveFromSupportList
+	 * @throws OWLOntologyCreationException
+	 */
+	@Deprecated
 	public void mergeSupportOntology(String ontologyIRI, boolean isRemoveFromSupportList) throws OWLOntologyCreationException {
+		if (ontologyIRI != null) {
+			mergeSupportOntology(IRI.create(ontologyIRI), isRemoveFromSupportList);
+		}
+	}
+	
+	public void mergeSupportOntology(IRI ontologyIRI, boolean isRemoveFromSupportList) throws OWLOntologyCreationException {
 		OWLOntology extOnt = null;
 		for (OWLOntology ont : this.supportOntologySet) {
-			if (ont.getOntologyID().getOntologyIRI().toString().equals(ontologyIRI)) {
+			Optional<IRI> supportIRI = ont.getOntologyID().getOntologyIRI();
+			if (supportIRI.isPresent() && supportIRI.get().equals(ontologyIRI)) {
 				extOnt = ont;
 				break;
 			}
@@ -114,7 +137,18 @@ public class OWLGraphWrapperBasic {
 		}
 	}
 
+	/**
+	 * @deprecated Use {@link #mergeSupportOntology(IRI)} instead
+	 * 
+	 * @param ontologyIRI
+	 * @throws OWLOntologyCreationException
+	 */
+	@Deprecated
 	public void mergeSupportOntology(String ontologyIRI) throws OWLOntologyCreationException {
+		mergeSupportOntology(ontologyIRI, true);
+	}
+	
+	public void mergeSupportOntology(IRI ontologyIRI) throws OWLOntologyCreationException {
 		mergeSupportOntology(ontologyIRI, true);
 	}
 
@@ -190,17 +224,24 @@ public class OWLGraphWrapperBasic {
 		OWLOntology sourceOntology = getSourceOntology();
 		OWLDataFactory factory = getDataFactory();
 		for (OWLOntology  o : getSupportOntologySet()) {
-			OWLImportsDeclaration importsDeclaration = 
-					factory.getOWLImportsDeclaration(o.getOntologyID().getOntologyIRI().get());
-			AddImport ai = new AddImport(sourceOntology, importsDeclaration);
-			LOG.info("Applying: "+ai);
-			getManager().applyChange(ai);
+			Optional<IRI> ontologyIRI = o.getOntologyID().getOntologyIRI();
+			if (ontologyIRI.isPresent()) {
+				OWLImportsDeclaration importsDeclaration = factory.getOWLImportsDeclaration(ontologyIRI.get());
+				AddImport ai = new AddImport(sourceOntology, importsDeclaration);
+				LOG.info("Applying: "+ai);
+				getManager().applyChange(ai);
+			}
+			else {
+				String msg = "Could not add import due to missing ontology id: "+o;
+				LOG.error(msg);
+				throw new RuntimeException(msg);
+			}
 		}
 		this.setSupportOntologySet(new HashSet<OWLOntology>());
 	}
 
 	public void remakeOntologiesFromImportsClosure() throws OWLOntologyCreationException {
-		remakeOntologiesFromImportsClosure((new OWLOntologyID()).getOntologyIRI().get());
+		remakeOntologiesFromImportsClosure(IRI.generateDocumentIRI());
 	}
 
 	public void remakeOntologiesFromImportsClosure(IRI ontologyIRI) throws OWLOntologyCreationException {
@@ -249,8 +290,8 @@ public class OWLGraphWrapperBasic {
 		for (OWLOntology o : imports) {
 			if (o.equals(sourceOntology))
 				continue;
-			OWLOntologyID ontologyID = o.getOntologyID();
-			if (ontologyID !=  null && ontologyIRI.equals(ontologyID.getOntologyIRI())) {
+			Optional<IRI> currentIRI = o.getOntologyID().getOntologyIRI();
+			if (currentIRI.isPresent() && currentIRI.get().equals(ontologyIRI)) {
 				String comment = "Includes "+o;
 				LOG.info(comment);
 				addCommentToOntology(sourceOntology, comment);

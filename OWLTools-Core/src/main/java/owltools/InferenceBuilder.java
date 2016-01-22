@@ -35,6 +35,8 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import com.google.common.base.Optional;
+
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.util.OwlHelper;
@@ -89,14 +91,22 @@ public class InferenceBuilder{
 	}
 	
 	public static OWLGraphWrapper enforceEL(OWLGraphWrapper graph) {
-		String origIRI = graph.getSourceOntology().getOntologyID().getOntologyIRI().toString();
-		if (origIRI.endsWith(".owl")) {
-			origIRI = origIRI.replace(".owl", "-el.owl");
+		Optional<IRI> originalIRI = graph.getSourceOntology().getOntologyID().getOntologyIRI();
+		IRI newIRI;
+		if(originalIRI.isPresent()) {
+			String workIRI = originalIRI.get().toString();
+			if (workIRI.endsWith(".owl")) {
+				workIRI = workIRI.replace(".owl", "-el.owl");
+			}
+			else {
+				workIRI = workIRI + "-el";
+			}
+			newIRI = IRI.create(workIRI);
 		}
 		else {
-			origIRI = origIRI + "-el";
+			newIRI = IRI.generateDocumentIRI();
 		}
-		return enforceEL(graph, IRI.create(origIRI));
+		return enforceEL(graph, newIRI);
 	}
 	/**
 	 * Create an ontology with EL as description logic profile. This is achieved by 

@@ -376,8 +376,7 @@ public class PropertyViewOntologyBuilder {
 	 * @throws OWLOntologyCreationException
 	 */
 	public void buildViewOntology() throws OWLOntologyCreationException {
-		buildViewOntology((new OWLOntologyID()).getOntologyIRI().get(), 
-				(new OWLOntologyID()).getOntologyIRI().get());
+		buildViewOntology(IRI.generateDocumentIRI(),  IRI.generateDocumentIRI());
 	}
 
 	/**
