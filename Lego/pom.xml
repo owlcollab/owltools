@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>org.bbop</groupId>
 			<artifactId>OWLTools-Core</artifactId>
-			<version>0.2.2-SNAPSHOT</version>
+			<version>${project.parent.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.coode</groupId>
