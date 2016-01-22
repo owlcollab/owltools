@@ -164,8 +164,17 @@ foreach my $k (keys %ont_info) {
         # TODO - no action if unchanged
         $success = wget($source_url, $SRC);
         if ($success) {
-
+            
             if (is_different("$SRC.prev", $SRC) || !(-f "$ont/$ont.owl")) {
+
+                # If the config states to auto-insert an ontology: header, then do it first
+                if ($info->{insert_ontology_id}) {
+                    # truly awful hack to insert the ontology id, required in obof1.4 and in particular by Oort;
+                    # it would be better to add this as an option to Oort, but Oort development is frozen,
+                    # and we will eventually replace the Oort command with ROBOT anyway
+                    run("perl -pi -ne 's\@^format-version:\@ontology: $ont\nformat-version:@' $SRC");
+                }
+
                 # Oort places package files directly in target area, if successful
                 $success = run($env."ontology-release-runner --skip-release-folder --skip-format owx --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
                 if ($success) {
