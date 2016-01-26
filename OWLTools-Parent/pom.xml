@@ -19,6 +19,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<owlapi.version>4.1.3</owlapi.version>
+		<slf4j.version>1.7.10</slf4j.version>
 	</properties>
 
 	<profiles>
@@ -111,6 +112,11 @@
 					<artifactId>maven-assembly-plugin</artifactId>
 					<version>2.5.3</version>
 				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>2.4.3</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
@@ -148,44 +154,14 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.2</version>
+			<version>${slf4j.version}</version>
 		</dependency>
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
 				<groupId>net.sourceforge.owlapi</groupId>
-				<artifactId>owlapi-apibinding</artifactId>
-				<version>${owlapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>net.sourceforge.owlapi</groupId>
-				<artifactId>owlapi-api</artifactId>
-				<version>${owlapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>net.sourceforge.owlapi</groupId>
-				<artifactId>owlapi-contract</artifactId>
-				<version>${owlapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>net.sourceforge.owlapi</groupId>
 				<artifactId>owlapi-distribution</artifactId>
-				<version>${owlapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>net.sourceforge.owlapi</groupId>
-				<artifactId>owlapi-impl</artifactId>
-				<version>${owlapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>net.sourceforge.owlapi</groupId>
-				<artifactId>owlapi-parsers</artifactId>
-				<version>${owlapi.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>net.sourceforge.owlapi</groupId>
-				<artifactId>owlapi-tools</artifactId>
 				<version>${owlapi.version}</version>
 			</dependency>
 			<dependency>
@@ -219,7 +195,7 @@
 			<dependency>
 				<groupId>org.bbop</groupId>
 				<artifactId>oboformat-tools</artifactId>
-				<version>0.7.0</version>
+				<version>0.7.1</version>
 			</dependency>
 			<dependency>
 				<groupId>uk.ac.ebi.interpro</groupId>
@@ -258,6 +234,16 @@
 				<version>3.2.1-fixit</version> <!-- This version does not contain a zero day exploit class InvokeTransformer -->
 			</dependency>
 			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>3.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-math3</artifactId>
+				<version>3.3</version>
+			</dependency>
+			<dependency>
 				<groupId>org.semanticweb.elk</groupId>
 				<artifactId>elk-owlapi</artifactId>
 				<version>0.4.3</version>
@@ -284,14 +270,24 @@
 				</exclusions>
 			</dependency>
 			<dependency>
-				<groupId>org.apache.geronimo.specs</groupId>
-				<artifactId>geronimo-javamail_1.4_spec</artifactId>
-				<version>1.6</version>
-			</dependency>
-			<dependency>
 				<groupId>org.geneontology</groupId>
 				<artifactId>expression-materializing-reasoner</artifactId>
-				<version>0.1.0</version>
+				<version>0.1.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>jcl-over-slf4j</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>18.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

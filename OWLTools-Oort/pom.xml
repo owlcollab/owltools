@@ -15,29 +15,25 @@
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-	  			<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<finalName>owltools-oort-all</finalName>
-					<appendAssemblyId>false</appendAssemblyId>
-					<attach>false</attach>
-					<outputDirectory>${project.basedir}/bin</outputDirectory>
-					<descriptors>
-						<descriptor>src/main/assembly/owltools-oort-all.xml</descriptor>
-					</descriptors>
-					<archive>
-						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							<mainClass>owltools.ontologyrelease.OboOntologyReleaseRunner</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
+				<artifactId>maven-shade-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>make-assembly</id>
 						<phase>package</phase>
 						<goals>
-							<goal>single</goal>
+							<goal>shade</goal>
 						</goals>
+						<configuration>
+							<outputFile>bin/owltools-oort-all.jar</outputFile>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<Main-Class>owltools.ontologyrelease.OboOntologyReleaseRunner</Main-Class>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

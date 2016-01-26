@@ -53,7 +53,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.sourceforge.owlapi</groupId>
-			<artifactId>owlapi-apibinding</artifactId>
+			<artifactId>owlapi-distribution</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>
