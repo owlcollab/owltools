@@ -172,7 +172,7 @@ foreach my $k (keys %ont_info) {
                     # truly awful hack to insert the ontology id, required in obof1.4 and in particular by Oort;
                     # it would be better to add this as an option to Oort, but Oort development is frozen,
                     # and we will eventually replace the Oort command with ROBOT anyway
-                    run("perl -pi -ne 's\@^format-version:\@ontology: $ont\nformat-version:@' $SRC");
+                    run("perl -pi -ne 's\@^format-version:\@ontology: $ont\\nformat-version:\@' $SRC");
                 }
 
                 # Oort places package files directly in target area, if successful
