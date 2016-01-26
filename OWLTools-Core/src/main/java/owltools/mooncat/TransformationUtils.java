@@ -18,12 +18,17 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+
+import owltools.graph.OWLGraphWrapper;
 
 /**
  * Static methods for performing common logical transforms and view creation on OWL ontologies
@@ -159,5 +164,35 @@ public class TransformationUtils {
 		return UUID.randomUUID().toString();
 	}
 
+	public static void addLabel(OWLNamedIndividual i, OWLGraphWrapper g, OWLReasoner reasoner) {
+		OWLOntology ontology = g.getSourceOntology();
+		Set<OWLClass> types = new HashSet<OWLClass>();
+		if (reasoner == null) {
+			for (OWLClassExpression x : i.getTypes(ontology)) {
+				if (!x.isAnonymous()) {
+					types.add((OWLClass) x);
+				}
+			}
+		}
+		else {
+			 types = reasoner.getTypes(i, true).getFlattened();
+		}
+		StringBuffer iLabel = null;
+		for (OWLClass type : types) {
+			String label = g.getLabel(type);
+			if (iLabel == null)
+				iLabel = new StringBuffer("a");
+			else
+				iLabel.append(" & ");
+			iLabel.append(" "+label);
+		}
+		OWLDataFactory df = g.getDataFactory();
+		OWLAxiom ax =
+				df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()),
+				i.getIRI(), 
+				df.getOWLLiteral(iLabel.toString()));
+		g.getManager().addAxiom(ontology,
+				ax);
+	}
 
 }

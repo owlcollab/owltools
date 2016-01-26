@@ -37,6 +37,8 @@ import org.semanticweb.owlapi.model.RemoveAxiom;
  * treat-as-variable quality.IRI
  * treat-as-variable entity.IRI
  * 
+ * Note that quality and entity can be any IRI - they do not need to be roots; just exemplars
+ * 
  * will find all uses of the former pattern and replace them with the latter
  * 
  * Also (advanced):
@@ -56,7 +58,8 @@ public class TemplatedTransformer {
 	OWLOntology ontology;
 	private static Logger LOG = Logger.getLogger(TemplatedTransformer.class);
 
-	
+
+	// mapping between source and target class expression
 	public class Mapping {
 		OWLClassExpression src;
 		OWLClassExpression tgt;
@@ -75,7 +78,7 @@ public class TemplatedTransformer {
 
 	public Set<Mapping> getMappings() {
 		Set<Mapping> ms = new HashSet<Mapping>();
-		OWLAnnotationProperty vap = getVariableAnnotationProperty();
+		OWLAnnotationProperty vap = getVariableAnnotationProperty(); // e.g. hasVariable
 		for (OWLSubClassOfAxiom sca : ontology.getAxioms(AxiomType.SUBCLASS_OF, true)) {
 			Mapping m = new Mapping();
 			Set<OWLAnnotation> anns = sca.getAnnotations(vap);
