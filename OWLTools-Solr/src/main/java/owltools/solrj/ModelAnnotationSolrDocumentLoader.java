@@ -76,21 +76,32 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	private final OWLAnnotationProperty with;
 	private final OWLAnnotationProperty layoutHintX;
 	private final OWLAnnotationProperty layoutHintY;
+	private final OWLAnnotationProperty templatestate;
 	
 	private final OWLAnnotationProperty displayLabelProp;
 	private final OWLAnnotationProperty shortIdProp;
+	
+	private final OWLAnnotationProperty jsonProp;
 
 	private final OWLClass bp;
 	private final Set<OWLClass> bpSet;
+	private final Set<String> requiredModelStates;
+	private boolean skipDeprecatedModels;
+	private boolean skipTemplateModels;
 
-	public ModelAnnotationSolrDocumentLoader(String golrUrl, OWLOntology model, OWLReasoner r, String modelUrl) throws MalformedURLException {
-		this(createDefaultServer(golrUrl), model, r, modelUrl);
+	public ModelAnnotationSolrDocumentLoader(String golrUrl, OWLOntology model, OWLReasoner r, String modelUrl, 
+			Set<String> modelFilter, boolean skipDeprecatedModels, boolean skipTemplateModels) throws MalformedURLException {
+		this(createDefaultServer(golrUrl), model, r, modelUrl, modelFilter, skipDeprecatedModels, skipTemplateModels);
 	}
 	
-	public ModelAnnotationSolrDocumentLoader(SolrServer server, OWLOntology model, OWLReasoner r, String modelUrl) {
+	public ModelAnnotationSolrDocumentLoader(SolrServer server, OWLOntology model, OWLReasoner r, String modelUrl, 
+			Set<String> modelFilter, boolean skipDeprecatedModels, boolean skipTemplateModels) {
 		super(server);
 		this.model = model;
 		this.reasoner = r;
+		this.requiredModelStates = modelFilter;
+		this.skipDeprecatedModels = skipDeprecatedModels;
+		this.skipTemplateModels = skipTemplateModels;
 		this.graph = new OWLGraphWrapper(model);
 		this.modelUrl = modelUrl;
 		current_doc_number = 0;
@@ -114,9 +125,12 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		with = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/evidence-with"));
 		layoutHintX = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/hint/layout/x"));
 		layoutHintY = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/hint/layout/y"));
+		templatestate = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/templatestate"));
 		
 		displayLabelProp = df.getRDFSLabel();
 		shortIdProp = df.getOWLAnnotationProperty(IRI.create(Obo2OWLConstants.OIOVOCAB_IRI_PREFIX+"id"));
+		
+		jsonProp = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/json-model"));
 		
 		bpSet = getAllSubClasses(bp, graph, reasoner, true);
 	}
@@ -151,6 +165,9 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		String title = null;
 		String state = null;
 		String modelComment = null;
+		boolean isTemplate = false;
+		boolean isDeprecated = false;
+		String jsonModel = null;
 		Set<String> modelAnnotations = new HashSet<String>();
 		for(OWLAnnotation ann : model.getAnnotations()) {
 			OWLAnnotationProperty p = ann.getProperty();
@@ -175,6 +192,15 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				else if (this.comment.equals(p)) {
 					modelComment = literal;
 				}
+				else if (this.jsonProp.equals(p)) {
+					jsonModel = literal;
+				}
+				else if (this.templatestate.equals(p)) {
+					isTemplate = "true".equalsIgnoreCase(literal);
+				}
+				else if (p.isDeprecated()) {
+					isDeprecated = "true".equalsIgnoreCase(literal);
+				}
 				else {
 					modelAnnotations.add(literal);
 				}
@@ -183,6 +209,22 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		if (modelId == null) {
 			// fallback
 			modelId = model.getOntologyID().getOntologyIRI().toString();
+		}
+		
+		if (requiredModelStates != null && state != null) {
+			boolean contains = requiredModelStates.contains(state);
+			if (contains == false) {
+				LOG.info("skipping model "+modelId+" due to model state, is: '"+state+"' required: "+requiredModelStates);
+				return;
+			}
+		}
+		if (skipDeprecatedModels && isDeprecated) {
+			LOG.info("Skipping model '"+modelId+"' model is deprecated");
+			return;
+		}
+		if (skipTemplateModels && isTemplate) {
+			LOG.info("Skipping model '"+modelId+"' model is a template");
+			return;
 		}
 
 		Set<OWLObjectPropertyAssertionAxiom> axioms = model.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);
@@ -210,7 +252,8 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 											entry.getValue().getLeft(), entry.getKey(), entry.getValue().getRight(),
 											locations,
 											modelId, title, state, modelDate, modelUrl,
-											modelAnnotations, modelComment, shuntGraph);
+											modelAnnotations, modelComment, shuntGraph,
+											jsonModel);
 									addDoc(doc);
 								}
 							}
@@ -221,7 +264,8 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 										null, null, null,
 										locations,
 										modelId, title, state, modelDate, modelUrl,
-										modelAnnotations, modelComment, shuntGraph);
+										modelAnnotations, modelComment, shuntGraph,
+										jsonModel);
 								addDoc(doc);
 							}
 						}
@@ -490,6 +534,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	 * @param modelDate
 	 * @param modelUrl
 	 * @param modelComment
+	 * @param jsonModel
 	 *
 	 * @return an input doc for add()
 	 */
@@ -499,7 +544,8 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			OWLNamedIndividual bp, OWLClass bpType, Set<OWLAnnotation> bpAnnotations,
 			Map<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> locations,
 			String modelId, String title, String state, String modelDate, String modelUrl, 
-			Set<String> modelAnnotations, String modelComment, OWLShuntGraph shuntGraph) {
+			Set<String> modelAnnotations, String modelComment, OWLShuntGraph shuntGraph,
+			String jsonModel) {
 
 		final Set<String> allComments = new HashSet<String>(); // unused until schema can be fixed
 		if (modelComment != null) {
@@ -740,10 +786,12 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			addField(doc, "location_list_closure_map", locationClosureMap);
 		}
 		
-		// not used
 		//  - id: owl_blob_json
 		//    type: string
 		//    indexed: false
+		if (jsonModel != null) {
+			addField(doc, "owl_blob_json", jsonModel);
+		}
 		
 		//## Topology
 		//  - id: topology_graph_json

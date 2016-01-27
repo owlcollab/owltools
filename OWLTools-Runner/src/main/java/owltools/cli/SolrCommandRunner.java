@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -423,6 +424,40 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	
 	@CLIMethod("--solr-load-models")
 	public void loadModelAnnotations(Opts opts) throws Exception {
+		Set<String> modelStateFilter = null;
+		boolean removeDeprecatedModels = false;
+		boolean removeTemplateModels = false;
+		while (opts.hasOpts()) {
+			if (opts.nextEq("--defaultModelStateFilter|--productionModelStateFilter")) {
+				if(modelStateFilter != null) { 
+					modelStateFilter = new HashSet<String>();
+				}
+				// fill default
+				modelStateFilter.add("production");
+			}
+			else if (opts.nextEq("--modelStateFilter")) {
+				if(modelStateFilter != null) { 
+					modelStateFilter = new HashSet<String>();
+				}
+				modelStateFilter.addAll(opts.nextList());
+			}
+			else if (opts.nextEq("--excludeDeprecatedModels|--excludeDeprecated")) {
+				removeDeprecatedModels = true;
+			}
+			else if (opts.nextEq("--includeDeprecatedModels|--includeDeprecated")) {
+				removeDeprecatedModels = false;
+			}
+			else if (opts.nextEq("--excludeTemplateModels|--excludeTemplate")) {
+				removeTemplateModels = true;
+			}
+			else if (opts.nextEq("--includeTemplateModels|--includeTemplate")) {
+				removeTemplateModels = false;
+			}
+			else
+				break;
+
+		}
+		
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
 
@@ -482,7 +517,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					try {
 						LOG.info("Trying complex annotation load of: " + fname);
 						String modelUrl = legoModelPrefix + fname;
-						loader = new ModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl);
+						loader = new ModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl, 
+								modelStateFilter, removeDeprecatedModels, removeTemplateModels);
 						loader.load();
 					} catch (SolrServerException e) {
 						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
