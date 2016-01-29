@@ -28,7 +28,6 @@ import org.apache.solr.common.SolrException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAnnotationValueVisitorEx;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
@@ -427,6 +426,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		Set<String> modelStateFilter = null;
 		boolean removeDeprecatedModels = false;
 		boolean removeTemplateModels = false;
+		boolean removeUnsatisfiableModels = false;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--defaultModelStateFilter|--productionModelStateFilter")) {
 				if(modelStateFilter != null) { 
@@ -452,6 +452,12 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			}
 			else if (opts.nextEq("--includeTemplateModels|--includeTemplate")) {
 				removeTemplateModels = false;
+			}
+			else if (opts.nextEq("--excludeUnsatisfiableModels|--excludeUnsatisfiable")) {
+				removeUnsatisfiableModels = true;
+			}
+			else if (opts.nextEq("--includeUnsatisfiableModels|--includeUnsatisfiable")) {
+				removeUnsatisfiableModels = false;
 			}
 			else
 				break;
@@ -503,12 +509,12 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					// Some sanity checks--some of the genereated ones are problematic.
 					currentReasoner = reasonerFactory.createReasoner(model);
 					boolean consistent = currentReasoner.isConsistent();
-					if( consistent == false ){
+					if(removeUnsatisfiableModels && consistent == false ){
 						LOG.warn("Skip since inconsistent: " + fname);
 						continue;
 					}
 					Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
-					if (unsatisfiable.isEmpty() == false) {
+					if (removeUnsatisfiableModels && unsatisfiable.isEmpty() == false) {
 						LOG.warn("Skip since unsatisfiable: " + fname);
 						continue;
 					}

@@ -6,7 +6,6 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -83,7 +82,6 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	
 	private final OWLAnnotationProperty jsonProp;
 
-	private final OWLClass bp;
 	private final Set<OWLClass> bpSet;
 	private final Set<String> requiredModelStates;
 	private boolean skipDeprecatedModels;
@@ -109,7 +107,6 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		partOf = OBOUpperVocabulary.BFO_part_of.getObjectProperty(df);
 		occursIn = OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(df);
 		
-		bp = OBOUpperVocabulary.GO_biological_process.getOWLClass(df);
 		defaultClosureRelations = new ArrayList<String>(1);
 		defaultClosureRelations.add(graph.getIdentifier(partOf));
 		
@@ -132,22 +129,25 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		
 		jsonProp = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/json-model"));
 		
-		bpSet = getAllSubClasses(bp, graph, reasoner, true);
+		bpSet = getAspect(graph, "biological_process");
 	}
-	
-	static Set<OWLClass> getAllSubClasses(OWLClass cls, OWLGraphWrapper g, OWLReasoner r, boolean reflexive) {
-		Set<OWLClass> allSubClasses = r.getSubClasses(cls, false).getFlattened();
-		Iterator<OWLClass> it = allSubClasses.iterator();
-		while (it.hasNext()) {
-			OWLClass current = it.next();
-			if (current.isBuiltIn()) {
-				it.remove();
+
+	static Set<OWLClass> getAspect(OWLGraphWrapper graph, String aspect) {
+		Set<OWLClass> result = new HashSet<OWLClass>();
+		for(OWLClass cls : graph.getAllOWLClasses()) {
+			if (cls.isBuiltIn()) {
+				continue;
+			}
+			String id = graph.getIdentifier(cls);
+			if (id.startsWith("GO:") == false) {
+				continue;
+			}
+			String namespace = graph.getNamespace(cls);
+			if (namespace != null && namespace.equals(aspect)) {
+				result.add(cls);
 			}
 		}
-		if (reflexive) {
-			allSubClasses.add(cls);
-		}
-		return allSubClasses;
+		return result;
 	}
 	
 	@Override
@@ -235,10 +235,10 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				OWLIndividual gp = axiom.getObject();
 				if (mf.isNamed() && gp.isNamed()) {
 					final OWLNamedIndividual gpNamed = gp.asOWLNamedIndividual();
-					final Set<OWLClass> gpTypes = getGpTypes(gpNamed);
+					final Set<OWLClass> gpTypes = getTypes(gpNamed);
 					final Set<OWLAnnotation> gpAnnotations = getAnnotations(axiom, gpNamed);
 					final OWLNamedIndividual mfNamed = mf.asOWLNamedIndividual();
-					final Set<OWLClass> mfTypes = getMfTypes(mfNamed);
+					final Set<OWLClass> mfTypes = getTypes(mfNamed);
 					final Set<OWLAnnotation> mfAnnotations = getAnnotations(null, mfNamed);
 					Map<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> processes = findProcesses(mfNamed);
 					Map<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> locations = findLocations(mfNamed);
@@ -305,30 +305,6 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		return all;
 	}
 
-	private Set<OWLClass> getGpTypes(OWLNamedIndividual gp) {
-		Set<OWLClass> result = new HashSet<OWLClass>();
-		Set<OWLClass> gpTypes = reasoner.getTypes(gp, true).getFlattened();
-		for (OWLClass gpType : gpTypes) {
-			if (gpType.isBuiltIn()) {
-				continue;
-			}
-			result.add(gpType);
-		}
-		return result;
-	}
-	
-	private Set<OWLClass> getMfTypes(OWLNamedIndividual mf) {
-		Set<OWLClass> result = new HashSet<OWLClass>();
-		Set<OWLClass> mfTypes = reasoner.getTypes(mf, true).getFlattened();
-		for (OWLClass mfType : mfTypes) {
-			if (mfType.isBuiltIn()) {
-				continue;
-			}
-			result.add(mfType);
-		}
-		return result;
-	}
-	
 	private Map<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> findProcesses(OWLNamedIndividual mf) {
 		Map<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> result = new HashMap<OWLClass, Pair<OWLNamedIndividual,Set<OWLAnnotation>>>();
 		Set<OWLObjectPropertyAssertionAxiom> axioms = model.getObjectPropertyAssertionAxioms(mf);
@@ -338,11 +314,8 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				OWLIndividual bpCandidate = axiom.getObject();
 				if (bpCandidate.isNamed()) {
 					final OWLNamedIndividual named = bpCandidate.asOWLNamedIndividual();
-					Set<OWLClass> bpTypes = reasoner.getTypes(named, true).getFlattened();
+					Set<OWLClass> bpTypes = getTypes(named);
 					for (OWLClass bpType : bpTypes) {
-						if (bpType.isBuiltIn()) {
-							continue;
-						}
 						if (bpSet.contains(bpType) == false) {
 							continue;
 						}
@@ -363,17 +336,40 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				OWLIndividual locationCandidate = axiom.getObject();
 				if (locationCandidate.isNamed()) {
 					OWLNamedIndividual named = locationCandidate.asOWLNamedIndividual();
-					Set<OWLClass> locationTypes = reasoner.getTypes(named, true).getFlattened();
+					Set<OWLClass> locationTypes = getTypes(named);
 					for (OWLClass locationType : locationTypes) {
-						if (locationType.isBuiltIn()) {
-							continue;
-						}
 						result.put(locationType, Pair.of(named, getAnnotations(axiom, named)));
 					}
 				}
 			}
 		}
 		return result;
+	}
+	
+	private Set<OWLClass> getTypes(OWLNamedIndividual i) {
+		final Set<OWLClass> results = new HashSet<OWLClass>();
+		if (reasoner != null && reasoner.isConsistent()) {
+			Set<OWLClass> inferredTypes = reasoner.getTypes(i, true).getFlattened();
+			for (OWLClass cls : inferredTypes) {
+				if (cls.isBuiltIn() == false) {
+					results.add(cls);
+				}
+			}
+		}
+		else {
+			Set<OWLClassAssertionAxiom> axioms = model.getClassAssertionAxioms(i);
+			for (OWLClassAssertionAxiom axiom : axioms) {
+				OWLClassExpression ce = axiom.getClassExpression();
+				if (ce.isAnonymous() == false) {
+					OWLClass cls = ce.asOWLClass();
+					if (cls.isBuiltIn() == false) {
+						results.add(cls);
+					}
+				}
+			}
+		}
+		
+		return results;
 	}
 
 	private Map<String,String> renderAnnotations(Set<OWLAnnotation> annotations) {
@@ -883,7 +879,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				if (evidence.equals(p)) {
 					OWLNamedIndividual relevant = findEvidenceIndividual(value);
 					if (eco == null) {
-						eco = findType(relevant);
+						eco = findFirstType(relevant);
 					}
 					if (relevant != null) {
 						Set<OWLAnnotationAssertionAxiom> axioms = model.getAnnotationAssertionAxioms(relevant.getIRI());
@@ -944,7 +940,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		return eco;
 	}
 
-	private OWLClass findType(OWLNamedIndividual relevant) {
+	private OWLClass findFirstType(OWLNamedIndividual relevant) {
 		Set<OWLClassAssertionAxiom> axioms = model.getClassAssertionAxioms(relevant);
 		for (OWLClassAssertionAxiom axiom : axioms) {
 			OWLClassExpression ce = axiom.getClassExpression();
