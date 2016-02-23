@@ -1414,5 +1414,20 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		});
 		return idSpace;
 	}
+	
+	/**
+	 * It returns the id space.
+	 * <p>
+	 * This is a curried FlexLoader s-expression version of {@link #getIdSpace(OWLObject)}.
+	 * 
+	 * @param obj
+	 * @param sargs
+	 * @return idspace or null
+	 * 
+	 * @see #getIdSpace(OWLObject)
+	 */
+	public String getIdSpace(OWLObject obj, List<String> sargs) {
+		return getIdSpace(obj);
+	}
 }
 
