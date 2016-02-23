@@ -1,0 +1,22 @@
+format-version: 1.2
+ontology: test
+
+[Term]
+id: TEST:0001
+name: Test 1
+
+[Term]
+id: CARO:0000000
+name: anatomical entity
+
+[Term]
+id: NCBITaxon:1
+name: root
+
+[Term]
+id: FBbt:00000000
+name: germ layer derivative
+
+[Term]
+id: GO:0008150
+name: biological_process

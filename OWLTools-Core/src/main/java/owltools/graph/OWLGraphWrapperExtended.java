@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.obolibrary.obo2owl.Obo2Owl;
@@ -36,6 +38,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
+import org.semanticweb.owlapi.util.OWLObjectVisitorExAdapter;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 /**
@@ -1382,6 +1385,34 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 			}
 		}
 		return null;
+	}
+	
+	static final Pattern ID_SPACE_PATTERN = Pattern.compile("([a-z]+):\\d+", Pattern.CASE_INSENSITIVE);
+	
+	/**
+	 * Try to extract an id space from an {@link OWLObject}.
+	 * Currently it is only defined for an {@link OWLClass}, 
+	 * otherwise the result is null.
+	 * 
+	 * @param obj
+	 * @return id space or null
+	 */
+	public String getIdSpace(OWLObject obj) {
+		String idSpace = obj.accept(new OWLObjectVisitorExAdapter<String>(null){
+
+			@Override
+			public String visit(final OWLClass cls) {
+				// id space only makes sense for classes
+				String identifier = getIdentifier(cls.getIRI());
+				Matcher matcher = ID_SPACE_PATTERN.matcher(identifier);
+				if (matcher.matches()) {
+					return matcher.group(1);
+				}
+				return null;
+			}
+			
+		});
+		return idSpace;
 	}
 }
 

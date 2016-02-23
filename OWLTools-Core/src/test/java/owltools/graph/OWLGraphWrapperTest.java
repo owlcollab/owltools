@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -164,5 +165,23 @@ public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 		OWLOntology ontology = bridge.convert(obodoc);
 		OWLGraphWrapper wrapper = new OWLGraphWrapper(ontology);
 		return wrapper;
+	}
+	
+	@Test
+	public void testIdSpace() throws Exception {
+		OWLGraphWrapper graph = getOBO2OWLOntologyWrapper("graph/idspace-test.obo");
+		Set<OWLClass> owlClasses = graph.getAllOWLClasses();
+		Map<String, String> result = new HashMap<String, String>();
+		for (OWLClass owlClass : owlClasses) {
+			String idSpace = graph.getIdSpace(owlClass);
+			assertNotNull("Id space must not be null for cls: "+owlClass, idSpace);
+			result.put(graph.getIdentifier(owlClass.getIRI()), idSpace);
+		}
+		assertEquals(owlClasses.size(), result.size());
+		assertEquals("TEST", result.get("TEST:0001"));
+		assertEquals("CARO", result.get("CARO:0000000"));
+		assertEquals("NCBITaxon", result.get("NCBITaxon:1"));
+		assertEquals("FBbt", result.get("FBbt:00000000"));
+		assertEquals("GO", result.get("GO:0008150"));
 	}
 }
