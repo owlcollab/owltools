@@ -1096,7 +1096,28 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		}
 		return Collections.emptySet();
 	}
+	
+	/**
+	 * Retrieve direct neighbors of x in a shunt graph.
+	 * <p>
+	 * Intended for GOlr loading.
+	 * <p>
+	 * This is a curried FlexLoader s-expression version of {@link #getNeighbors(OWLObject)}.
+	 * 
+	 * @param x
+	 * @param sargs
+	 * @return shunt graph
+	 */
+	public OWLShuntGraph getNeighbors(OWLObject x, List<String> sargs) {
+		return getNeighbors(x);
+	}
 
+	/**
+	 * Retrieve direct neighbors of x in a shunt graph.
+	 * 
+	 * @param x
+	 * @return shunt graph
+	 */
 	public OWLShuntGraph getNeighbors(OWLObject x) {
 		final OWLShuntGraph shunt = new OWLShuntGraph();
 		
