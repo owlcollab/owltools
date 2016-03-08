@@ -14,6 +14,8 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
 import owltools.OWLToolsTestBasics;
+import owltools.graph.shunt.OWLShuntEdge;
+import owltools.graph.shunt.OWLShuntGraph;
 
 public class OWLGraphWrapperEdgesAdvancedTest extends OWLToolsTestBasics {
 
@@ -89,6 +91,35 @@ public class OWLGraphWrapperEdgesAdvancedTest extends OWLToolsTestBasics {
 		finally {
 			IOUtils.closeQuietly(graph);
 		}
+	}
+	
+	@Test
+	public void testGetNeighbors() throws Exception {
+		OWLGraphWrapper graph = getGraph("graph/neighbors-test.obo");
+		
+		OWLClass cls = graph.getOWLClassByIdentifier("FOO:0003");
+		assertNotNull(cls);
+		OWLShuntGraph neighbors = graph.getNeighbors(cls);
+		assertEquals(3, neighbors.nodes.size());
+		assertEquals(2, neighbors.edges.size());
+		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0004", "FOO:0003", "part_of")));
+		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0003", "FOO:0001", "is_a")));
+		
+		cls = graph.getOWLClassByIdentifier("FOO:0007");
+		neighbors = graph.getNeighbors(cls);
+		assertEquals(4, neighbors.nodes.size());
+		assertEquals(3, neighbors.edges.size());
+		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0007", "FOO:0001", "is_a")));
+		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0007", "FOO:0005", "is_a")));
+		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0007", "FOO:0006", "part_of")));
+		
+		
+		cls = graph.getOWLClassByIdentifier("GO:1904238");
+		neighbors = graph.getNeighbors(cls);
+		assertEquals(3, neighbors.nodes.size());
+		assertEquals(2, neighbors.edges.size());
+		assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1904238", "CL:0000669", "results_in_acquisition_of_features_of")));
+		assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1904238", "GO:0030154", "is_a")));
 	}
 
 }

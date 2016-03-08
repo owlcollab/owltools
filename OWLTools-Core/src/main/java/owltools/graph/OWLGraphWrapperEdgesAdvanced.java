@@ -14,12 +14,15 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.geneontology.reasoner.ExpressionMaterializingReasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -1092,6 +1095,106 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 			return labels;
 		}
 		return Collections.emptySet();
+	}
+
+	public OWLShuntGraph getNeighbors(OWLObject x) {
+		final OWLShuntGraph shunt = new OWLShuntGraph();
+		
+		final String xID = getIdentifier(x);
+		final String xLabel = getLabel(x);
+		final OWLShuntNode xNode = new OWLShuntNode(xID, xLabel);
+		shunt.addNode(xNode);
+		
+		if (x instanceof OWLClass) {
+			Map<OWLClass, OWLShuntNode> nodes = new HashMap<OWLClass, OWLShuntNode>();
+			OWLClass cls = (OWLClass) x;
+			Set<OWLSubClassOfAxiom> subClassAxioms = new HashSet<OWLSubClassOfAxiom>();
+			Set<OWLEquivalentClassesAxiom> equivAxioms = new HashSet<OWLEquivalentClassesAxiom>();
+			for(OWLOntology ont : getAllOntologies()) {
+				for(OWLSubClassOfAxiom ax : ont.getAxioms(AxiomType.SUBCLASS_OF)) {
+					if (ax.containsEntityInSignature(cls)) {
+						subClassAxioms.add(ax);
+					}
+				}
+				equivAxioms.addAll(ont.getEquivalentClassesAxioms(cls));
+			}
+			
+			for(OWLSubClassOfAxiom ax : subClassAxioms) {
+				addShuntNodeAndEdge(ax.getSubClass(), ax.getSuperClass(), shunt, nodes);
+			}
+			for(OWLEquivalentClassesAxiom ax : equivAxioms) {
+				for(OWLClassExpression ce : ax.getClassExpressions()) {
+					
+					if (x.equals(ce)) {
+						continue;
+					}
+					else if (ce instanceof OWLObjectIntersectionOf) {
+						OWLObjectIntersectionOf intersection = (OWLObjectIntersectionOf) ce;
+						for(OWLClassExpression op :  intersection.getOperands()) {
+							addShuntNodeAndEdge(cls, op, shunt, nodes);
+						}
+					}
+				}
+			}
+		}
+		return shunt;
+	}
+
+	private void addShuntNodeAndEdge(OWLClassExpression sourceCE, OWLClassExpression target, OWLShuntGraph shunt,
+			Map<OWLClass, OWLShuntNode> allNodes)
+	{
+		if (sourceCE instanceof OWLClass == false) {
+			return;
+		}
+		OWLClass source = (OWLClass) sourceCE;
+		String sourceID;
+		OWLShuntNode sourceNode = allNodes.get(source);
+		if (sourceNode == null) {
+			sourceID = getIdentifier(source);
+			sourceNode = new OWLShuntNode(sourceID, getLabel(source));
+			allNodes.put(source, sourceNode);
+			shunt.addNode(sourceNode);
+		}
+		else {
+			sourceID = sourceNode.getId();
+		}
+		if (target instanceof OWLClass) {
+			OWLClass superCls = target.asOWLClass();
+			OWLShuntNode node = allNodes.get(superCls);
+			String nodeId;
+			if (node == null) {
+				nodeId = getIdentifier(superCls);
+				String nodeLabel = getLabel(superCls);
+				node = new OWLShuntNode(nodeId, nodeLabel);
+				allNodes.put(superCls, node);
+				shunt.addNode(node);
+			}
+			else {
+				nodeId = node.getId();
+			}
+			shunt.addEdge(new OWLShuntEdge(sourceID, nodeId, "is_a"));
+		}
+		else if (target instanceof OWLObjectSomeValuesFrom) {
+			OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom) target;
+			OWLClassExpression filler = svf.getFiller();
+			if (filler instanceof OWLClass) {
+				OWLClass superCls = filler.asOWLClass();
+				OWLShuntNode node = allNodes.get(superCls);
+				String nodeId;
+				if (node == null) {
+					nodeId = getIdentifier(superCls);
+					String nodeLabel = getLabel(superCls);
+					node = new OWLShuntNode(nodeId, nodeLabel);
+					allNodes.put(superCls, node);
+					shunt.addNode(node);
+				}
+				else {
+					nodeId = node.getId();
+				}
+				String rel = getIdentifier(svf.getProperty());
+				shunt.addEdge(new OWLShuntEdge(sourceID, nodeId, rel));
+			}
+		}
 	}
 }
 
