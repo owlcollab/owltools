@@ -63,23 +63,49 @@ public class ImportClosureSlurper {
 		
 		for (OWLOntology ont : ontology.getImportsClosure()) {
 			validateImports(ont);
-			
-			IRI iri = null;
-			OWLOntologyID ontologyID = ont.getOntologyID();
-			if (ontologyID != null) {
-				iri = ontologyID.getOntologyIRI();
+
+			OWLOntologyID 	ontologyID = ont.getOntologyID();
+			IRI 			actualIRI = ontologyID.getOntologyIRI();
+
+			// Not really sure why this is here, but apparently we can get
+			// an ontology without an IRI, in which case we'll generate one
+			// that is 'sort of' unique (only fails if two different machines run
+			// this tool at the exact same time).
+			//
+			if (actualIRI == null) {
+				IRI 		generatedIRI = IRI.generateDocumentIRI();
+				actualIRI = generatedIRI;
 			}
-			if (iri == null) {
-				iri = IRI.generateDocumentIRI();
-			}
-			String local = createLocalFileName(iri);
-			IRI outputStream = IRI.create(new File(baseFolder, local));
+
+			// Always write the actualIRI
+			String actualLocalFile = createLocalFileName(actualIRI);
+			IRI outputStream = IRI.create(new File(baseFolder, actualLocalFile));
 			ont.getOWLOntologyManager().saveOntology(ont, outputStream);
 			
 			if (LOGGER.isInfoEnabled()) {
-				LOGGER.info("name: "+iri+" local: "+local);
+				LOGGER.info("name: "+ actualIRI +" local: "+actualLocalFile);
 			}
-			w.write("  <uri name=\""+iri +"\" uri=\""+local+"\"/>\n");
+			w.write("  <uri name=\""+ actualIRI  +"\" uri=\""+ actualLocalFile +"\"/>\n");
+
+			//
+			// In case there is a difference between the source document IRI
+			// and the IRI of the resolved target (e.g., there is an HTTP
+			// redirect from a legacy IRI to a newer IRI), then write an entry
+			// in the catalog that points the legacy IRI to the newer, canonical one.
+			// Examples of this include:
+			//  http://purl.obolibrary.org/obo/so.owl
+			// which redirects to:
+			//  http://purl.obolibrary.org/obo/so-xp.obo.owl
+			//
+
+			IRI 			documentIRI = ont.getOWLOntologyManager().getOntologyDocumentIRI(ont);
+			if (documentIRI != actualIRI) {
+				String sourceLocalFile = createLocalFileName(actualIRI);
+				if (LOGGER.isInfoEnabled()) {
+					LOGGER.info("alias: "+ documentIRI + " ==> " + actualIRI + " local: "+ sourceLocalFile);
+				}
+				w.write("  <uri name=\""+ documentIRI +"\" uri=\""+ sourceLocalFile +"\"/>\n");
+			}
 		}
 		w.write("</catalog>\n");
 		w.flush();
