@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
@@ -686,7 +687,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// WARNING: We're relying on the current truth that the toString() method returns a nice concatenated version
 			// of the GAF line, which is fundamentally unique (or should be). If this changes, revert to what we were
 			// doing here pre-20150930, which was assembling out own unique line manually.
-			annotation_doc.addField("id", a.toString());
+			String id = Hex.encodeHexString(a.toString().getBytes());
+			annotation_doc.addField("id", id);
 			
 			// Finally add doc.
 			add(annotation_doc);
