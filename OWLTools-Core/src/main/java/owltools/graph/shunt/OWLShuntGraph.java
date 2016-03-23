@@ -27,6 +27,8 @@ public class OWLShuntGraph {
 	public String id = null;
 	public Set<OWLShuntNode> nodes = new HashSet<OWLShuntNode>();
 	public Set<OWLShuntEdge> edges = new HashSet<OWLShuntEdge>();
+	
+	public Map<String, Object> metadata = new HashMap<String, Object>();
 
 	private transient Map<String,Set<String>> childToParents = new HashMap<String,Set<String>>();
 	private transient Map<String,Set<String>> parentToChildren = new HashMap<String,Set<String>>();
@@ -206,5 +208,18 @@ public class OWLShuntGraph {
 		//Gson gson = new GsonBuilder().serializeNulls().create();
 		Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 		return gson.toJson(this);
+	}
+	
+	/**
+	 * Mark this graph as incomplete in the metadata and indicate the complete
+	 * size of the graph.
+	 * 
+	 * @param realNodeCount
+	 * @param realEdgeCount
+	 */
+	public void setIncomplete(int realNodeCount, int realEdgeCount) {
+		metadata.put("incomplete-p", Boolean.TRUE);
+		metadata.put("complete-node-count", Integer.valueOf(realNodeCount));
+		metadata.put("complete-edge-count", Integer.valueOf(realEdgeCount));
 	}
 }

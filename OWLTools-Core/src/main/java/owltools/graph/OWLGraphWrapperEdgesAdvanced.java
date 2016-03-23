@@ -120,6 +120,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 			reasoner = null;
 			isSynchronized = false;
 		}
+		neighborAxioms = null;
 	}
 
 	/**
@@ -1111,7 +1112,60 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	public OWLShuntGraph getNeighbors(OWLObject x, List<String> sargs) {
 		return getNeighbors(x);
 	}
-
+	
+	/**
+	 * Retrieve direct neighbors of x in a shunt graph JSON string.
+	 * <p>
+	 * Intended for GOlr loading.
+	 * <p>
+	 * This is a curried FlexLoader s-expression version of
+	 * {@link #getNeighbors(OWLObject)} with a conversion of the graph to a JSON
+	 * string.
+	 * 
+	 * @param x
+	 * @param sargs
+	 * @return json shunt graph
+	 */
+	public String getNeighborsJSON(OWLObject x, List<String> sargs) {
+		return getNeighbors(x).toJSON();
+	}
+	
+	/**
+	 * Retrieve direct neighbors of x in a shunt graph JSON string. Limit the maximum size of the edges.
+	 * 
+	 * This is a curried FlexLoader s-expression version of
+	 * {@link #getNeighborsLimited(OWLObject, int)} with a conversion of the graph to a JSON
+	 * string.
+	 * 
+	 * @param x
+	 * @param sargs
+	 * @return json shunt graph
+	 */
+	public String getNeighborsLimitedJSON(OWLObject x, List<String> sargs) {
+		int limit = 100;
+		if (sargs.isEmpty() == false) {
+			String first = sargs.get(0);
+			try {
+				limit = Integer.parseInt(first);
+			}
+			catch (NumberFormatException exception) {
+				LOG.error("Could not parse number: '"+first+"'", exception);
+			}
+		}
+		OWLShuntGraph shunt = getNeighborsLimited(x, limit);
+		return shunt.toJSON();
+	}
+	
+	public OWLShuntGraph getNeighborsLimited(OWLObject x, int edgeLimit) {
+		OWLShuntGraph all = createNeighbors(x, -1);
+		if (all.edges.size() <= edgeLimit) {
+			return all;
+		}
+		OWLShuntGraph sub = createNeighbors(x, edgeLimit);
+		sub.setIncomplete(all.nodes.size(), all.edges.size());
+		return sub;
+	}
+	
 	/**
 	 * Retrieve direct neighbors of x in a shunt graph.
 	 * 
@@ -1119,6 +1173,20 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	 * @return shunt graph
 	 */
 	public OWLShuntGraph getNeighbors(OWLObject x) {
+		return createNeighbors(x, -1);
+	}
+	
+
+	private Map<OWLClass, Set<OWLSubClassOfAxiom>> neighborAxioms = null;
+	private final Object neighborAxiomsMutex = new Object();
+	
+	/**
+	 * Retrieve direct neighbors of x in a shunt graph.
+	 * 
+	 * @param x
+	 * @return shunt graph
+	 */
+	private OWLShuntGraph createNeighbors(OWLObject x, int edgeLimit) {
 		final OWLShuntGraph shunt = new OWLShuntGraph();
 		
 		final String xID = getIdentifier(x);
@@ -1127,21 +1195,26 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		shunt.addNode(xNode);
 		
 		if (x instanceof OWLClass) {
+			synchronized (neighborAxiomsMutex) {
+				if (neighborAxioms == null) {
+					neighborAxioms = initNeighborAxioms();
+				}
+			}
 			Map<OWLClass, OWLShuntNode> nodes = new HashMap<OWLClass, OWLShuntNode>();
 			OWLClass cls = (OWLClass) x;
-			Set<OWLSubClassOfAxiom> subClassAxioms = new HashSet<OWLSubClassOfAxiom>();
+			Set<OWLSubClassOfAxiom> subClassAxioms = neighborAxioms.get(cls);
 			Set<OWLEquivalentClassesAxiom> equivAxioms = new HashSet<OWLEquivalentClassesAxiom>();
 			for(OWLOntology ont : getAllOntologies()) {
-				for(OWLSubClassOfAxiom ax : ont.getAxioms(AxiomType.SUBCLASS_OF)) {
-					if (ax.containsEntityInSignature(cls)) {
-						subClassAxioms.add(ax);
-					}
-				}
 				equivAxioms.addAll(ont.getEquivalentClassesAxioms(cls));
 			}
 			
-			for(OWLSubClassOfAxiom ax : subClassAxioms) {
-				addShuntNodeAndEdge(ax.getSubClass(), ax.getSuperClass(), shunt, nodes);
+			if (subClassAxioms != null) {
+				for(OWLSubClassOfAxiom ax : subClassAxioms) {
+					addShuntNodeAndEdge(ax.getSubClass(), ax.getSuperClass(), shunt, nodes);
+					if (edgeLimit > 0 && shunt.edges.size() >= edgeLimit) {
+						return shunt;
+					}
+				}
 			}
 			for(OWLEquivalentClassesAxiom ax : equivAxioms) {
 				for(OWLClassExpression ce : ax.getClassExpressions()) {
@@ -1153,12 +1226,34 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 						OWLObjectIntersectionOf intersection = (OWLObjectIntersectionOf) ce;
 						for(OWLClassExpression op :  intersection.getOperands()) {
 							addShuntNodeAndEdge(cls, op, shunt, nodes);
+							if (edgeLimit > 0 && shunt.edges.size() >= edgeLimit) {
+								return shunt;
+							}
 						}
 					}
 				}
 			}
 		}
 		return shunt;
+	}
+	
+	private Map<OWLClass, Set<OWLSubClassOfAxiom>> initNeighborAxioms() {
+		Map<OWLClass, Set<OWLSubClassOfAxiom>> result = new HashMap<OWLClass, Set<OWLSubClassOfAxiom>>();
+		for(OWLOntology ont : getAllOntologies()) {
+			for(OWLSubClassOfAxiom ax : ont.getAxioms(AxiomType.SUBCLASS_OF)) {
+				Set<OWLClass> inSignature = ax.getClassesInSignature();
+				for (OWLClass cls : inSignature) {
+					Set<OWLSubClassOfAxiom> neighbors = result.get(cls);
+					if (neighbors == null) {
+						neighbors = new HashSet<OWLSubClassOfAxiom>();
+						result.put(cls, neighbors);
+					}
+					neighbors.add(ax);
+				}
+			}
+		}
+		
+		return result;
 	}
 
 	private void addShuntNodeAndEdge(OWLClassExpression sourceCE, OWLClassExpression target, OWLShuntGraph shunt,

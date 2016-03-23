@@ -113,6 +113,13 @@ public class OWLGraphWrapperEdgesAdvancedTest extends OWLToolsTestBasics {
 		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0007", "FOO:0005", "is_a")));
 		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0007", "FOO:0006", "part_of")));
 		
+		cls = graph.getOWLClassByIdentifier("FOO:0007");
+		neighbors = graph.getNeighborsLimited(cls, 2); //restrict to two edges, which edges is not guarantueed due to set properties
+		assertEquals(3, neighbors.nodes.size());
+		assertEquals(2, neighbors.edges.size());
+		assertEquals(Boolean.TRUE, neighbors.metadata.get("incomplete-p"));
+		assertEquals(4, neighbors.metadata.get("complete-node-count"));
+		assertEquals(3, neighbors.metadata.get("complete-edge-count"));
 		
 		cls = graph.getOWLClassByIdentifier("GO:1904238");
 		neighbors = graph.getNeighbors(cls);
