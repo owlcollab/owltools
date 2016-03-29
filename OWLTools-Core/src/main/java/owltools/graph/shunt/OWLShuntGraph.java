@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * A simple (and easily serializable through GSON) graph model to move data from the
@@ -28,6 +29,7 @@ public class OWLShuntGraph {
 	public Set<OWLShuntNode> nodes = new HashSet<OWLShuntNode>();
 	public Set<OWLShuntEdge> edges = new HashSet<OWLShuntEdge>();
 	
+	@SerializedName("meta")
 	public Map<String, Object> metadata = new HashMap<String, Object>();
 
 	private transient Map<String,Set<String>> childToParents = new HashMap<String,Set<String>>();
