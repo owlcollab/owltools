@@ -86,6 +86,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	private List<String> caFiles = null;
 	private String legoModelPrefix = null;
 	private String taxonSubsetName = null;
+	private String ecoSubsetName = null;
 
 	/**
 	 * Output (STDOUT) a XML segment to put into the Solr schema file after reading the YAML file.
@@ -809,7 +810,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 				builder.getParser().addParserListener(lineCountReporter);
 			}
 			gafdoc = builder.buildDocument(file);
-			loadGAFDoc(url, gafdoc, eco, taxo, pSet, taxonSubsetName);
+			loadGAFDoc(url, gafdoc, eco, taxo, pSet, taxonSubsetName, ecoSubsetName);
 			
 			// Load likely successful--log it.
 			optionallyLogLoad("gaf", file, "n/a");
@@ -979,11 +980,16 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		pSet = new PANTHERForest(pDir);
 		LOG.info("Found " + pSet.getNumberOfFilesInSet() + " trees and " + pSet.getNumberOfIdentifiersInSet() + " identifiers.");
 	}
-	
+
 	@CLIMethod("--solr-taxon-subset-name")
 	public void solrTaxonSubsetName(Opts opts) throws Exception {
 		taxonSubsetName = opts.nextOpt();
 		
+	}
+
+	@CLIMethod("--solr-eco-subset-name")
+	public void solrEcoSubsetName(Opts opts) throws Exception {
+		ecoSubsetName = opts.nextOpt();
 	}
 
 	/**
@@ -1110,7 +1116,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	/*
 	 * Wrapper multiple places where there is direct GAF loading.
 	 */
-	private void loadGAFDoc(String url, GafDocument gafdoc, EcoTools eco, TaxonTools taxo, PANTHERForest pset, String taxonSubsetName) throws IOException{
+	private void loadGAFDoc(String url, GafDocument gafdoc, EcoTools eco, TaxonTools taxo, PANTHERForest pset, String taxonSubsetName, String ecoSubsetName) throws IOException{
 
 		// Seth's head explodes with non-end return!
 		// TODO: Ask Chris if there is any reason to have null on empty GAFs.
@@ -1127,6 +1133,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		loader.setPANTHERSet(pset);
 		loader.setGafDocument(gafdoc);
 		loader.setTaxonSubsetName(taxonSubsetName);
+		loader.setEcoSubsetName(ecoSubsetName);
 		loader.setGraph(g);
 		try {
 			LOG.info("Loading server at: " + url + " with: " + gafdoc.getDocumentPath());
