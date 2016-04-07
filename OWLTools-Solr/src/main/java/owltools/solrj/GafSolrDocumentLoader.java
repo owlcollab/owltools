@@ -678,8 +678,6 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		final List<String> ecoSubsetLabelClosure = new ArrayList<String>();
 		final Map<String,String> ecoSubsetClosureMap = new HashMap<String,String>();
 
-		boolean ecoSubsetUsed = false;
-
 		Set<OWLClass> ecoSuper = eco.getAncestors(ecoClasses, true);
 		for( OWLClass cls : ecoSuper ){
 			String currentId = graph.getIdentifier(cls.getIRI());
@@ -690,14 +688,13 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			
 			List<String> subsets = graph.getSubsets(cls);
 			if (ecoSubsetName != null && subsets.contains(ecoSubsetName)) {
-				ecoSubsetUsed = true;
 				ecoSubsetIDClosure.add(currentId);
 				ecoSubsetLabelClosure.add(currentLbl);
 				ecoSubsetClosureMap.put(currentId, currentLbl);
 			}
 		}
 
-		if (ecoSubsetUsed) {
+		if (ecoSubsetName != null) {
 			ecoSubsetIDClosure.add(ecoId);
 			ecoSubsetLabelClosure.add(ecoLbl);
 			ecoSubsetClosureMap.put(ecoId, ecoLbl);

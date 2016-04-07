@@ -45,9 +45,11 @@ public class GafSolrDocumentLoaderTest {
 		// ontology
 		graph = new OWLGraphWrapper(pw.parse("http://purl.obolibrary.org/obo/go.owl"));
 		graph.mergeOntology(pw.parse("http://purl.obolibrary.org/obo/go/extensions/gorel.owl"));
+		graph.mergeOntology(pw.parse(EcoTools.ECO_PURL));
 		OWLOntology taxonOwl = pw.parseOWL(TaxonTools.TAXON_PURL);
 		graph.mergeOntology(taxonOwl);
 		loader.setGraph(graph);
+		loader.setEcoSubsetName("go_groupings");
 		
 		// eco
 		EcoTools ecoTools = new EcoTools(pw);
