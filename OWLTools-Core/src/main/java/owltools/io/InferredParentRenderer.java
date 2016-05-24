@@ -12,6 +12,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 import owltools.graph.OWLGraphWrapper;
 
@@ -104,7 +105,7 @@ public class InferredParentRenderer extends AbstractRenderer implements GraphRen
 
 		reasoner = (OWLExtendedReasoner) g.getReasoner();
 
-		List<OWLClass> clist = new ArrayList<OWLClass>(g.getSourceOntology().getClassesInSignature(false));
+		List<OWLClass> clist = new ArrayList<OWLClass>(g.getSourceOntology().getClassesInSignature(Imports.EXCLUDED));
 		Collections.sort(clist);
 		print("ClassID");
 		sep();

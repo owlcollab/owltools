@@ -8,10 +8,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
-import owltools.sim.DescriptionTreeSimilarity;
-import owltools.sim.MaximumInformationContentSimilarity;
 import owltools.sim.SimEngine;
-import owltools.sim.Similarity;
 
 /**
  * tests getLeastCommonSubsumerSimpleClassExpression

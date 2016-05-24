@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 
 import owltools.OWLToolsTestBasics;
-import owltools.diff.ReasonerDiff;
 import owltools.frame.jsonld.ClassFrameLD;
 import owltools.frame.jsonld.FrameMakerLD;
 import owltools.graph.OWLGraphWrapper;

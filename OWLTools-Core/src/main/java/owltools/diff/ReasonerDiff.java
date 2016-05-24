@@ -17,6 +17,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.InferenceBuilder;
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.OwlHelper;
 
 public class ReasonerDiff {
 
@@ -97,7 +98,7 @@ public class ReasonerDiff {
 						// we do not want to report inferred subclass links
 						// if they are already asserted in the ontology
 						boolean isAsserted = false;
-						for (OWLClassExpression asc : cls.getSuperClasses(ontology)) {
+						for (OWLClassExpression asc : OwlHelper.getSuperClasses(cls, ontology)) {
 							if (asc.equals(sc)) {
 								// we don't want to report this
 								isAsserted = true;

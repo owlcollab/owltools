@@ -212,7 +212,7 @@ public class GAFOWLBridge {
 
 	private String getAnnotationDescription(GeneAnnotation a) {
 		String clsDesc = a.getCls();
-		OWLClass owlCls = graph.getOWLClassByIdentifier(a.getCls());
+		OWLClass owlCls = graph.getOWLClassByIdentifierNoAltIds(a.getCls());
 		if (owlCls != null) {
 			clsDesc = graph.getLabelOrDisplayId(owlCls);
 		}

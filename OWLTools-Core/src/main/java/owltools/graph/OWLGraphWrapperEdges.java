@@ -47,6 +47,7 @@ import org.semanticweb.owlapi.model.OWLRestriction;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -54,6 +55,7 @@ import owltools.graph.OWLGraphEdge.OWLGraphEdgeSet;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.io.OWLPrettyPrinter;
 import owltools.profile.Profiler;
+import owltools.util.OwlHelper;
 
 /**
  * Methods to extract and traverse relation in the graph. Provides caching for
@@ -141,8 +143,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		}
 
 		public void excludeAllWith(OWLAnnotationProperty ap, OWLOntology o) {
-			for (OWLObjectProperty p : o.getObjectPropertiesInSignature(true)) {
-				Set<OWLAnnotation> anns = p.getAnnotations(o, ap);
+			for (OWLObjectProperty p : o.getObjectPropertiesInSignature(Imports.INCLUDED)) {
+				Set<OWLAnnotation> anns = OwlHelper.getAnnotations(p, ap, o);
 				for (OWLAnnotation ann : anns) {
 					if (ann.getValue() instanceof OWLLiteral) {
 						OWLLiteral v = (OWLLiteral) ann.getValue();
@@ -156,8 +158,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		}
 
 		public void includeAllWith(OWLAnnotationProperty ap, OWLOntology o) {
-			for (OWLObjectProperty p : o.getObjectPropertiesInSignature(true)) {
-				Set<OWLAnnotation> anns = p.getAnnotations(o, ap);
+			for (OWLObjectProperty p : o.getObjectPropertiesInSignature(Imports.INCLUDED)) {
+				Set<OWLAnnotation> anns = OwlHelper.getAnnotations(p, ap, o);
 				for (OWLAnnotation ann : anns) {
 					if (ann.getValue() instanceof OWLLiteral) {
 						OWLLiteral v = (OWLLiteral) ann.getValue();
@@ -366,8 +368,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				            Quantifier.PROPERTY_ASSERTION, o, a));
 				}
 			}
-			else if (s instanceof OWLRestriction<?, ?, ?>) {
-			    edges.add(restrictionToPrimitiveEdge((OWLRestriction<?, ?, ?>) s));
+			else if (s instanceof OWLRestriction) {
+			    edges.add(restrictionToPrimitiveEdge((OWLRestriction) s));
 			}
 			else if (s instanceof OWLObjectIntersectionOf) {
 				for (OWLClassExpression ce : ((OWLObjectIntersectionOf)s).getOperands()) {
@@ -498,7 +500,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	}
 
 	// e.g. R-some-B ==> <R-some-B,R,B>
-	private OWLGraphEdge restrictionToPrimitiveEdge(OWLRestriction<?,?,?> s) {
+	private OWLGraphEdge restrictionToPrimitiveEdge(OWLRestriction s) {
 		OWLObjectPropertyExpression p = null;
 		OWLObject t = null;
 		OWLQuantifiedProperty.Quantifier q = null;
@@ -513,7 +515,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 			q = OWLQuantifiedProperty.Quantifier.ONLY;
 		}
 		else if (s instanceof OWLObjectHasValue) {
-			t  = ((OWLObjectHasValue)s).getValue();
+			t  = ((OWLObjectHasValue)s).getFiller();
 			p = (OWLObjectPropertyExpression) s.getProperty();
 			q = OWLQuantifiedProperty.Quantifier.VALUE;
 		}
@@ -1088,7 +1090,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 			// NOTE: this is closed-world negation
 			// TODO: optimize by re-ordering clauses
 			for (OWLOntology o : getAllOntologies()) {
-				results.addAll(o.getClassesInSignature(true));
+				results.addAll(o.getClassesInSignature(Imports.INCLUDED));
 			}
 			results.removeAll(queryDescendants( ((OWLObjectComplementOf) t).getOperand()));
 		}
@@ -1642,7 +1644,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				y.isSomeValuesFrom() &&
 				x.getProperty() != null && 
 				x.getProperty().equals(y.getProperty()) && 
-				x.getProperty().isTransitive(this.getAllOntologies())) {//RO is often imported, 
+				OwlHelper.isTransitive(x.getProperty(), this.getAllOntologies())) {//RO is often imported, 
 		                                                                //doesn't make sense to check only the source ontology
 			return new OWLQuantifiedProperty(x.getProperty(),Quantifier.SOME);
 		}
@@ -1655,7 +1657,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				y.isPropertyAssertion() &&
 				x.getProperty() != null && 
 				x.getProperty().equals(y.getProperty()) && 
-				x.getProperty().isTransitive(sourceOntology)) { // todo
+				OwlHelper.isTransitive(x.getProperty(), sourceOntology)) { // todo
 			return new OWLQuantifiedProperty(x.getProperty(),Quantifier.PROPERTY_ASSERTION);
 		}
 		else if (x.isPropertyAssertion() &&
@@ -1904,7 +1906,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	public List<OWLObjectProperty> expandRelationChain(OWLObjectProperty property) {
 		
 		// create the annotation property which marks sub property chain as a valid expansion for a property
-		IRI iri = IRI.create(Obo2Owl.IRI_PROP_isReversiblePropertyChain);
+		IRI iri = IRI.create(Obo2Owl.IRI_PROP_ISREVERSIBLEPROPERTYCHAIN);
 		final OWLAnnotationProperty prop = getDataFactory().getOWLAnnotationProperty(iri);
 		
 		// get all OWLSubPropertyChainOfAxiom from all ontologies in this graph for a given property 

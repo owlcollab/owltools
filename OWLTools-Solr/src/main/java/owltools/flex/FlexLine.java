@@ -4,14 +4,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-
 /**
  * Workalike for a singleton line in a Solr document.
  */
 public class FlexLine implements Iterable<String> {
 	
-	//private static Logger LOG = Logger.getLogger(FlexLine.class);
 	protected String field = null;
 	protected List<String> value = null;
 		

@@ -21,7 +21,7 @@ public class ImportChainExtractor {
 		OWLOntology mdo = mdg.getSourceOntology();
 		for (OWLOntology o : g.getAllOntologies()) {
 			LOG.info("Ontology:"+o);
-			IRI oi = o.getOntologyID().getOntologyIRI();
+			IRI oi = o.getOntologyID().getOntologyIRI().get();
 			// Note: using the owl:imports property triggers the OWLAPI to load ths import
 			for (OWLAnnotation ann : o.getAnnotations()) {
 				OWLAnnotationAssertionAxiom aaa = mdg.getDataFactory().getOWLAnnotationAssertionAxiom(oi, ann);
@@ -35,7 +35,7 @@ public class ImportChainExtractor {
 							oi, oid.getIRI());
 				mdg.getManager().addAxiom(mdo, aaa);
 			}
-			IRI v = o.getOntologyID().getVersionIRI();
+			IRI v = o.getOntologyID().getVersionIRI().get();
 			if (v != null) {
 				OWLAnnotationAssertionAxiom aaa = 
 					mdg.getDataFactory().getOWLAnnotationAssertionAxiom(g.getDataFactory().getOWLAnnotationProperty(OWLRDFVocabulary.OWL_VERSION_IRI.getIRI()),

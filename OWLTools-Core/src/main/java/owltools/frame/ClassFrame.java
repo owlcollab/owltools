@@ -1,7 +1,5 @@
 package owltools.frame;
 
-import java.util.Set;
-
 public interface ClassFrame extends Frame {
 
 	//public Set<Stub> directSuperclasses;

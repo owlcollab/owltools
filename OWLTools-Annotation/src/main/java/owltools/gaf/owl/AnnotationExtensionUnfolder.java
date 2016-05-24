@@ -16,6 +16,7 @@ import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.OwlHelper;
 
 /**
  * @author cjm
@@ -142,7 +143,7 @@ public class AnnotationExtensionUnfolder extends GAFOWLBridge {
 
 	private OWLClassExpression unfold(OWLOntology ont, OWLClass cls) throws MultipleUnfoldOptionsException {
 		OWLClassExpression rx = null;
-		for (OWLClassExpression x : cls.getEquivalentClasses(ont.getImportsClosure())) {
+		for (OWLClassExpression x : OwlHelper.getEquivalentClasses(cls, ont.getImportsClosure())) {
 			if (x instanceof OWLClass) {
 				continue;
 			}

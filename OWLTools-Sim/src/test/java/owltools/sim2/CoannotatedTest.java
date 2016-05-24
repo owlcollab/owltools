@@ -1,9 +1,6 @@
 package owltools.sim2;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.math.MathException;
@@ -14,13 +11,10 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import com.google.common.collect.Lists;
-
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.sim2.FastOwlSim.ClassCount;
-import owltools.sim2.scores.ElementPairScores;
 
 /**
  * This is the main test class for term suggestions based on co-annotation 

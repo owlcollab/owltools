@@ -18,11 +18,11 @@ import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.obolibrary.owl.LabelFunctionalFormat;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.LabelFunctionalDocumentFormat;
+import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 
 import owltools.InferenceBuilder;
 import owltools.ontologyverification.OntologyCheck;
@@ -99,9 +99,9 @@ public class OortConfiguration {
 	private boolean removeQueryOntologyReference = false;
 	private Map<IRI,IRI> rewriteIRIMap = new HashMap<IRI,IRI>();
 
-	private OWLOntologyFormat defaultFormat = new RDFXMLOntologyFormat();
-	private OWLOntologyFormat owlXMLFormat = new OWLXMLOntologyFormat();
-	private static final OWLOntologyFormat owlOFNFormat = new LabelFunctionalFormat(); 
+	private OWLDocumentFormat defaultFormat = new RDFXMLDocumentFormat();
+	private OWLDocumentFormat owlXMLFormat = new OWLXMLDocumentFormat();
+	private static final OWLDocumentFormat owlOFNFormat = new LabelFunctionalDocumentFormat();
 
 	private int threads = 1;
 	
@@ -599,14 +599,14 @@ public class OortConfiguration {
 	/**
 	 * @return the defaultFormat
 	 */
-	public OWLOntologyFormat getDefaultFormat() {
+	public OWLDocumentFormat getDefaultFormat() {
 		return defaultFormat;
 	}
 
 	/**
 	 * @return the owlXMLFormat
 	 */
-	public OWLOntologyFormat getOwlXMLFormat() {
+	public OWLDocumentFormat getOwlXMLFormat() {
 		return owlXMLFormat;
 	}
 	
@@ -799,7 +799,7 @@ public class OortConfiguration {
 	/**
 	 * @return the owlOFNFormat
 	 */
-	public OWLOntologyFormat getOwlOfnFormat() {
+	public OWLDocumentFormat getOwlOfnFormat() {
 		return owlOFNFormat;
 	}
 

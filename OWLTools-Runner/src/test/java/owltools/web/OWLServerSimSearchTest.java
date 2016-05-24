@@ -3,9 +3,7 @@ package owltools.web;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -24,7 +22,6 @@ import org.eclipse.jetty.server.Server;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
@@ -33,7 +30,6 @@ import owltools.io.TableToAxiomConverter;
 import owltools.sim2.FastOwlSimFactory;
 import owltools.sim2.OwlSim;
 import owltools.sim2.OwlSimFactory;
-import owltools.sim2.FastOwlSim.ClassCount;
 import owltools.sim2.preprocessor.ABoxUtils;
 
 /**

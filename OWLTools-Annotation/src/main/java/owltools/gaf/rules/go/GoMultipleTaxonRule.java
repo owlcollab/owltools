@@ -72,7 +72,7 @@ public class GoMultipleTaxonRule extends AbstractAnnotationRule {
 			return Collections.emptySet();
 		}
 		
-		final OWLClass tax2 = graph.getOWLClassByIdentifier(actsOnTaxonId);
+		final OWLClass tax2 = graph.getOWLClassByIdentifierNoAltIds(actsOnTaxonId);
 		if (tax2 == null) {
 			AnnotationRuleViolation v = new AnnotationRuleViolation(getRuleId(), "Could not retrieve a class for taxonCls: "+actsOnTaxonId, a, ViolationType.Warning);
 			return Collections.singleton(v);

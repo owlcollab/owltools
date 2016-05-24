@@ -11,14 +11,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
-import org.apache.commons.math3.util.MultidimensionalCounter.Iterator;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
@@ -26,6 +24,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -281,7 +280,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		elementToInferredAttributesMap = new HashMap<OWLNamedIndividual,Set<Node<OWLClass>>>();
 		allTypesDirect = new HashSet<OWLClass>();
 		allTypesInferred = new HashSet<OWLClass>();
-		Set<OWLNamedIndividual> inds = getSourceOntology().getIndividualsInSignature(true);
+		Set<OWLNamedIndividual> inds = getSourceOntology().getIndividualsInSignature(Imports.INCLUDED);
 		for (OWLNamedIndividual e : inds) {
 
 			// The attribute classes for an individual are the direct inferred
@@ -303,7 +302,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 		LOG.info("|TypesUsedInferred|="+allTypesInferred.size());
 
 		if (this.getPropertyAsBoolean(SimConfigurationProperty.useAllClasses)) {
-			allTypesInferred = getSourceOntology().getClassesInSignature(true);
+			allTypesInferred = getSourceOntology().getClassesInSignature(Imports.INCLUDED);
 		}
 
 		Set<OWLClass> cset = allTypesInferred;
@@ -641,7 +640,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 	@Override
 	public void assignDefaultInformationContentForAllClasses() {
-		for ( OWLClass c : getSourceOntology().getClassesInSignature(true) ) {
+		for (OWLClass c : getSourceOntology().getClassesInSignature(Imports.INCLUDED) ) {
 			try {
 				getInformationContentForAttribute(c);
 			} catch (UnknownOWLClassException e) {

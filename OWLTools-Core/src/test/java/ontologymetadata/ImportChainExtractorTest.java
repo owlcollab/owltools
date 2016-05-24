@@ -19,7 +19,7 @@ public class ImportChainExtractorTest extends OWLToolsTestBasics {
 	@Test
 	public void testRender() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
-		pw.getManager().addIRIMapper(new CatalogXmlIRIMapper(getResource("catalog-v001.xml")));
+		pw.getManager().getIRIMappers().add(new CatalogXmlIRIMapper(getResource("catalog-v001.xml")));
 		
 		IRI iri = IRI.create(getResource("test-import-chain-root.owl"));
 		final OWLOntology ontology = pw.parseOWL(iri);

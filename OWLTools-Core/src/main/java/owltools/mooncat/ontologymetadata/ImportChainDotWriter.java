@@ -24,6 +24,8 @@ import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
 
+import com.google.common.base.Optional;
+
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 
@@ -146,7 +148,14 @@ public class ImportChainDotWriter {
 		else if (OntologyType.StandardOntology == type) {
 			// ontology
 
-			String ontologyName = ont.getOntologyID().getOntologyIRI().toString();
+			String ontologyName;
+			Optional<IRI> ontologyIRI = ont.getOntologyID().getOntologyIRI();
+			if (ontologyIRI.isPresent()) {
+				ontologyName = ontologyIRI.toString();
+			}
+			else {
+				ontologyName = IRI.generateDocumentIRI().toString();
+			}
 			String url = ontologyName.replaceAll(".owl", "");
 
 			ontologyName = ontologyName.replaceAll("http://purl.obolibrary.org/obo/", "");
@@ -272,7 +281,7 @@ public class ImportChainDotWriter {
 
 
 	private CharSequence nodeId(OWLOntology ont) {
-		return nodeId(ont.getOntologyID().getOntologyIRI());
+		return nodeId(ont.getOntologyID().getOntologyIRI().orNull());
 	}
 
 	private CharSequence nodeId(IRI iri) {

@@ -5,11 +5,11 @@ import java.io.File;
 import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
@@ -37,7 +37,7 @@ public class PombeGAFOWLBridgeTest extends OWLToolsTestBasics{
 		bridge.setTargetOntology(gafOnt);
 		bridge.translate(gafdoc);
 		
-		OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
+		OWLDocumentFormat owlFormat = new RDFXMLDocumentFormat();
 		g.getManager().saveOntology(gafOnt, owlFormat, IRI.create(new File("/tmp/gaf.owl")));
 		
 		for (OWLAxiom ax : gafOnt.getAxioms()) {

@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>OWLTools-Parent</artifactId>
 		<groupId>org.bbop</groupId>
-		<version>0.2.2-SNAPSHOT</version>
+		<version>0.3.0-SNAPSHOT</version>
 		<relativePath>../OWLTools-Parent/pom.xml</relativePath>
 	</parent>
 
@@ -56,9 +56,9 @@
 			<version>2.11.2</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.commons</groupId>
-  			<artifactId>commons-lang3</artifactId>
-  			<version>3.1</version>
-  		</dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.1</version>
+		</dependency>
 	</dependencies>
 </project>

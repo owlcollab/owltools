@@ -396,14 +396,8 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		}
 		
 		String reasoner = configuration.getReasonerName();
-		if (InferenceBuilder.REASONER_JCEL.equals(reasoner)) {
-			jcelRadioButton.setSelected(true);
-		}
-		else if (InferenceBuilder.REASONER_ELK.equals(reasoner)) {
+		if (InferenceBuilder.REASONER_ELK.equals(reasoner)) {
 			elkRadioButton.setSelected(true);
-		}
-		else if (InferenceBuilder.REASONER_MORE.equals(reasoner)) {
-			moreRadioButton.setSelected(true);
 		}
 		else {
 			hermitRadioButton.setSelected(true);

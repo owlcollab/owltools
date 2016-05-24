@@ -4,7 +4,6 @@ import java.util.Set;
 import java.util.HashSet;
 
 import org.apache.log4j.Logger;
-
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -20,10 +19,8 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
-
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
-
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 
@@ -75,7 +72,7 @@ public class OWLConverter {
 	/**
 	 * Create OWLAPI utilities: An ontology format.
 	 */
-	protected static RDFXMLOntologyFormat format =
+	protected static RDFXMLDocumentFormat format =
 		initializeFormat();
 
 	/**
@@ -85,8 +82,8 @@ public class OWLConverter {
 	 *
 	 * @return The format with the prefixes set.
 	 */
-	protected static RDFXMLOntologyFormat initializeFormat() {
-		RDFXMLOntologyFormat format = new RDFXMLOntologyFormat();
+	protected static RDFXMLDocumentFormat initializeFormat() {
+		RDFXMLDocumentFormat format = new RDFXMLDocumentFormat();
 		format.copyPrefixesFrom(new DefaultPrefixManager());
 		format.setPrefix("obo", OBO);
 		format.setPrefix("oio", OIO);
@@ -441,14 +438,14 @@ public class OWLConverter {
 	 */
 	protected static String getFirstLiteral(OWLOntology ontology,
 			OWLEntity taxon, OWLAnnotationProperty property) {
-		Set<OWLAnnotation> annotations = taxon.getAnnotations(
-			ontology, property);
-		if (!annotations.isEmpty()) {
-			OWLAnnotationValue value =
-				annotations.iterator().next().getValue();
-			if (value instanceof OWLLiteral) {
-				OWLLiteral literal = (OWLLiteral)value;
-				return literal.getLiteral();
+		Set<OWLAnnotationAssertionAxiom> axioms = ontology.getAnnotationAssertionAxioms(taxon.getIRI());
+		for (OWLAnnotationAssertionAxiom axiom : axioms) {
+			if (property.equals(axiom.getProperty())) {
+				OWLAnnotationValue value = axiom.getValue();
+				if (value instanceof OWLLiteral) {
+					OWLLiteral literal = (OWLLiteral)value;
+					return literal.getLiteral();
+				}
 			}
 		}
 		return null;

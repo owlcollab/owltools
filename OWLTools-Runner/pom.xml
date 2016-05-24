@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>OWLTools-Parent</artifactId>
 		<groupId>org.bbop</groupId>
-		<version>0.2.2-SNAPSHOT</version>
+		<version>0.3.0-SNAPSHOT</version>
 		<relativePath>../OWLTools-Parent/pom.xml</relativePath>
 	</parent>
 
@@ -42,36 +42,30 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<finalName>owltools-runner-all</finalName>
-					<appendAssemblyId>false</appendAssemblyId>
-					<attach>false</attach>
-					<outputDirectory>${project.basedir}/bin</outputDirectory>
-					<descriptors>
-						<descriptor>src/main/assembly/owltools-runner-all.xml</descriptor>
-					</descriptors>
-					<archive>
-						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							<mainClass>owltools.cli.CommandLineInterface</mainClass>
-						</manifest>
-						<manifestEntries>
-							<owltools-build-timestamp>${maven.build.timestamp}</owltools-build-timestamp>
-							<git-revision-sha1>${git.commit.id}</git-revision-sha1>
-							<git-revision-url>https://github.com/owlcollab/owltools/commit/${git.commit.id}</git-revision-url>
-							<git-branch>${git.branch}</git-branch>
-							<git-dirty>${git.dirty}</git-dirty>
-						</manifestEntries>
-					</archive>
-				</configuration>
+				<artifactId>maven-shade-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>make-assembly</id>
 						<phase>package</phase>
 						<goals>
-							<goal>single</goal>
+							<goal>shade</goal>
 						</goals>
+						<configuration>
+							<outputFile>bin/owltools-runner-all.jar</outputFile>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<Main-Class>owltools.cli.CommandLineInterface</Main-Class>
+										<owltools-build-timestamp>${maven.build.timestamp}</owltools-build-timestamp>
+										<git-revision-sha1>${git.commit.id}</git-revision-sha1>
+										<git-revision-url>https://github.com/owlcollab/owltools/commit/${git.commit.id}</git-revision-url>
+										<git-branch>${git.branch}</git-branch>
+										<git-dirty>${git.dirty}</git-dirty>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -127,11 +121,6 @@
 			<groupId>org.bbop</groupId>
 			<artifactId>OWLTools-Sim</artifactId>
 			<version>${project.parent.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.jsonld-java</groupId>
-			<artifactId>jsonld-java-jena</artifactId>
-			<version>0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>rhino</groupId>

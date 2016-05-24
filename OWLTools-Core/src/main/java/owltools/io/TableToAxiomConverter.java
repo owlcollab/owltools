@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -94,20 +95,19 @@ public class TableToAxiomConverter {
 		parse(myFile);
 	}
 	public void parse(File myFile) throws IOException {
-		FileReader fileReader = new FileReader(myFile);
-		BufferedReader reader = new BufferedReader(fileReader);
-		String line;
-		while ((line = reader.readLine()) != null) {
-			String[] row = line.split("\t");
-			if (config.defaultCol1 != null)
-				row[0] = config.defaultCol1;
-			if (config.defaultCol2 != null) {
-				String[] row2 = new String[2];
-				row2[0] = row[0];
-				row = row2;
-				row[1] = config.defaultCol2;
+		try (BufferedReader reader = new BufferedReader(new FileReader(myFile))) {
+			for(String line : IOUtils.readLines(reader)) {
+				String[] row = line.split("\t");
+				if (config.defaultCol1 != null)
+					row[0] = config.defaultCol1;
+				if (config.defaultCol2 != null) {
+					String[] row2 = new String[2];
+					row2[0] = row[0];
+					row = row2;
+					row[1] = config.defaultCol2;
+				}
+				addRow(row);
 			}
-			addRow(row);
 		}
 
 		if (config.individualsType != null) {
@@ -285,7 +285,7 @@ public class TableToAxiomConverter {
 		IRI x = Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI();
 		for (OWLOntology ont : g.getAllOntologies()) {
 			for (OWLClass c : ont.getClassesInSignature()) {
-				for (OWLAnnotationAssertionAxiom aa : c.getAnnotationAssertionAxioms(ont)) {
+				for (OWLAnnotationAssertionAxiom aa : ont.getAnnotationAssertionAxioms(c.getIRI())) {
 					if (aa.getProperty().getIRI().equals(x)) {
 						OWLAnnotationValue v = aa.getValue();
 						if (v instanceof OWLLiteral) {

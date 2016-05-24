@@ -33,6 +33,8 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
+import com.google.common.base.Optional;
+
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
@@ -139,8 +141,16 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			// import source
 			OWLOntology source = g.getSourceOntology();
 			OWLOntologyID sourceId = source.getOntologyID();
-			OWLImportsDeclaration sourceImportDeclaration = f.getOWLImportsDeclaration(sourceId.getOntologyIRI());
-			m.applyChange(new AddImport(generatedContainer, sourceImportDeclaration));
+			Optional<IRI> ontologyIRI = sourceId.getOntologyIRI();
+			if (ontologyIRI.isPresent()) {
+				OWLImportsDeclaration sourceImportDeclaration = f.getOWLImportsDeclaration(ontologyIRI.get());
+				m.applyChange(new AddImport(generatedContainer, sourceImportDeclaration));
+			}
+			else {
+				String msg = "Could not setup container ontology, missing ontology ID";
+				LOG.error(msg);
+				throw new RuntimeException(msg);
+			}
 		}
 		catch(Exception e) {
 			String msg = "Could not setup container ontology";
@@ -303,7 +313,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 				}
 				// parse annotation cls
 				String annotatedToClassString = ann.getCls();
-				OWLClass annotatedToClass = g.getOWLClassByIdentifier(annotatedToClassString);
+				OWLClass annotatedToClass = g.getOWLClassByIdentifierNoAltIds(annotatedToClassString);
 				if (annotatedToClass == null) {
 					LOG.warn("Skipping annotation for prediction. Could not find cls for id: "+annotatedToClassString);
 					continue;
@@ -371,7 +381,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			sb.append('\t');
 			sb.append(ext.getCls());
 			sb.append('\t');
-			OWLClass extCls = g.getOWLClassByIdentifier(ext.getCls());
+			OWLClass extCls = g.getOWLClassByIdentifierNoAltIds(ext.getCls());
 			if (extCls != null) {
 				String extClsLabel = g.getLabel(extCls);
 				if (extClsLabel != null) {

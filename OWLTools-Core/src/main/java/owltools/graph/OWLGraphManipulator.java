@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,8 +15,8 @@ import java.util.Set;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.semanticweb.owlapi.ConvertEquivalentClassesToSuperClasses;
-import org.semanticweb.owlapi.SplitSubClassAxioms;
+import org.semanticweb.owlapi.change.ConvertEquivalentClassesToSuperClasses;
+import org.semanticweb.owlapi.change.SplitSubClassAxioms;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -41,6 +42,8 @@ import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.UnknownOWLOntologyException;
+import org.semanticweb.owlapi.model.parameters.ChangeApplied;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.util.OWLEntityRemover;
 
 import owltools.graph.OWLGraphEdge;
@@ -1503,7 +1506,7 @@ public class OWLGraphManipulator {
         Set<OWLClass> descendants          = new HashSet<OWLClass>();
     	for (String allowedRootId: allowedSubgraphRootIds) {
     		OWLClass allowedRoot = 
-    				this.getOwlGraphWrapper().getOWLClassByIdentifier(allowedRootId);
+    				this.getOwlGraphWrapper().getOWLClassByIdentifierNoAltIds(allowedRootId);
     		
     		if (allowedRoot != null) {
     			allowedSubgraphRoots.add(allowedRoot);
@@ -1946,11 +1949,11 @@ public class OWLGraphManipulator {
             //an allowed rel.
             Set<OWLAxiom> propAxioms = new HashSet<OWLAxiom>();
             for (OWLOntology ont: wrapper.getAllOntologies()) {
-                propAxioms.addAll(ont.getAxioms(iteratedProp));
+                propAxioms.addAll(ont.getAxioms(iteratedProp, Imports.EXCLUDED));
                 if (iteratedProp instanceof OWLEntity) {
                     //need the referencing axioms for the OWLSubPropertyChainOfAxiom, 
                     //weirdly it is not returned by ont.getAxioms
-                    propAxioms.addAll(((OWLEntity) iteratedProp).getReferencingAxioms(ont));
+                    propAxioms.addAll(ont.getReferencingAxioms(((OWLEntity) iteratedProp)));
                 }
             }
             for (OWLAxiom ax: propAxioms) {
@@ -1979,8 +1982,7 @@ public class OWLGraphManipulator {
         Set<OWLObjectProperty> propsRemoved = new HashSet<OWLObjectProperty>();
         for (OWLOntology ont: wrapper.getAllOntologies()) {
 
-            OWLEntityRemover remover = new OWLEntityRemover(ont.getOWLOntologyManager(), 
-                    new HashSet<OWLOntology>(Arrays.asList(ont)));
+            OWLEntityRemover remover = new OWLEntityRemover(Collections.singleton(ont));
             
             for (OWLObjectProperty prop: ont.getObjectPropertiesInSignature()) {
                 if (!propsToConsider.contains(prop)) {
@@ -2145,12 +2147,12 @@ public class OWLGraphManipulator {
                         log.debug("Axioms to remove (is a OWLSubClassOfAxiom: " + 
                             (ax instanceof OWLSubClassOfAxiom) + "): " + ax);
                     }
-                    int changes = ont.getOWLOntologyManager().removeAxiom(ont, ax).size();
-                    if (log.isEnabledFor(Level.WARN) && changes == 0) {
+                    ChangeApplied changes = ont.getOWLOntologyManager().removeAxiom(ont, ax);
+                    if (log.isEnabledFor(Level.WARN) && changes != ChangeApplied.SUCCESSFULLY) {
                         log.warn("The axiom " + ax + " was not removed");
                     }
                     //count the number of OWLClassAxioms actually removed
-                    if (ax instanceof OWLSubClassOfAxiom && changes > 0) {
+                    if (ax instanceof OWLSubClassOfAxiom && changes == ChangeApplied.SUCCESSFULLY) {
                         classAxiomsRmCount++;
                     }
                 }
@@ -2374,10 +2376,10 @@ public class OWLGraphManipulator {
 	 * @see #removeEdges(Collection)
 	 */
 	public boolean removeEdge(OWLGraphEdge edge) {
-	    int axiomsRemovedCount = edge.getOntology().getOWLOntologyManager().removeAxioms(
-	            edge.getOntology(), edge.getAxioms()).size();
+	    ChangeApplied status = edge.getOntology().getOWLOntologyManager().removeAxioms(
+	            edge.getOntology(), edge.getAxioms());
 	    this.triggerWrapperUpdate();
-	    return (axiomsRemovedCount == edge.getAxioms().size());
+	    return (status == ChangeApplied.SUCCESSFULLY);
 	}
 	/**
 	 * Remove {@code edges} from their related ontology. It means that the {@code OWLAxiom}s 
@@ -2416,10 +2418,10 @@ public class OWLGraphManipulator {
             (OWLClassExpression) this.getOwlGraphWrapper().edgeToSourceExpression(edge), 
             (OWLClassExpression) this.getOwlGraphWrapper().edgeToTargetExpression(edge));
 	    
-	    int addAxiomCount = edge.getOntology().getOWLOntologyManager().addAxiom(
-	            edge.getOntology(), newAxiom).size();
+	    ChangeApplied status = edge.getOntology().getOWLOntologyManager().addAxiom(
+	            edge.getOntology(), newAxiom);
 	    this.triggerWrapperUpdate();
-	    return (addAxiomCount > 0);
+	    return (status == ChangeApplied.SUCCESSFULLY);
 	}
 	/**
 	 * Add {@code edges} to their related ontology. 
@@ -2453,7 +2455,6 @@ public class OWLGraphManipulator {
      */
     public boolean removeClass(OWLClass classToDel) {
         OWLEntityRemover remover = new OWLEntityRemover(
-                this.getOwlGraphWrapper().getManager(), 
                 this.getOwlGraphWrapper().getAllOntologies());
         classToDel.accept(remover);
         if (this.applyChanges(remover.getChanges())) {
@@ -2570,17 +2571,12 @@ public class OWLGraphManipulator {
      * @return 			{@code true} if all changes were applied, 
      * 					{@code false} otherwise. 
      */
-    private boolean applyChanges(List<OWLOntologyChange> changes) {
+    private boolean applyChanges(List<? extends OWLOntologyChange> changes) {
     	
-    	List<OWLOntologyChange> changesMade = 
-    			this.getOwlGraphWrapper().getManager().applyChanges(changes);
-    	if (changesMade != null) {
-        	changes.removeAll(changesMade);
-        	if (changes.isEmpty()) {
-        		return true;
-        	}
+    	ChangeApplied status = this.getOwlGraphWrapper().getManager().applyChanges(changes);
+    	if (status == ChangeApplied.SUCCESSFULLY) {
+        	return true;
     	}
-    		
     	return false;
     }
     /**

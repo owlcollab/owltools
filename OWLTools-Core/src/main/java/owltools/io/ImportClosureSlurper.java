@@ -15,6 +15,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
+import com.google.common.base.Optional;
+
 public class ImportClosureSlurper {
 	
 	private static final Logger LOGGER = Logger.getLogger(ImportClosureSlurper.class);
@@ -63,9 +65,13 @@ public class ImportClosureSlurper {
 		
 		for (OWLOntology ont : ontology.getImportsClosure()) {
 			validateImports(ont);
-
-			OWLOntologyID 	ontologyID = ont.getOntologyID();
-			IRI 			actualIRI = ontologyID.getOntologyIRI();
+			
+			OWLOntologyID ontologyID = ont.getOntologyID();
+			IRI actualIRI = null;
+			Optional<IRI> optional = ontologyID.getOntologyIRI();
+			if (optional.isPresent()) {
+				actualIRI = optional.get();
+			}
 
 			// Not really sure why this is here, but apparently we can get
 			// an ontology without an IRI, in which case we'll generate one
@@ -73,10 +79,9 @@ public class ImportClosureSlurper {
 			// this tool at the exact same time).
 			//
 			if (actualIRI == null) {
-				IRI 		generatedIRI = IRI.generateDocumentIRI();
+				IRI generatedIRI = IRI.generateDocumentIRI();
 				actualIRI = generatedIRI;
 			}
-
 			// Always write the actualIRI
 			String actualLocalFile = createLocalFileName(actualIRI);
 			IRI outputStream = IRI.create(new File(baseFolder, actualLocalFile));

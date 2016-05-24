@@ -7,20 +7,14 @@ import java.util.Map;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.gaf.Bioentity;
-import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.owl.GAFOWLBridge;
-import owltools.gaf.owl.GAFOWLBridge.GAFDescription;
-import owltools.gaf.owl.GAFOWLBridge.Vocab;
 import owltools.graph.OWLGraphWrapper;
 
 public class BasicABox extends GAFOWLBridge {

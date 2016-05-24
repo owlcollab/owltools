@@ -206,9 +206,9 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				}
 			}
 		}
-		if (modelId == null) {
+		if (modelId == null && model.getOntologyID().getOntologyIRI().isPresent()) {
 			// fallback
-			modelId = model.getOntologyID().getOntologyIRI().toString();
+			modelId = model.getOntologyID().getOntologyIRI().get().toString();
 		}
 		
 		if (requiredModelStates != null && state != null) {

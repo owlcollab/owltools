@@ -28,6 +28,8 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import com.google.common.base.Optional;
+
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
@@ -306,9 +308,9 @@ public class EcoMapperFactory {
 		Set<OWLOntology> allOntologies = all.getAllOntologies();
 		for (OWLOntology owlOntology : allOntologies) {
 			OWLOntologyID id = owlOntology.getOntologyID();
-			IRI ontologyIRI = id.getOntologyIRI();
-			if (ontologyIRI != null) {
-				if (EcoMapper.ECO_PURL_IRI.equals(ontologyIRI)) {
+			Optional<IRI> ontologyIRI = id.getOntologyIRI();
+			if (ontologyIRI.isPresent()) {
+				if (EcoMapper.ECO_PURL_IRI.equals(ontologyIRI.get())) {
 					eco = owlOntology;
 				}
 			}

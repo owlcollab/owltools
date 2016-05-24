@@ -41,7 +41,7 @@ public class ImportedXrefTest extends OWLToolsTestBasics {
 		OWLOntologyManager manager = pw.getManager();
 		OWLDataFactory factory = manager.getOWLDataFactory();
 		OWLOntology importer = manager.createOntology();
-		OWLImportsDeclaration importDeclaration = factory.getOWLImportsDeclaration(direct.getOntologyID().getOntologyIRI());
+		OWLImportsDeclaration importDeclaration = factory.getOWLImportsDeclaration(direct.getOntologyID().getOntologyIRI().orNull());
 		manager.applyChange(new AddImport(importer, importDeclaration));
 		
 		OWLGraphWrapper importerGraph = new OWLGraphWrapper(importer);

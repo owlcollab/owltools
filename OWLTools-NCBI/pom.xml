@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>OWLTools-Parent</artifactId>
 		<groupId>org.bbop</groupId>
-		<version>0.2.2-SNAPSHOT</version>
+		<version>0.3.0-SNAPSHOT</version>
 		<relativePath>../OWLTools-Parent/pom.xml</relativePath>
 	</parent>
 
@@ -21,38 +21,31 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-	  			<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<finalName>ncbi2owl</finalName>
-					<appendAssemblyId>false</appendAssemblyId>
-					<attach>false</attach>
-					<outputDirectory>${project.basedir}/bin</outputDirectory>
-					<descriptors>
-						<descriptor>src/main/assembly/owltools-ncbi.xml</descriptor>
-					</descriptors>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					<archive>
-						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							<mainClass>owltools.ncbi.NCBI2OWL</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
+				<artifactId>maven-shade-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>make-assembly</id>
 						<phase>package</phase>
 						<goals>
-							<goal>single</goal>
+							<goal>shade</goal>
 						</goals>
+						<configuration>
+							<outputFile>bin/ncbi2owl.jar</outputFile>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<Main-Class>owltools.ncbi.NCBI2OWL</Main-Class>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>                  
+				<configuration>
 					<links>
 						<link>http://owlapi.sourceforge.net/javadoc/</link>
 					</links>
@@ -64,7 +57,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.sourceforge.owlapi</groupId>
-			<artifactId>owlapi-apibinding</artifactId>
+			<artifactId>owlapi-distribution</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.bbop</groupId>

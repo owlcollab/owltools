@@ -6,4 +6,3 @@
  */
 package owltools.cli;
 
-import owltools.cli.CommandLineInterface;

@@ -31,6 +31,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.model.RemoveAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 
 import owltools.graph.OWLGraphEdge;
@@ -168,7 +169,7 @@ public class OWLGraphManipulatorTest
         expectedAxioms.add(factory.getOWLSubClassOfAxiom(clsImport, 
                 factory.getOWLObjectSomeValuesFrom(partOf, root)));
         assertEquals("Axioms from import ontology incorrectly merged", 
-                expectedAxioms, ont.getAxioms(clsImport));
+                expectedAxioms, ont.getAxioms(clsImport, Imports.EXCLUDED));
         
         //test that new OWLSubClassOfAxioms were correctly generated
         
@@ -177,7 +178,7 @@ public class OWLGraphManipulatorTest
         expectedAxioms.add(factory.getOWLSubClassOfAxiom(clsB, root));
         expectedAxioms.add(factory.getOWLSubClassOfAxiom(clsB, 
                 factory.getOWLObjectSomeValuesFrom(partOf, clsA)));
-        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsB));
+        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsB, Imports.EXCLUDED));
         
         //OWLObjectIntersectionOf corresponding to no relations
         expectedAxioms = new HashSet<OWLAxiom>();
@@ -185,30 +186,30 @@ public class OWLGraphManipulatorTest
                 factory.getOWLObjectSomeValuesFrom(partOf, clsA)));
         expectedAxioms.add(factory.getOWLSubClassOfAxiom(clsC, 
                 factory.getOWLObjectSomeValuesFrom(partOf, root)));
-        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsC));
+        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsC, Imports.EXCLUDED));
         
         //OWLObjectUnionOf corresponding to no relations
         expectedAxioms = new HashSet<OWLAxiom>();
         expectedAxioms.add(factory.getOWLSubClassOfAxiom(clsE, clsD));
-        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsE));
+        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsE, Imports.EXCLUDED));
         expectedAxioms = new HashSet<OWLAxiom>();
         expectedAxioms.add(factory.getOWLSubClassOfAxiom(clsF, clsD));
-        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsF));
+        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsF, Imports.EXCLUDED));
         
         //OWLObjectUnionOf corresponding to already existing SubClassOfAxioms
         expectedAxioms = new HashSet<OWLAxiom>();
         expectedAxioms.add(factory.getOWLSubClassOfAxiom(clsH, clsG));
-        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsH));
+        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsH, Imports.EXCLUDED));
         expectedAxioms = new HashSet<OWLAxiom>();
         expectedAxioms.add(factory.getOWLSubClassOfAxiom(clsI, clsG));
-        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsI));
+        assertEquals("Incorrect axioms generated", expectedAxioms, ont.getAxioms(clsI, Imports.EXCLUDED));
         
         //OWLEquivalentClassesAxiom between named classes,
         //no relation should have been generated.
-        assertEquals("Incorrect axioms generated: " + ont.getAxioms(clsJ), 
-                0, ont.getAxioms(clsJ).size());
-        assertEquals("Incorrect axioms generated: " + ont.getAxioms(clsG), 
-                0, ont.getAxioms(clsG).size());
+        assertEquals("Incorrect axioms generated: " + ont.getAxioms(clsJ, Imports.EXCLUDED), 
+                0, ont.getAxioms(clsJ, Imports.EXCLUDED).size());
+        assertEquals("Incorrect axioms generated: " + ont.getAxioms(clsG, Imports.EXCLUDED), 
+                0, ont.getAxioms(clsG, Imports.EXCLUDED).size());
         
         //test that relations of obsolete classes were removed, but not the obsolete classes 
         //themselves
@@ -281,7 +282,7 @@ public class OWLGraphManipulatorTest
                 wrapper.getOWLClass("http://purl.obolibrary.org/obo/CL_0000160")));
         assertEquals("Axioms from import ontology incorrectly merged", 
                 expectedAxioms, 
-                ont.getAxioms(wrapper.getOWLClass("http://purl.obolibrary.org/obo/CL_1000321")));
+                ont.getAxioms(wrapper.getOWLClass("http://purl.obolibrary.org/obo/CL_1000321"), Imports.EXCLUDED));
     }
 	
 	

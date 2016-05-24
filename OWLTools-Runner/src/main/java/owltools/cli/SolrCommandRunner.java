@@ -41,6 +41,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import com.google.common.base.Optional;
 import com.google.gson.Gson;
 
 import owltools.cli.tools.CLIMethod;
@@ -283,17 +284,32 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 				String ont_id = "unknown";
 				String ont_version = "unknown";
 				try {
-					ont_id = o.getOntologyID().getOntologyIRI().toURI().toString();
+					if (o.getOntologyID() !=  null) {
+						Optional<IRI> optional = o.getOntologyID().getOntologyIRI();
+						if (optional.isPresent()) {
+							ont_id = optional.get().toString();
+						}
+						else {
+							LOG.info("Failed to get ID of: " + o.toString() + "!");
+						}
+					}
 				} catch (NullPointerException e) {
 					LOG.info("Failed to get ID of: " + o.toString() + "!");
 				}
+				
 				try {
-					ont_version = o.getOntologyID().getVersionIRI().toString();
-					Pattern p = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
-					Matcher m = p.matcher(ont_version);
-					m.find();
-					ont_version = m.group(0);
-					//ont_version = StringUtils.substringBetween(ont_version, "releases/", "/");
+					Optional<IRI> versionIRI = o.getOntologyID().getVersionIRI();
+					if (versionIRI.isPresent()){
+						ont_version = versionIRI.get().toString();
+						Pattern p = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
+						Matcher m = p.matcher(ont_version);
+						m.find();
+						ont_version = m.group(0);
+						//ont_version = StringUtils.substringBetween(ont_version, "releases/", "/");
+					}
+					else {
+						ont_version = null;
+					}
 					if( ont_version == null || ont_version.equals("") ){
 						// Sane fallback.
 						LOG.info("Failed to extract version of: " + ont_id + "!");

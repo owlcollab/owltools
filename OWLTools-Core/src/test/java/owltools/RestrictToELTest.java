@@ -7,7 +7,7 @@ import java.io.File;
 import org.apache.commons.io.FileUtils;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -82,6 +82,6 @@ public class RestrictToELTest extends OWLToolsTestBasics {
 		File file = new File(FileUtils.getTempDirectory(), fileName);
 		IRI iri = IRI.create(file);
 		System.out.println("Saving ontology to file: "+file);
-		gmod.getSourceOntology().getOWLOntologyManager().saveOntology(gmod.getSourceOntology(), new OWLXMLOntologyFormat(), iri);
+		gmod.getSourceOntology().getOWLOntologyManager().saveOntology(gmod.getSourceOntology(), new OWLXMLDocumentFormat(), iri);
 	}
 }

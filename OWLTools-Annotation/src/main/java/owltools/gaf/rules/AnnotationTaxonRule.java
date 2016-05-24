@@ -29,7 +29,6 @@ import owltools.gaf.owl.GAFOWLBridge;
 import owltools.gaf.rules.AnnotationRuleViolation.ViolationType;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
-import owltools.reasoner.PrecomputingMoreReasonerFactory;
 
 /**
  * Checks if an annotation is valid according to taxon constraints.
@@ -172,20 +171,18 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 		OWLReasoner reasoner = factory.createReasoner(ontology);
 		return Pair.of(reasoner, factory);
 	}
-	
-	private Pair<OWLReasoner, OWLReasonerFactory> createMore(OWLOntology ontology) {
-		OWLReasonerFactory factory = PrecomputingMoreReasonerFactory.getMoreHermitFactory();
-		OWLReasoner reasoner = factory.createReasoner(ontology);
-		return Pair.of(reasoner, factory);
-	}
-	
+
+	@SuppressWarnings("unused")
 	private Pair<OWLReasoner, OWLReasonerFactory> createHermit(final OWLOntology ontology) {
 		// use Hermit, as GO has inverse_of relations between part_of and has_part
-		OWLReasonerFactory factory = new org.semanticweb.HermiT.Reasoner.ReasonerFactory();
+		OWLReasonerFactory factory = new org.semanticweb.HermiT.ReasonerFactory();
 		
 		final Configuration configuration = new Configuration();
 		configuration.reasonerProgressMonitor = new ReasonerProgressMonitor() {
-			
+
+			// generated
+			private static final long serialVersionUID = 5925042026163506083L;
+
 			@Override
 			public void reasonerTaskStopped() {
 				logger.info("HermiT reasoning task - Finished.");

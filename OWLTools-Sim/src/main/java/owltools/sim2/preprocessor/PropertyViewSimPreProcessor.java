@@ -2,8 +2,6 @@ package owltools.sim2.preprocessor;
 
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
-import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
-
 public class PropertyViewSimPreProcessor extends AbstractOBOSimPreProcessor {
 	
 	public OWLObjectProperty analysisRelation;

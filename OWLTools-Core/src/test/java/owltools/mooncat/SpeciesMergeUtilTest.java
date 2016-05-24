@@ -6,9 +6,9 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.formats.OBODocumentFormat;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -38,7 +38,7 @@ public class SpeciesMergeUtilTest extends OWLToolsTestBasics {
 		smu.suffix = "coelocanth";
 		smu.merge();
 		
-		p.saveOWL(smu.ont, new OBOOntologyFormat(), "target/speciesMergeOut.obo");
+		p.saveOWL(smu.ont, new OBODocumentFormat(), "target/speciesMergeOut.obo");
 		
 	}
 	
@@ -64,9 +64,9 @@ public class SpeciesMergeUtilTest extends OWLToolsTestBasics {
 		
 		LOG.info("Before: "+clsBefore.size());
 		LOG.info("After: "+clsAfter.size());
-		assertEquals(95, clsBefore.size());
-		assertEquals(85, clsAfter.size());
-		p.saveOWL(smu.ont, new OBOOntologyFormat(), "target/flyMergeOut.obo");
+		assertEquals(100, clsBefore.size());
+		assertEquals(90, clsAfter.size());
+		p.saveOWL(smu.ont, new OBODocumentFormat(), "target/flyMergeOut.obo");
 	
 	}
 

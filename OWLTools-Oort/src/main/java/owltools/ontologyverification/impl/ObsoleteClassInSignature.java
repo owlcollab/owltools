@@ -9,6 +9,7 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
@@ -40,7 +41,7 @@ public class ObsoleteClassInSignature extends AbstractCheck {
 	protected void check(OWLClass owlClass, OWLGraphWrapper graph, List<CheckWarning> warnings, OWLPrettyPrinter pp) {
 		final Set<OWLOntology> allOntologies = graph.getAllOntologies();
 		for(OWLOntology ontology : allOntologies){
-			Set<OWLClassAxiom> axioms = ontology.getAxioms(owlClass);
+			Set<OWLClassAxiom> axioms = ontology.getAxioms(owlClass, Imports.EXCLUDED);
 			if (axioms != null && !axioms.isEmpty()) {
 				// check axioms 
 				for (OWLClassAxiom axiom : axioms) {

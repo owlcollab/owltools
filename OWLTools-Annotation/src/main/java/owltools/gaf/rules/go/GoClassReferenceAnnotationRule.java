@@ -55,7 +55,7 @@ public class GoClassReferenceAnnotationRule extends AbstractAnnotationRule {
 
 		HashSet<AnnotationRuleViolation> set = new HashSet<AnnotationRuleViolation>();
 		String id = a.getCls();
-		OWLClass owlClass = graph.getOWLClassByIdentifier(id);
+		OWLClass owlClass = graph.getOWLClassByIdentifierNoAltIds(id);
 
 		// check cls
 		if (owlClass == null) {
@@ -101,7 +101,7 @@ public class GoClassReferenceAnnotationRule extends AbstractAnnotationRule {
 						}
 					}
 					if (doCheck) {
-						OWLClass exCls = graph.getOWLClassByIdentifier(exId);
+						OWLClass exCls = graph.getOWLClassByIdentifierNoAltIds(exId);
 						if (exCls == null) {
 							OWLObject owlObject = owlObjectsByAltId.get(exId);
 							if (owlObject == null) {

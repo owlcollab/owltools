@@ -15,7 +15,7 @@ import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -27,6 +27,7 @@ import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -37,14 +38,15 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.io.OWLPrettyPrinter;
+import owltools.util.OwlHelper;
 
 public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 
@@ -309,7 +311,8 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	public String getLabel(OWLEntity c, OWLOntology ont) {
 		String label = null;		
 		// todo - ontology import closure
-		for (OWLAnnotation ann : c.getAnnotations(ont, getOWLDataFactory().getRDFSLabel())) {
+		OWLAnnotationProperty property = getOWLDataFactory().getRDFSLabel();
+		for (OWLAnnotation ann : OwlHelper.getAnnotations(c, property, ont)) {
 			OWLAnnotationValue v = ann.getValue();
 			if (v instanceof OWLLiteral) {
 				label = ((OWLLiteral)v).getLiteral();
@@ -362,7 +365,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
 		Set<OWLClass> retainedClasses = new HashSet<OWLClass>();
 		Set<OWLClass> usedClasses= new HashSet<OWLClass>(); // including indirect. Not used?
-		for (OWLNamedIndividual ind : outputOntology.getIndividualsInSignature(true)) {
+		for (OWLNamedIndividual ind : outputOntology.getIndividualsInSignature(Imports.INCLUDED)) {
 			usedClasses.addAll(getReasoner().getTypes(ind, false).getFlattened());
 		}
 		LOG.info("Inferred direct classes from ABox:"+usedClasses.size());
@@ -394,7 +397,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	// todo - remove all 'Thing' classes
 	public void trim() {
 		Set<OWLClass> retainedClasses = assertInferredForAttributeClasses();
-		Set<OWLClass> unused = outputOntology.getClassesInSignature(true);
+		Set<OWLClass> unused = outputOntology.getClassesInSignature(Imports.INCLUDED);
 		LOG.info("Keeping "+retainedClasses.size()+" out of "+unused.size());
 		unused.removeAll( retainedClasses );
 		Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
@@ -418,7 +421,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		}
 
 		if (rootClass.equals(getOWLDataFactory().getOWLThing())) {
-			classes = inputOntology.getClassesInSignature(true);
+			classes = inputOntology.getClassesInSignature(Imports.INCLUDED);
 		}
 		else {
 			classes = getReasoner().getSubClasses(rootClass, false).getFlattened();
@@ -432,7 +435,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	 */
 	protected Set<OWLClass> getAttributeClasses() {
 		Set<OWLClass> types = new HashSet<OWLClass>();
-		for (OWLNamedIndividual ind : this.outputOntology.getIndividualsInSignature(true)) {
+		for (OWLNamedIndividual ind : this.outputOntology.getIndividualsInSignature(Imports.INCLUDED)) {
 			types.addAll(getReasoner().getTypes(ind, true).getFlattened());
 		}
 		return types;
@@ -441,8 +444,8 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	@Deprecated
 	public Set<OWLClassExpression> getDirectAttributeClassExpressions() {
 		Set<OWLClassExpression> types = new HashSet<OWLClassExpression>();
-		for (OWLNamedIndividual ind : inputOntology.getIndividualsInSignature(true)) {
-			types.addAll(ind.getTypes(inputOntology));
+		for (OWLNamedIndividual ind : inputOntology.getIndividualsInSignature(Imports.INCLUDED)) {
+			types.addAll(OwlHelper.getTypes(ind, inputOntology));
 		}
 		LOG.info("Num attribute expressions = "+types.size());
 		return types;
@@ -450,7 +453,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 
 	public Set<OWLClass> materializeClassExpressionsReferencedBy(OWLObjectProperty p) {
 		Set<OWLClassExpression> xs = new HashSet<OWLClassExpression>();
-		for (OWLAxiom ax : outputOntology.getReferencingAxioms(p, true)) {
+		for (OWLAxiom ax : outputOntology.getReferencingAxioms(p, Imports.INCLUDED)) {
 			if (ax instanceof OWLSubClassOfAxiom) {
 				xs.addAll(getClassExpressionReferencedBy(p, ((OWLSubClassOfAxiom)ax).getSuperClass()));
 			}
@@ -600,9 +603,9 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		LOG.info("Removing axioms unreachable from ABox. Starting with: "+outputOntology.getAxiomCount());
 
 		Stack<OWLClass> stack = new Stack<OWLClass>();
-		for (OWLNamedIndividual ind : outputOntology.getIndividualsInSignature(true)) {
+		for (OWLNamedIndividual ind : outputOntology.getIndividualsInSignature(Imports.INCLUDED)) {
 			stack.addAll(getReasoner().getTypes(ind, true).getFlattened());
-			for (OWLClassExpression x : ind.getTypes(outputOntology.getImportsClosure())) {
+			for (OWLClassExpression x : OwlHelper.getTypes(ind, outputOntology.getImportsClosure())) {
 				stack.addAll(x.getClassesInSignature());
 			}
 		}
@@ -612,8 +615,8 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		while (!stack.isEmpty()) {
 			OWLClass elt = stack.pop();
 			Set<OWLClass> parents = new HashSet<OWLClass>();
-			Set<OWLClassExpression> xparents = elt.getSuperClasses(inputOntology);
-			xparents.addAll(elt.getEquivalentClasses(inputOntology));
+			Set<OWLClassExpression> xparents = OwlHelper.getSuperClasses(elt, inputOntology);
+			xparents.addAll(OwlHelper.getEquivalentClasses(elt, inputOntology));
 			for (OWLClassExpression x : xparents) {
 				parents.addAll(x.getClassesInSignature());
 			}
@@ -628,7 +631,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		for (OWLClass c : outputOntology.getClassesInSignature()) {
 			if (!visited.contains(c)) {
 				LOG.info("removing axioms for EL-unreachable class: "+c);
-				rmAxioms.addAll(outputOntology.getAxioms(c));
+				rmAxioms.addAll(outputOntology.getAxioms(c, Imports.EXCLUDED));
 				rmAxioms.add(getOWLDataFactory().getOWLDeclarationAxiom(c));
 			}
 		}
@@ -641,7 +644,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	// note: this is currently somewhat obo-format specific. Make this configurable - TODO
 	public boolean isUpperLevel(OWLClass c) {
 		// TODO - cache
-		Set<OWLAnnotation> anns = c.getAnnotations(inputOntology);
+		Set<OWLAnnotation> anns = OwlHelper.getAnnotations(c, inputOntology);
 		for (OWLAnnotation ann : anns) {
 			String ap = ann.getProperty().getIRI().toString();
 			OWLAnnotationValue v = ann.getValue();
@@ -693,7 +696,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 			FileOutputStream os;
 			try {
 				os = new FileOutputStream(new File(fn));
-				OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
+				OWLDocumentFormat owlFormat = new RDFXMLDocumentFormat();
 
 				getOWLOntologyManager().saveOntology(outputOntology, owlFormat, os);
 			} catch (FileNotFoundException e) {
@@ -708,7 +711,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 	}
 	
 	protected void ignoreClasses(Set<String> labels) {
-		for (OWLClass c : inputOntology.getClassesInSignature(true)) {
+		for (OWLClass c : inputOntology.getClassesInSignature(Imports.INCLUDED)) {
 			String label = this.getAnyLabel(c);
 			if (labels.contains(label)) {
 				classesToSkip.add(c);

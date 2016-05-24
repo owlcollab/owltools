@@ -141,7 +141,7 @@ public class SpeciesSubsetterUtil {
 
 
 	/**
-	 * Remove classes invalid for {@link taxClass} over {@link viewProperty}, 
+	 * Remove classes invalid for {@link #taxClass} over {@link #viewProperty}, 
 	 * related to {@code rootClass}.
 	 */
 	public void removeOtherSpecies() {
@@ -149,8 +149,8 @@ public class SpeciesSubsetterUtil {
 	}
 	
 	/**
-	 * Remove classes specific to {@link taxClass} over {@link viewProperty}. 
-	 * {@link rootClass} is not considered.
+	 * Remove classes specific to {@link #taxClass} over {@link #viewProperty}. 
+	 * {@link #rootClass} is not considered.
 	 */
 	public void removeSpecies() {
 	    this.remove(false);
@@ -194,7 +194,7 @@ public class SpeciesSubsetterUtil {
         reasoner.flush();
         Set<OWLClass> ucs = reasoner.getEquivalentClasses(fac.getOWLNothing()).getEntities();
         LOG.info("UCS: "+ucs.size());
-        OWLEntityRemover remover = new OWLEntityRemover(mgr, graph.getAllOntologies());
+        OWLEntityRemover remover = new OWLEntityRemover(graph.getAllOntologies());
         for (OWLClass uc : ucs) {
             //avoid removing OWL:Nothing from the ontology, it is always removed 
             //when otherSpecies is false. Also check OWL:Thing to be on the safe side.
@@ -233,7 +233,8 @@ public class SpeciesSubsetterUtil {
         }
 
         LOG.info("Removing: "+rmAxioms.size());
-        return mgr.removeAxioms(ont, rmAxioms).size();
+        mgr.removeAxioms(ont, rmAxioms);
+        return rmAxioms.size();
 	}
 	
 	

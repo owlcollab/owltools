@@ -1,7 +1,6 @@
 package owltools.sim2;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 import owltools.sim2.SimpleOwlSim.Metric;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;

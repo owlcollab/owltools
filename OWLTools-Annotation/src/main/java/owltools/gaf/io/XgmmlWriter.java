@@ -71,7 +71,7 @@ public class XgmmlWriter extends AbstractXmlWriter {
 
 			writer.writeStartElement(RDF_NAMESPACE_URI, "RDF");
 			writer.writeStartElement(RDF_NAMESPACE_URI, "Description");
-			writer.writeAttribute(RDF_NAMESPACE_URI,"about",graph.getSourceOntology().getOntologyID().getOntologyIRI().toString());
+			writer.writeAttribute(RDF_NAMESPACE_URI,"about",graph.getSourceOntology().getOntologyID().getOntologyIRI().get().toString());
 			writeTag(writer, DC, "type", "ontology");
 			writeTag(writer, DC, "format", "Cytoscape-XGMML");
 			writer.writeEndElement(); // Description		

@@ -4,22 +4,10 @@ package owltools.panther;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import owltools.graph.shunt.OWLShuntGraph;
 import owltools.panther.PANTHERForest;
 
 public class PANTHERForestTest {

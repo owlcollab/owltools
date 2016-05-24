@@ -17,30 +17,30 @@ import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
@@ -48,6 +48,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import owltools.io.OWLPrettyPrinter;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.sim2.preprocessor.SimPreProcessor;
+import owltools.util.OwlHelper;
 
 /**
  * <h2>Inputs</h2>
@@ -414,7 +415,7 @@ public class OldSimpleOwlSim {
 			for (OWLEntity e : pvob.getViewEntities()) {
 				//System.out.println(" E:"+e);
 				allAxioms.add(owlDataFactory.getOWLDeclarationAxiom(e));
-				allAxioms.addAll(e.getAnnotationAssertionAxioms(pvob.getAssertedViewOntology()));
+				allAxioms.addAll(pvob.getAssertedViewOntology().getAnnotationAssertionAxioms(e.getIRI()));
 				//viewClasses.add((OWLClass)e);
 			}
 			LOG.info("VIEW_SIZE: "+pvob.getViewEntities().size()+" for "+viewProperty);
@@ -497,7 +498,7 @@ public class OldSimpleOwlSim {
 				}
 
 				allAxioms.add(owlDataFactory.getOWLDeclarationAxiom(e));
-				allAxioms.addAll(e.getAnnotationAssertionAxioms(pvob.getAssertedViewOntology()));
+				allAxioms.addAll(pvob.getAssertedViewOntology().getAnnotationAssertionAxioms(e.getIRI()));
 				//viewClasses.add((OWLClass)e);
 			}
 			LOG.info("SOURCE+VIEW_SIZE: "+pvob.getViewEntities().size()+" for "+sourceViewProperty);
@@ -518,7 +519,7 @@ public class OldSimpleOwlSim {
 	}
 	public void saveOntology(String fn) throws FileNotFoundException, OWLOntologyStorageException {
 		FileOutputStream os = new FileOutputStream(new File(fn));
-		OWLOntologyFormat owlFormat = new RDFXMLOntologyFormat();
+		OWLDocumentFormat owlFormat = new RDFXMLDocumentFormat();
 
 		owlOntologyManager.saveOntology(sourceOntology, owlFormat, os);
 	}
@@ -572,7 +573,7 @@ public class OldSimpleOwlSim {
 		for (OWLClass c : sourceOntology.getClassesInSignature()) {
 			if (!visited.contains(c)) {
 				LOG.info("removing axioms for EL-unreachable class: "+c);
-				rmAxioms.addAll(sourceOntology.getAxioms(c));
+				rmAxioms.addAll(sourceOntology.getAxioms(c, Imports.EXCLUDED));
 				rmAxioms.add(owlDataFactory.getOWLDeclarationAxiom(c));
 			}
 		}
@@ -588,8 +589,8 @@ public class OldSimpleOwlSim {
 	}
 	private Set<OWLClass> getParents(OWLClass c) {
 		Set<OWLClass> parents = new HashSet<OWLClass>();
-		Set<OWLClassExpression> xparents = c.getSuperClasses(sourceOntology);
-		xparents.addAll(c.getEquivalentClasses(sourceOntology));
+		Set<OWLClassExpression> xparents = OwlHelper.getSuperClasses(c, sourceOntology);
+		xparents.addAll(OwlHelper.getEquivalentClasses(c, sourceOntology));
 		for (OWLClassExpression x : xparents) {
 			parents.addAll(x.getClassesInSignature());
 		}
@@ -600,11 +601,11 @@ public class OldSimpleOwlSim {
 	private Set<OWLClass> getVerbotenClasses() {
 		if (verbotenClasses == null) {
 			verbotenClasses = new HashSet<OWLClass>();
-			for (OWLClass c : sourceOntology.getClassesInSignature(true)) {
+			for (OWLClass c : sourceOntology.getClassesInSignature(Imports.INCLUDED)) {
 				// TODO - don't hardcode this!
 				if (c.getIRI().toString().startsWith("http://purl.obolibrary.org/obo/FMA_")) {
 					// eliminate FMA classes that have no uberon equiv
-					if (c.getEquivalentClasses(sourceOntology).size() == 0) {
+					if (OwlHelper.getEquivalentClasses(c, sourceOntology).isEmpty()) {
 						LOG.info("removing FMA class: "+c);
 						verbotenClasses.add(c);
 						continue;
@@ -633,7 +634,7 @@ public class OldSimpleOwlSim {
 			}
 			Set<OWLClass> veqs = new HashSet<OWLClass>();
 			for (OWLClass vc : verbotenClasses) {
-				for (OWLClassExpression eqc : vc.getEquivalentClasses(sourceOntology)) {
+				for (OWLClassExpression eqc : OwlHelper.getEquivalentClasses(vc, sourceOntology)) {
 					if (eqc instanceof OWLClass) {
 						LOG.info("removing equiv "+eqc+" "+vc);
 						veqs.add((OWLClass) eqc);
@@ -1095,7 +1096,7 @@ public class OldSimpleOwlSim {
 	 */
 	public Set<OWLClass> getAllAttributeClasses() {
 		if (fixedAttributeClasses == null)
-			return sourceOntology.getClassesInSignature(true);
+			return sourceOntology.getClassesInSignature(Imports.INCLUDED);
 		else
 			return fixedAttributeClasses;
 	}
@@ -1110,7 +1111,7 @@ public class OldSimpleOwlSim {
 	 */
 	public void createElementAttributeMapFromOntology() {
 		Set<OWLClass> allTypes = new HashSet<OWLClass>();
-		for (OWLNamedIndividual e : sourceOntology.getIndividualsInSignature(true)) {
+		for (OWLNamedIndividual e : sourceOntology.getIndividualsInSignature(Imports.INCLUDED)) {
 			
 			// NEW: we assume that grouping classes have already been generated
 			Set<OWLClass> types = getReasoner().getTypes(e, true).getFlattened();
@@ -1392,7 +1393,8 @@ public class OldSimpleOwlSim {
 	private String getLabel(OWLEntity e) {
 		String label = null;		
 		// todo - ontology import closure
-		for (OWLAnnotation ann : e.getAnnotations(sourceOntology, owlDataFactory.getRDFSLabel())) {
+		OWLAnnotationProperty property = owlDataFactory.getRDFSLabel();
+		for (OWLAnnotation ann : OwlHelper.getAnnotations(e, property, sourceOntology)) {
 			OWLAnnotationValue v = ann.getValue();
 			if (v instanceof OWLLiteral) {
 				label = ((OWLLiteral)v).getLiteral();

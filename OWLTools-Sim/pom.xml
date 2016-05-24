@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>OWLTools-Parent</artifactId>
 		<groupId>org.bbop</groupId>
-		<version>0.2.2-SNAPSHOT</version>
+		<version>0.3.0-SNAPSHOT</version>
 		<relativePath>../OWLTools-Parent/pom.xml</relativePath>
 	</parent>
 
@@ -20,8 +20,8 @@
 					<excludes>
 						<!-- May exclude because they use GO; they take a while to run. -->
 						<exclude>sim1/PhenologSimTest.java</exclude>
-                                                <exclude>owltools/sim2/SimSpeedTest.java</exclude>
-                                                <exclude>owltools/sim2/BigFastOwlSimTest.java</exclude>
+						<exclude>owltools/sim2/SimSpeedTest.java</exclude>
+						<exclude>owltools/sim2/BigFastOwlSimTest.java</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
@@ -42,24 +42,21 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.commons</groupId>
-  			<artifactId>commons-lang3</artifactId>
-  			<version>3.1</version>
-  		</dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-math3</artifactId>
-			<version>3.3</version>
 		</dependency>
-                <dependency>
-	          <groupId>com.google.guava</groupId>
-	          <artifactId>guava</artifactId>
-	          <version>15.0</version>
-                </dependency>
-                <dependency>
-                  <groupId>com.googlecode.javaewah</groupId>
-                  <artifactId>JavaEWAH</artifactId>
-                  <version>0.7.7</version>
-                </dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.javaewah</groupId>
+			<artifactId>JavaEWAH</artifactId>
+			<version>0.7.7</version>
+		</dependency>
 	</dependencies>
 </project>

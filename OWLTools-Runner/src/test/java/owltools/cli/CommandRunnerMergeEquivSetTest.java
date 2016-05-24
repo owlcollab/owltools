@@ -38,7 +38,7 @@ public class CommandRunnerMergeEquivSetTest extends AbstractCommandRunnerTest {
 		String obo = "http://purl.obolibrary.org/obo";
 		load("merge-equiv-ind-test.owl");
 		
-		run("--reasoner jfact");
+		run("--reasoner hermit");
 		// note: ID space is actually "U" in file
 		run("--merge-equivalence-sets -s I 1 -s J 2 -s H 3 -l I 1 -l J 2 -l H 3");
 		//run("--merge-equivalence-sets");

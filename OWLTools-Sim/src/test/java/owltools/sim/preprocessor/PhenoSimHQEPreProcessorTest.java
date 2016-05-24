@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
@@ -32,6 +33,7 @@ import owltools.sim2.preprocessor.SimPreProcessor;
  * @author cjm
  *
  */
+@Ignore
 public class PhenoSimHQEPreProcessorTest extends OWLToolsTestBasics {
 
 	private Logger LOG = Logger.getLogger(PhenoSimHQEPreProcessorTest.class);

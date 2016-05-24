@@ -13,7 +13,6 @@ import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLGraphWrapperEdges;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.sim2.AbstractOWLSimTest;

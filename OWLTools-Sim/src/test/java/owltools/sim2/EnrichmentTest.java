@@ -5,32 +5,23 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
-import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.TransformationUtils;
-import owltools.sim2.SimpleOwlSim;
-import owltools.sim2.preprocessor.AutomaticSimPreProcessor;
+import owltools.util.OwlHelper;
 import owltools.vocab.OBOUpperVocabulary;
 
 /**
@@ -84,7 +75,7 @@ public class EnrichmentTest extends AbstractOWLSimTest {
 				for (OWLClass c : owlsim.getReasoner().getTypes(ind, true).getFlattened()) {
 					System.out.println("  T:"+c);
 				}
-				for (OWLClassExpression c : ind.getTypes(sourceOntol)) {
+				for (OWLClassExpression c : OwlHelper.getTypes(ind, sourceOntol)) {
 					System.out.println("  T(Asserted):"+c);
 
 				}

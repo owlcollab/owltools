@@ -1,18 +1,6 @@
 package owltools.gaf.io;
 
-import static org.junit.Assert.*;
-import static owltools.gaf.io.PseudoRdfXmlWriter.*;
-
-import java.io.File;
-import java.util.Arrays;
-
-import javax.xml.stream.XMLStreamWriter;
-
-import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.OWLClass;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;

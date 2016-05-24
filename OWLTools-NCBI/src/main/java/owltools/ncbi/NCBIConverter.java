@@ -1,9 +1,9 @@
 package owltools.ncbi;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -125,9 +125,11 @@ public class NCBIConverter extends OWLConverter {
 			logger.error("No SCIENTIFIC NAME provided for " + id);
 			return false;
 		}
-
-		Set<OWLClassExpression> superClasses =
-			taxon.getSuperClasses(ontology);
+		Set<OWLSubClassOfAxiom> axioms = ontology.getSubClassAxiomsForSubClass(taxon);
+		Set<OWLClassExpression> superClasses = new HashSet<>();
+		for(OWLSubClassOfAxiom ax : axioms) {
+			superClasses.add(ax.getSuperClass());
+		}
 		if (superClasses.size() < 1 && !id.equals("1")) {
 			logger.error("No PARENT ID for " + id);
 			return false;

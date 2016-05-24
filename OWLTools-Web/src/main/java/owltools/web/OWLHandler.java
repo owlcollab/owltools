@@ -22,18 +22,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.obolibrary.macro.ManchesterSyntaxTool;
-import org.semanticweb.owlapi.expression.ParserException;
-import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
+import org.semanticweb.owlapi.formats.OBODocumentFormat;
+import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
+import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
@@ -43,8 +44,8 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -70,6 +71,7 @@ import owltools.sim2.UnknownOWLClassException;
 import owltools.version.VersionInfo;
 import owltools.vocab.OBOUpperVocabulary;
 
+import com.google.common.base.Optional;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -329,9 +331,9 @@ public class OWLHandler {
 	 * @throws OWLOntologyCreationException
 	 * @throws OWLOntologyStorageException
 	 * @throws IOException
-	 * @throws ParserException 
+	 * @throws OWLParserException 
 	 */
-	public void getSubClassesCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, ParserException {
+	public void getSubClassesCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, OWLParserException {
 		headerOWL();
 		boolean direct = getParamAsBoolean(Param.direct, false);
 		OWLReasoner r = getReasoner();
@@ -356,9 +358,9 @@ public class OWLHandler {
 	 * @throws OWLOntologyCreationException
 	 * @throws OWLOntologyStorageException
 	 * @throws IOException
-	 * @throws ParserException 
+	 * @throws OWLParserException 
 	 */
-	public void getSuperClassesCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, ParserException {
+	public void getSuperClassesCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, OWLParserException {
 		headerOWL();
 		boolean direct = getParamAsBoolean(Param.direct, false);
 		OWLReasoner r = getReasoner();
@@ -380,22 +382,22 @@ public class OWLHandler {
 	 * @throws OWLOntologyCreationException
 	 * @throws OWLOntologyStorageException
 	 * @throws IOException
-	 * @throws ParserException
+	 * @throws OWLParserException
 	 */
-	public void getAxiomsCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, ParserException {
+	public void getAxiomsCommand() throws OWLOntologyCreationException, OWLOntologyStorageException, IOException, OWLParserException {
 		headerOWL();
 		boolean direct = getParamAsBoolean(Param.direct, false);
 		OWLObject obj = this.resolveEntity();
 		LOG.info("finding axioms about: "+obj);
 		Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
 		if (obj instanceof OWLClass) {
-			axioms.addAll(graph.getSourceOntology().getAxioms((OWLClass)obj));
+			axioms.addAll(graph.getSourceOntology().getAxioms((OWLClass)obj, Imports.EXCLUDED));
 		}
 		if (obj instanceof OWLIndividual) {
-			axioms.addAll(graph.getSourceOntology().getAxioms((OWLIndividual)obj));
+			axioms.addAll(graph.getSourceOntology().getAxioms((OWLIndividual)obj, Imports.EXCLUDED));
 		}
 		if (obj instanceof OWLObjectProperty) {
-			axioms.addAll(graph.getSourceOntology().getAxioms((OWLObjectProperty)obj));
+			axioms.addAll(graph.getSourceOntology().getAxioms((OWLObjectProperty)obj, Imports.EXCLUDED));
 		}
 
 		for (OWLAxiom ax : axioms) {
@@ -415,7 +417,7 @@ public class OWLHandler {
 		headerOWL();
 		boolean direct = getParamAsBoolean(Param.direct, true);
 		OWLReasoner r = getReasoner();
-		for (OWLClass c : getOWLOntology().getClassesInSignature(true)) {
+		for (OWLClass c : getOWLOntology().getClassesInSignature(Imports.INCLUDED)) {
 			for (OWLClass sc : r.getSuperClasses(c, direct).getFlattened()) {
 				output(graph.getDataFactory().getOWLSubClassOfAxiom(c, sc));
 			}
@@ -455,7 +457,7 @@ public class OWLHandler {
 		headerOWL();
 		String id = this.getParam(Param.id);
 		OWLClass cls = graph.getOWLClassByIdentifier(id);
-		for (OWLAxiom axiom : getOWLOntology().getAxioms(cls)) {
+		for (OWLAxiom axiom : getOWLOntology().getAxioms(cls, Imports.EXCLUDED)) {
 			output(axiom);
 		}
 		for (OWLAxiom axiom : getOWLOntology().getAnnotationAssertionAxioms(cls.getIRI())) {
@@ -987,11 +989,11 @@ public class OWLHandler {
 
 	private OWLClass resolveClass() {
 		String id = getParam(Param.id);
-		return graph.getOWLClassByIdentifier(id);
+		return graph.getOWLClassByIdentifierNoAltIds(id);
 	}
 	private OWLClass resolveClass(Param p) {
 		String id = getParam(p);
-		return graph.getOWLClassByIdentifier(id);
+		return graph.getOWLClassByIdentifierNoAltIds(id);
 	}
 	private OWLClass resolveClassByLabel() {
 		String id = getParam(Param.label);
@@ -999,7 +1001,7 @@ public class OWLHandler {
 	}
 
 
-	private OWLClassExpression resolveClassExpression() throws ParserException {
+	private OWLClassExpression resolveClassExpression() throws OWLParserException {
 		if (hasParam(Param.id)) { 
 			return resolveClass();
 		}
@@ -1039,10 +1041,13 @@ public class OWLHandler {
 	private OWLOntology resolveOntology(Param p) {
 		String oid = getParam(p);
 		for (OWLOntology ont : graph.getManager().getOntologies()) {
-			String iri = ont.getOntologyID().getOntologyIRI().toString();
-			// HACK
-			if (iri.endsWith("/"+oid)) {
-				return ont;
+			Optional<IRI> ontologyIRI = ont.getOntologyID().getOntologyIRI();
+			if (ontologyIRI.isPresent()) {
+				String iri = ontologyIRI.get().toString();
+				// HACK
+				if (iri.endsWith("/"+oid)) {
+					return ont;
+				}
 			}
 		}
 		return null;
@@ -1098,12 +1103,12 @@ public class OWLHandler {
 	public void headerOWL() {
 		if (isOWLOntologyFormat()) {
 			LOG.info("using OWL ontology header");
-			OWLOntologyFormat ofmt = this.getOWLOntologyFormat();
-			if (ofmt instanceof RDFXMLOntologyFormat) {
-				response.setContentType("application/rdf+xml;charset-utf-8");				
+			OWLDocumentFormat ofmt = this.getOWLOntologyFormat();
+			if (ofmt instanceof RDFXMLDocumentFormat) {
+				response.setContentType("application/rdf+xml;charset-utf-8");
 			}
-			else if (ofmt instanceof OWLXMLOntologyFormat) {
-				response.setContentType("application/xml;charset-utf-8");				
+			else if (ofmt instanceof OWLXMLDocumentFormat) {
+				response.setContentType("application/xml;charset-utf-8");
 			}
 			else {
 				response.setContentType("text/plain;charset-utf-8");
@@ -1213,7 +1218,7 @@ public class OWLHandler {
 				return;
 			OWLOntology tmpOnt = getTemporaryOntology();
 			graph.getManager().addAxioms(tmpOnt, cachedAxioms);
-			OWLOntologyFormat ofmt = getOWLOntologyFormat();
+			OWLDocumentFormat ofmt = getOWLOntologyFormat();
 			LOG.info("Format:"+ofmt);
 			ParserWrapper pw = new ParserWrapper();
 			//graph.getManager().saveOntology(tmpOnt, ofmt, response.getOutputStream());
@@ -1232,25 +1237,25 @@ public class OWLHandler {
 		return graph.getManager().createOntology(iri);
 	}
 
-	private OWLOntologyFormat getOWLOntologyFormat() {
+	private OWLDocumentFormat getOWLOntologyFormat() {
 		return getOWLOntologyFormat(getFormat());
 	}
 
-	private OWLOntologyFormat getOWLOntologyFormat(String fmt) {
-		OWLOntologyFormat ofmt = null;
+	private OWLDocumentFormat getOWLOntologyFormat(String fmt) {
+		OWLDocumentFormat ofmt = null;
 		fmt = fmt.toLowerCase();
 		if (fmt.equals("rdfxml"))
-			ofmt = new RDFXMLOntologyFormat();
+			ofmt = new RDFXMLDocumentFormat();
 		else if (fmt.equals("owl"))
-			ofmt = new RDFXMLOntologyFormat();
+			ofmt = new RDFXMLDocumentFormat();
 		else if (fmt.equals("rdf"))
-			ofmt = new RDFXMLOntologyFormat();
+			ofmt = new RDFXMLDocumentFormat();
 		else if (fmt.equals("owx"))
-			ofmt = new OWLXMLOntologyFormat();
+			ofmt = new OWLXMLDocumentFormat();
 		else if (fmt.equals("owf"))
-			ofmt = new OWLFunctionalSyntaxOntologyFormat();
+			ofmt = new FunctionalSyntaxDocumentFormat();
 		else if (fmt.equals("obo"))
-			ofmt = new OBOOntologyFormat();
+			ofmt = new OBODocumentFormat();
 		return ofmt;
 	}
 

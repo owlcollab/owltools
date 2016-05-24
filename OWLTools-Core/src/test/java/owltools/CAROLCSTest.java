@@ -1,7 +1,5 @@
 package owltools;
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLIndividual;

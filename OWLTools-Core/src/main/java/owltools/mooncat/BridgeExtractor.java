@@ -13,25 +13,26 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.coode.owlapi.manchesterowlsyntax.ManchesterOWLSyntaxOntologyFormat;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.semanticweb.owlapi.io.OWLFunctionalSyntaxOntologyFormat;
-import org.semanticweb.owlapi.io.OWLXMLOntologyFormat;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
+import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
+import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
+import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 /**
  * @author cjm
@@ -165,7 +166,7 @@ public class BridgeExtractor {
 		for (OWLOntology xo : nameToOntologyMap.values()) {
 			AddImport ai = 
 				new AddImport(importOntology,
-						df.getOWLImportsDeclaration(xo.getOntologyID().getOntologyIRI()));
+						df.getOWLImportsDeclaration(xo.getOntologyID().getOntologyIRI().get()));
 			importOntology.getOWLOntologyManager().applyChange(ai);
 		}
 		LOG.info("Getting importer: "+importOntology);
@@ -184,7 +185,7 @@ public class BridgeExtractor {
 		OWLOntologyManager m = ontology.getOWLOntologyManager();
 		OWLDataFactory df = m.getOWLDataFactory();
 		m.addAxiom(xOnt, df.getOWLDeclarationAxiom(p));
-		for (OWLAxiom ax : ontology.getAxioms(p)) {
+		for (OWLAxiom ax : ontology.getAxioms(p, Imports.EXCLUDED)) {
 			m.addAxiom(xOnt, ax);
 		}
 		// TODO
@@ -224,10 +225,10 @@ public class BridgeExtractor {
 	}
 
 	public void saveBridgeOntologies(String dir) throws FileNotFoundException, OWLOntologyStorageException {
-		saveBridgeOntologies(dir, new RDFXMLOntologyFormat());
+		saveBridgeOntologies(dir, new RDFXMLDocumentFormat());
 	}
 
-	public void saveBridgeOntologies(String dir, OWLOntologyFormat format) throws FileNotFoundException, OWLOntologyStorageException {
+	public void saveBridgeOntologies(String dir, OWLDocumentFormat format) throws FileNotFoundException, OWLOntologyStorageException {
 		for (String n : nameToOntologyMap.keySet()) {
 			OWLOntology xo = nameToOntologyMap.get(n);
 			String fn = dir == null ?  "bridge/" + n : dir + "/bridge/" + n;
@@ -238,7 +239,7 @@ public class BridgeExtractor {
 		save(ifn, format, importOntology);
 	}
 	
-	public void save(String fn, OWLOntologyFormat format, OWLOntology xo) throws FileNotFoundException, OWLOntologyStorageException {
+	public void save(String fn, OWLDocumentFormat format, OWLOntology xo) throws FileNotFoundException, OWLOntologyStorageException {
 		fn = fn + "." + getSuffix(format);
 		File file = new File(fn);
 		file.getParentFile().mkdirs();
@@ -249,17 +250,17 @@ public class BridgeExtractor {
 	
 	
 
-	private String getSuffix(OWLOntologyFormat format) {
-		if (format instanceof RDFXMLOntologyFormat) {
+	private String getSuffix(OWLDocumentFormat format) {
+		if (format instanceof RDFXMLDocumentFormat) {
 			return "owl";
 		}
-		if (format instanceof OWLFunctionalSyntaxOntologyFormat) {
+		if (format instanceof FunctionalSyntaxDocumentFormat) {
 			return "ofn";
 		}
-		if (format instanceof OWLXMLOntologyFormat) {
+		if (format instanceof OWLXMLDocumentFormat) {
 			return "owx";
 		}
-		if (format instanceof ManchesterOWLSyntaxOntologyFormat) {
+		if (format instanceof ManchesterSyntaxDocumentFormat) {
 			return "omn";
 		}
 

@@ -1,14 +1,8 @@
 package owltools.gaf.owl;
 
-import java.io.File;
-
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyFormat;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;

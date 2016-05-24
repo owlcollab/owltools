@@ -4,7 +4,6 @@ import gnu.trove.set.hash.THashSet;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,7 +11,6 @@ import org.apache.log4j.Logger;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -182,8 +180,8 @@ public class RedundantInferences {
 				}
 			}
 			OWLOntologyManager manager = ontology.getOWLOntologyManager();
-			List<OWLOntologyChange> changes = manager.removeAxioms(ontology, allAxioms);
-			LOG.info("Removed "+changes.size()+" redundant axioms.");
+			manager.removeAxioms(ontology, allAxioms);
+			LOG.info("Removed "+axioms.size()+" redundant axioms.");
 		}
 		return axioms;
 		

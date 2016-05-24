@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>OWLTools-Parent</artifactId>
 		<groupId>org.bbop</groupId>
-		<version>0.2.2-SNAPSHOT</version>
+		<version>0.3.0-SNAPSHOT</version>
 		<relativePath>../OWLTools-Parent/pom.xml</relativePath>
 	</parent>
 
@@ -46,35 +46,34 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-    		<groupId>org.yaml</groupId>
-    		<artifactId>snakeyaml</artifactId>
-    		<version>1.10</version>
-  		</dependency>
-	    <dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>1.10</version>
+		</dependency>
+		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.commons</groupId>
-  			<artifactId>commons-lang3</artifactId>
-  			<version>3.1</version>
-  		</dependency>
-  		<dependency>
-		    <groupId>org.forester</groupId>
-  			<artifactId>Forester</artifactId>
-  			<version>1.005</version>
-  			<exclusions>
-  				<exclusion>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.forester</groupId>
+			<artifactId>Forester</artifactId>
+			<version>1.005</version>
+			<exclusions>
+				<exclusion>
 					<groupId>com.itextpdf</groupId>
 					<artifactId>itextpdf</artifactId>
 				</exclusion>
-  			</exclusions>
-  		</dependency>
-  		<!-- Needs to be removed soon, the LEGO project is deprecated -->
-  		<dependency>
-  			<groupId>org.geneontology.lego</groupId>
+			</exclusions>
+		</dependency>
+		<!-- Needs to be removed soon, the LEGO project is deprecated -->
+		<dependency>
+			<groupId>org.geneontology.lego</groupId>
 			<artifactId>Lego</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-  		</dependency>
+			<version>0.0.3-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 </project>

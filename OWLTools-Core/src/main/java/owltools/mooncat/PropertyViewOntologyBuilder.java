@@ -30,13 +30,15 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+
+import owltools.util.OwlHelper;
 
 /**
  * This class will create a property view or *faceted* view over an ontology using a specified
@@ -373,8 +375,7 @@ public class PropertyViewOntologyBuilder {
 	 * @throws OWLOntologyCreationException
 	 */
 	public void buildViewOntology() throws OWLOntologyCreationException {
-		buildViewOntology((new OWLOntologyID()).getOntologyIRI(), 
-				(new OWLOntologyID()).getOntologyIRI());
+		buildViewOntology(IRI.generateDocumentIRI(),  IRI.generateDocumentIRI());
 	}
 
 	/**
@@ -601,7 +602,7 @@ public class PropertyViewOntologyBuilder {
 		// the easiest way to build this list is simply to find everything that instantiates or is subsumed
 		// by SomeValuesFrom(P, owl:Thing)
 		viewEntities = new HashSet<OWLEntity>();
-		Set<OWLClass> srcClasses = this.sourceOntology.getClassesInSignature(true);
+		Set<OWLClass> srcClasses = this.sourceOntology.getClassesInSignature(Imports.INCLUDED);
 		for (OWLClass elementEntity : reasoner.getSubClasses(getViewRootClass(), false).getFlattened()) {
 			if (elementEntity.equals(owlDataFactory.getOWLNothing()))
 				continue;
@@ -612,7 +613,7 @@ public class PropertyViewOntologyBuilder {
 		LOG.info("making view for "+elementsOntology+" using viewEntities: "+viewEntities.size());
 		NodeSet<OWLNamedIndividual> insts = null;
 
-		if (isClassifyIndividuals && elementsOntology.getIndividualsInSignature(false).size() > 0) {
+		if (isClassifyIndividuals && elementsOntology.getIndividualsInSignature(Imports.EXCLUDED).size() > 0) {
 			// only attempt to look for individuals if the element ontology contains them
 			// (remember, ELK 0.2.0 fails with individuals) 
 			LOG.info("Getting individuals for type: "+getViewRootClass());
@@ -758,7 +759,7 @@ public class PropertyViewOntologyBuilder {
 	public String getLabel(OWLEntity c, OWLOntology ont) {
 		String label = null;		
 		// todo - ontology import closure
-		for (OWLAnnotation ann : c.getAnnotations(ont, owlDataFactory.getRDFSLabel())) {
+		for (OWLAnnotation ann : OwlHelper.getAnnotations(c, owlDataFactory.getRDFSLabel(), ont)) {
 			OWLAnnotationValue v = ann.getValue();
 			if (v instanceof OWLLiteral) {
 				label = ((OWLLiteral)v).getLiteral();
@@ -803,7 +804,7 @@ public class PropertyViewOntologyBuilder {
 		OWLOntology newElementsOntology = owlOntologyManager.createOntology();
 		for (OWLNamedIndividual i : srcOnt.getIndividualsInSignature()) {
 			OWLClass c = owlDataFactory.getOWLClass(i.getIRI()); // pun
-			for (OWLClassExpression ce : i.getTypes(srcOnt)) {
+			for (OWLClassExpression ce : OwlHelper.getTypes(i, srcOnt)) {
 				axs.add(owlDataFactory.getOWLSubClassOfAxiom(c, ce));
 			}
 			//g.getDataFactory().getOWLDe
