@@ -1,32 +1,23 @@
 package owltools;
 
-import static org.junit.Assert.*;
-
 import java.io.FileOutputStream;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.junit.Test;
-import org.semanticweb.owlapi.expression.ShortFormEntityChecker;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLProperty;
-import org.semanticweb.owlapi.util.BidirectionalShortFormProviderAdapter;
 import org.semanticweb.owlapi.util.SimpleShortFormProvider;
 
 import owltools.gfx.OWLGraphLayoutRenderer;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
 import owltools.io.ParserWrapper;
+import owltools.util.OwlHelper;
 
 public class FlyTutorial extends OWLToolsTestBasics {
 
@@ -67,7 +58,7 @@ public class FlyTutorial extends OWLToolsTestBasics {
 			System.out.println(ax);			
 		}
 		 */
-		for (OWLClassExpression s : c.getSuperClasses(ont)) {
+		for (OWLClassExpression s : OwlHelper.getSuperClasses(c, ont)) {
 			if (s instanceof OWLEntity) {
 				System.out.println(" SUPERCLASS:"+sfp.getShortForm((OWLEntity) s)+" // "+g.getLabel(s));
 			}

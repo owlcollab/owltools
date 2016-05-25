@@ -329,6 +329,3 @@ will not have the same computational properties.
 
  */
 package owltools.graph;
-
-import owltools.graph.OWLGraphWrapper;
-import owltools.gfx.OWLGraphLayoutRenderer;

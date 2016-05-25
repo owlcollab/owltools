@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -52,7 +53,8 @@ public class GetLabelsTest extends OWLToolsTestBasics {
 	
 	private String getLabel(OWLEntity obj) throws MultiLabelException {
 		String label = null;
-		for ( OWLAnnotation ann : obj.getAnnotations(ont) ) {
+		OWLAnnotationProperty labelProperty = ont.getOWLOntologyManager().getOWLDataFactory().getRDFSLabel();
+		for (OWLAnnotation ann : OwlHelper.getAnnotations(obj, labelProperty, ont)) {
 			if (ann.getProperty().isLabel()) {
 				OWLAnnotationValue v = ann.getValue();
 				if (v instanceof OWLLiteral) {

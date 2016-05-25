@@ -1,33 +1,23 @@
 package owltools.sim2;
 
-import static org.junit.Assert.*;
-
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
-import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
-import owltools.graph.OWLGraphWrapperEdges;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.sim2.AbstractOWLSimTest;
-import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSim.SimConfigurationProperty;
 import owltools.sim2.UnknownOWLClassException;
-import owltools.sim2.io.FormattedRenderer;
 import owltools.sim2.scores.ElementPairScores;
 
 /**

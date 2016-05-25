@@ -1,7 +1,6 @@
 package owltools.sim;
 
 import java.io.PrintStream;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;

@@ -16,10 +16,12 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
+import owltools.util.OwlHelper;
 
 public class OntologyMetadata {
 
@@ -63,7 +65,9 @@ public class OntologyMetadata {
 				return true;
 		}
 		*/
-		return c.getAnnotations(o, dep).size() > 0;
+		Set<OWLAnnotation> depAnnotations = OwlHelper.getAnnotations(c, dep, o);
+		boolean deprecated = depAnnotations.isEmpty() == false;
+		return deprecated;
 	}
 
 
@@ -78,9 +82,9 @@ public class OntologyMetadata {
 
 		for (Boolean ic : bools) {
 			generateDatum(MetadataField.NUMBER_OF_CLASSES, MetadataQualifier.INCLUDE_IMPORT_CLOSURE, ic,
-					o.getClassesInSignature(ic).size());
+					o.getClassesInSignature(Imports.fromBoolean(ic)).size());
 			int n = 0;
-			for (OWLClass c : o.getClassesInSignature(ic)) {
+			for (OWLClass c : o.getClassesInSignature(Imports.fromBoolean(ic))) {
 
 				if (!isDeprecated(c,o,dep)) {
 					n++;
@@ -102,7 +106,7 @@ public class OntologyMetadata {
 				generateDatum(MetadataField.NUMBER_OF_AXIOMS,
 						MetadataQualifier.AXIOM_TYPE,
 						axType,
-						o.getAxiomCount(axType, ic));
+						o.getAxiomCount(axType, Imports.fromBoolean(ic)));
 			}
 		}
 
@@ -132,8 +136,8 @@ public class OntologyMetadata {
 			}
 			nc++;
 			for (OWLAnnotationProperty ap : o.getAnnotationPropertiesInSignature()) {
-				Set<OWLAnnotation> anns = c.getAnnotations(o, ap);
-				if (anns.size() ==0) {
+				Set<OWLAnnotation> anns = OwlHelper.getAnnotations(c, ap, o);
+				if (anns.isEmpty()) {
 					numClasses0.put(ap, numClasses0.get(ap)+1);
 				}
 				else {

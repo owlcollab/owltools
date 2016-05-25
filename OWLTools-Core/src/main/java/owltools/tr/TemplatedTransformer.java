@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 /**
  * Examples:
@@ -78,8 +79,8 @@ public class TemplatedTransformer {
 
 	public Set<Mapping> getMappings() {
 		Set<Mapping> ms = new HashSet<Mapping>();
-		OWLAnnotationProperty vap = getVariableAnnotationProperty(); // e.g. hasVariable
-		for (OWLSubClassOfAxiom sca : ontology.getAxioms(AxiomType.SUBCLASS_OF, true)) {
+		OWLAnnotationProperty vap = getVariableAnnotationProperty();
+		for (OWLSubClassOfAxiom sca : ontology.getAxioms(AxiomType.SUBCLASS_OF, Imports.INCLUDED)) {
 			Mapping m = new Mapping();
 			Set<OWLAnnotation> anns = sca.getAnnotations(vap);
 			for (OWLAnnotation ann : anns) {

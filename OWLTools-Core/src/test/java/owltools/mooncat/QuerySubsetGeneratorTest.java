@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
-import org.semanticweb.HermiT.Reasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -18,6 +17,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+
+import com.google.common.base.Optional;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
@@ -46,7 +47,7 @@ public class QuerySubsetGeneratorTest extends OWLToolsTestBasics {
 			reasonerFactory = new ElkReasonerFactory();
 		}
 		else {
-			reasonerFactory = new Reasoner.ReasonerFactory();
+			reasonerFactory = new org.semanticweb.HermiT.ReasonerFactory();
 		}
 		
 		String query1 = "FBbt_00005106"; // neuron
@@ -75,7 +76,7 @@ public class QuerySubsetGeneratorTest extends OWLToolsTestBasics {
 
 	private OWLGraphWrapper getTargetGraph() throws Exception {
 		OWLOntologyManager targetManager = OWLManager.createOWLOntologyManager();
-		OWLOntologyID ontologyID  = new OWLOntologyID(IRI.create("http://test.owltools.org/dynamic"));
+		OWLOntologyID ontologyID  = new OWLOntologyID(Optional.of(IRI.create("http://test.owltools.org/dynamic")), Optional.absent());
 		OWLOntology targetOntology = targetManager.createOntology(ontologyID);
 		OWLGraphWrapper targetGraph = new OWLGraphWrapper(targetOntology);
 		return targetGraph;

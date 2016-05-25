@@ -5,7 +5,6 @@ import org.semanticweb.owlapi.model.OWLObject;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.sim.CombinedJaccardConjunctiveSetSimilarity;
-import owltools.sim.ConjunctiveSetSimilarity;
 import owltools.sim.SimEngine;
 
 public class CombinedJaccardConjunctiveSetSimilarityTest extends AbstractSimEngineTest {

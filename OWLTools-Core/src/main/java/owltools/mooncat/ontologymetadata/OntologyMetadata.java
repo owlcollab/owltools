@@ -1,8 +1,6 @@
 package owltools.mooncat.ontologymetadata;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -27,10 +25,10 @@ public class OntologyMetadata {
 	public OntologyMetadata(OWLOntology ont) {
 		super();
 		OWLOntologyID id = ont.getOntologyID();
-		if (id.getOntologyIRI() != null)
-			ontologyIRI = id.getOntologyIRI().toString();
-		if (id.getVersionIRI() != null)
-			versionIRI = id.getVersionIRI().toString();
+		if (id.getOntologyIRI().isPresent())
+			ontologyIRI = id.getOntologyIRI().get().toString();
+		if (id.getVersionIRI().isPresent())
+			versionIRI = id.getVersionIRI().get().toString();
 		importDirectives = new HashSet<String>();
 		for (OWLImportsDeclaration oid : ont.getImportsDeclarations()) {
 			importDirectives.add(oid.getIRI().toString());

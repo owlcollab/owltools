@@ -1,9 +1,7 @@
 package owltools.sim2.preprocessor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
@@ -24,7 +22,10 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+
+import owltools.util.OwlHelper;
 
 public class ABoxUtils {
 	
@@ -33,7 +34,7 @@ public class ABoxUtils {
 	public static void randomizeClassAssertions(OWLOntology ont, int num) {
 		Set<OWLClassAssertionAxiom> caas = new HashSet<OWLClassAssertionAxiom>();
 		Set<OWLClassAssertionAxiom> caasNew = new HashSet<OWLClassAssertionAxiom>();
-			Set<OWLNamedIndividual> inds = ont.getIndividualsInSignature(true);
+			Set<OWLNamedIndividual> inds = ont.getIndividualsInSignature(Imports.INCLUDED);
 		OWLNamedIndividual[] indArr = (OWLNamedIndividual[]) inds.toArray();
 		for (OWLNamedIndividual ind : inds) {
 			caas.addAll( ont.getClassAssertionAxioms(ind) );
@@ -49,7 +50,7 @@ public class ABoxUtils {
 
 	public static void createRandomClassAssertions(OWLOntology ont, int num, int maxAssertionsPerInstance) {
 		Set<OWLClassAssertionAxiom> caasNew = new HashSet<OWLClassAssertionAxiom>();
-		Vector<OWLClass> clist = new Vector<OWLClass>(ont.getClassesInSignature(true));
+		Vector<OWLClass> clist = new Vector<OWLClass>(ont.getClassesInSignature(Imports.INCLUDED));
 		for (int i=0; i<num; i++) {
 			OWLNamedIndividual ind = ont.getOWLOntologyManager().getOWLDataFactory().
 			getOWLNamedIndividual(IRI.create("http://x.org/"+i));
@@ -138,7 +139,7 @@ public class ABoxUtils {
 			axs.add(owlDataFactory.getOWLDeclarationAxiom(c));
 			
 			// ClassAssertion -> SubClass
-			for (OWLClassExpression ce : i.getTypes(srcOnt)) {
+			for (OWLClassExpression ce : OwlHelper.getTypes(i, srcOnt)) {
 			}
 			for (OWLClassAssertionAxiom ax : srcOnt.getClassAssertionAxioms(i)) {
 				rmAxioms.add(ax);
@@ -200,7 +201,7 @@ public class ABoxUtils {
 	public static void makeDefaultIndividuals(OWLOntology srcOnt, String iriSuffix) throws OWLOntologyCreationException {
 		OWLOntologyManager m = srcOnt.getOWLOntologyManager();
 		OWLDataFactory df = m.getOWLDataFactory();
-		for (OWLClass c : srcOnt.getClassesInSignature(true)) {
+		for (OWLClass c : srcOnt.getClassesInSignature(Imports.INCLUDED)) {
 			IRI iri;
 			if (iriSuffix == null || iriSuffix.equals(""))
 			  iri = c.getIRI();

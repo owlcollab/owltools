@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
@@ -176,8 +177,8 @@ public class OortGuiMainPanel extends SizedJPanel {
 		fileRemoveButton.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent e) {
-				Object[] values = inputSourcesJList.getSelectedValues();
-				if (values != null && values.length > 0) {
+				List<?> values = inputSourcesJList.getSelectedValuesList();
+				if (values != null && values.isEmpty() == false) {
 					for (Object object : values) {
 						sources.remove(object);
 					}

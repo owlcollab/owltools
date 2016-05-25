@@ -483,7 +483,7 @@ public class GoMySQLDatabaseDumper extends DatabaseDumper {
 	public void dumpAssociationRowsForGaf(PrintStream s, GafDocument gafdoc) throws IOException, ReferentialIntegrityException {
 		for ( GeneAnnotation a : gafdoc.getGeneAnnotations() ) {
 			int id = getId(GOMySQLTable.association, a);
-			OWLClass cls = graph.getOWLClassByIdentifier(a.getCls());
+			OWLClass cls = graph.getOWLClassByIdentifierNoAltIds(a.getCls());
 			if (cls == null) {
 				if (isStrict) {
 					throw new ReferentialIntegrityException("association", a.getCls());

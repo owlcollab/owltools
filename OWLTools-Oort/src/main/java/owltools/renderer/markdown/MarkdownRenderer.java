@@ -32,7 +32,6 @@ import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLNaryBooleanClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectAllValuesFrom;
-import org.semanticweb.owlapi.model.OWLObjectIntersectionOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyCharacteristicAxiom;
@@ -44,7 +43,10 @@ import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+
+import owltools.util.OwlHelper;
 
 /**
  * Fairly hacky md renderer, geared towards storing md in github.
@@ -135,8 +137,16 @@ public class MarkdownRenderer {
 
 		tellToIndex();
 		renderSection("Ontology");
-		renderTagValue("OID", o.getOntologyID().getOntologyIRI());
-		renderTagValue("Version", o.getOntologyID().getVersionIRI());
+		IRI oidValue = null;
+		IRI versionValue = null;
+		if(o.getOntologyID().getOntologyIRI().isPresent()) {
+			oidValue = o.getOntologyID().getOntologyIRI().get();
+		}
+		if (o.getOntologyID().getVersionIRI().isPresent()) {
+			versionValue = o.getOntologyID().getVersionIRI().get();
+		}
+		renderTagValue("OID", oidValue);
+		renderTagValue("Version", versionValue);
 
 		renderSection("Classes");
 		for (OWLClass c : o.getClassesInSignature()) {
@@ -154,8 +164,7 @@ public class MarkdownRenderer {
 	}
 
 	public void renderAbout(OWLClass c) throws IOException {
-		Set<OWLAxiom> axioms = ontology.getReferencingAxioms(c, true);
-
+		Set<OWLAxiom> axioms = ontology.getReferencingAxioms(c, Imports.INCLUDED);
 	}
 
 	private void renderGenericAnnotations(OWLNamedObject c) {
@@ -254,7 +263,7 @@ public class MarkdownRenderer {
 			Set<IRI> imgs = new HashSet<IRI>();
 			
 			Set<OWLClassAxiom> logicalAxioms = 
-					ontology.getAxioms(c);
+					ontology.getAxioms(c, Imports.EXCLUDED);
 			Set<OWLAnnotationAssertionAxiom> annotationAxioms = 
 					ontology.getAnnotationAssertionAxioms(c.getIRI());
 			//LOG.info("#annotationAxioms="+annotationAxioms.size());
@@ -392,7 +401,7 @@ public class MarkdownRenderer {
 			tell(id);
 
 			Set<OWLObjectPropertyAxiom> logicalAxioms = 
-					ontology.getAxioms(p);
+					ontology.getAxioms(p, Imports.EXCLUDED);
 
 			renderSection("Class : "+getLabel(p));
 
@@ -472,11 +481,11 @@ public class MarkdownRenderer {
 			renderControlledAnnotations(p);
 
 			renderSection("SuperProperties");
-			for (OWLAnnotationProperty pe : p.getSuperProperties(ontology)) {
+			for (OWLAnnotationProperty pe : OwlHelper.getSuperProperties(p, ontology)) {
 				renderTagValue("", getMarkdownLink(pe));
 			}
 			renderSection("SubProperties");
-			for (OWLAnnotationProperty pe : p.getSubProperties(ontology)) {
+			for (OWLAnnotationProperty pe : OwlHelper.getSubProperties(p, ontology)) {
 				renderTagValue("", getMarkdownLink(pe));
 			}
 

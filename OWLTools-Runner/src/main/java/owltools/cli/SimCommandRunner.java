@@ -11,6 +11,8 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
+import org.semanticweb.owlapi.io.OWLObjectRenderer;
+import org.semanticweb.owlapi.manchestersyntax.renderer.ManchesterOWLSyntaxOWLObjectRendererImpl;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnonymousClassExpression;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -43,7 +45,6 @@ import owltools.sim2.UnknownOWLClassException;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
-import uk.ac.manchester.cs.owl.owlapi.mansyntaxrenderer.ManchesterOWLSyntaxOWLObjectRendererImpl;
 
 /**
  * Semantic similarity and information content.
@@ -326,7 +327,8 @@ public class SimCommandRunner extends SolrCommandRunner {
 			}
 		}
 		Set<OWLClassExpression> lcsh = new HashSet<OWLClassExpression>();
-		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g, new ManchesterOWLSyntaxOWLObjectRendererImpl());
+		OWLObjectRenderer r = new ManchesterOWLSyntaxOWLObjectRendererImpl();
+		OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g, r);
 		owlpp.hideIds();
 		for (OWLObject a : objs1) {
 			for (OWLObject b : objs2) {

@@ -243,7 +243,7 @@ public abstract class Similarity {
 		axioms.add(df.getOWLClassAssertionAxiom(ac, result));
 		axioms.add(df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(OWLRDFVocabulary.RDFS_LABEL.getIRI()),
 				result.getIRI(), 
-				df.getOWLTypedLiteral("Similarity relationship between "+simEngine.label(a)+" and "+simEngine.label(b))));
+				df.getOWLLiteral("Similarity relationship between "+simEngine.label(a)+" and "+simEngine.label(b))));
 
 		// each object in the pair is connected to the similarity
 		OWLAnnotationProperty p = df.getOWLAnnotationProperty(annotationIRI("has_similarity_relationship"));
@@ -252,7 +252,7 @@ public abstract class Similarity {
 
 		// every similarity has a score
 		OWLAnnotationProperty sp = df.getOWLAnnotationProperty(annotationIRI("has_score"));
-		axioms.add(df.getOWLAnnotationAssertionAxiom(sp, result.getIRI(), df.getOWLTypedLiteral(score)));
+		axioms.add(df.getOWLAnnotationAssertionAxiom(sp, result.getIRI(), df.getOWLLiteral(score)));
 
 		translateResultsToOWLAxioms(id, result, axioms);
 

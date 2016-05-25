@@ -12,7 +12,6 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 /**
@@ -42,7 +41,7 @@ public class GCIUtil {
 	 * </pre>
 	 * @param ontology
 	 * @param reasoner
-	 * @return
+	 * @return axioms
 	 */
 	public static Set<OWLSubClassOfAxiom> getSubClassOfSomeValuesFromAxioms(OWLOntology ontology,
 			OWLReasoner reasoner) {

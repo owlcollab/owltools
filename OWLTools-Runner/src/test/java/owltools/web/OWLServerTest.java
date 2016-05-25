@@ -29,11 +29,8 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 import owltools.sim2.OwlSim;
 import owltools.sim2.OwlSimFactory;
-import owltools.sim2.SimpleOwlSim;
 import owltools.sim2.SimpleOwlSimFactory;
 import owltools.sim2.preprocessor.ABoxUtils;
-import owltools.sim2.preprocessor.NullSimPreProcessor;
-import owltools.sim2.preprocessor.SimPreProcessor;
 
 /**
  * Simple test for the client server communication for the OWLTools web server.

@@ -79,7 +79,7 @@ public class AssertInferredClassExpressions {
 			@Override
 			public boolean apply(OWLObjectSomeValuesFrom input) {
 				OWLClassExpression filler = input.getFiller();
-				Boolean result = filler.accept(new OWLClassExpressionVisitorExAdapter<Boolean>(){
+				Boolean result = filler.accept(new OWLClassExpressionVisitorExAdapter<Boolean>(Boolean.FALSE){
 					@Override
 					public Boolean visit(OWLClass cls) {
 						return clsFilter.use(cls);

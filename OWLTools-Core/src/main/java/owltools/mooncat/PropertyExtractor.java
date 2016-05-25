@@ -16,8 +16,10 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLProperty;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.OwlHelper;
 
 /**
  * @author cjm
@@ -69,12 +71,12 @@ public class PropertyExtractor {
 	/**
 	 * 
 	 * @param newIRI
-	 * @return
+	 * @return ontology
 	 * @throws OWLOntologyCreationException
 	 */
 	public OWLOntology extractPropertyOntology(IRI newIRI) throws OWLOntologyCreationException {
 		Set<OWLProperty> props = new HashSet<OWLProperty>();
-		for (OWLObjectProperty p : mainOntology.getObjectPropertiesInSignature(true)) {
+		for (OWLObjectProperty p : mainOntology.getObjectPropertiesInSignature(Imports.INCLUDED)) {
 			LOG.info("mainOntology contains: "+p);
 			props.add(p);
 		}
@@ -93,7 +95,7 @@ public class PropertyExtractor {
 	 * 
 	 * @param newIRI
 	 * @param props
-	 * @return
+	 * @return ontology
 	 * @throws OWLOntologyCreationException
 	 */
 	public OWLOntology extractPropertyOntology(IRI newIRI, Set<OWLProperty> props) throws OWLOntologyCreationException {
@@ -116,14 +118,14 @@ public class PropertyExtractor {
 			axioms.addAll(propertyOntology.getAnnotationAssertionAxioms(prop.getIRI()));
 			if (prop instanceof OWLObjectProperty) {
 				OWLObjectProperty op = (OWLObjectProperty) prop;
-				Set<OWLObjectPropertyAxiom> refAxioms = propertyOntology.getAxioms(op);
+				Set<OWLObjectPropertyAxiom> refAxioms = propertyOntology.getAxioms(op, Imports.EXCLUDED);
 				axioms.addAll(refAxioms);
 				if (this.isUseSubProperties) {
-					for (OWLObjectPropertyExpression sp : op.getSubProperties(propertyOntology)) {
+					for (OWLObjectPropertyExpression sp : OwlHelper.getSubProperties(op, propertyOntology)) {
 						props.add((OWLObjectProperty) sp);
 					}
 				}
-				for (OWLObjectPropertyExpression sp : op.getSuperProperties(propertyOntology)) {
+				for (OWLObjectPropertyExpression sp : OwlHelper.getSuperProperties(op, propertyOntology)) {
 					if (sp instanceof OWLObjectProperty) {
 						props.add((OWLObjectProperty) sp);
 					}
@@ -139,7 +141,7 @@ public class PropertyExtractor {
 			}
 			if (prop instanceof OWLAnnotationProperty) {
 				OWLAnnotationProperty ap = (OWLAnnotationProperty) prop;
-				axioms.addAll(propertyOntology.getAxioms(ap)); // TODO - property chain
+				axioms.addAll(propertyOntology.getAxioms(ap, Imports.EXCLUDED)); // TODO - property chain
 			}
 			else {
 

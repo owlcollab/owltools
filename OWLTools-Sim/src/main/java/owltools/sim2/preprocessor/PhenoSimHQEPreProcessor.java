@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
 public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
@@ -254,7 +255,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		Set<OWLClass> entityClasses = new HashSet<OWLClass>();
 
 		// add all that are NOT excluded
-		for (OWLClass c : inputOntology.getClassesInSignature(true)) {
+		for (OWLClass c : inputOntology.getClassesInSignature(Imports.INCLUDED)) {
 			if (!isVerbotenEntity(c)) {
 				entityClasses.add(c);
 				continue;
@@ -315,7 +316,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 	 */
 	public Set<OWLClass> filterByDirectProperty(Set<OWLClass> inSet, OWLObjectProperty p) {
 		Set<OWLClass> outSet = new HashSet<OWLClass>();
-		for (OWLAxiom ax : outputOntology.getReferencingAxioms(p, true)) {
+		for (OWLAxiom ax : outputOntology.getReferencingAxioms(p, Imports.INCLUDED)) {
 			if (ax instanceof OWLSubClassOfAxiom) {
 				OWLClassExpression sup = ((OWLSubClassOfAxiom)ax).getSuperClass();
 				if (sup instanceof OWLObjectSomeValuesFrom) {
@@ -429,7 +430,7 @@ public class PhenoSimHQEPreProcessor extends AbstractOBOSimPreProcessor {
 		OWLEntityRenamer oer;
 		oer = new OWLEntityRenamer(getOWLOntologyManager(), outputOntology.getImportsClosure());
 		Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
-		for (OWLObjectProperty p : outputOntology.getObjectPropertiesInSignature(true)) {
+		for (OWLObjectProperty p : outputOntology.getObjectPropertiesInSignature(Imports.INCLUDED)) {
 			String frag = p.getIRI().getFragment();
 			if (frag == null) {
 				LOG.info(p+" has no fragment");

@@ -5,46 +5,35 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-import java.util.Vector;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.math.MathException;
-import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
-import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.sim2.FastOwlSim.ClassCount;
-import owltools.sim2.OwlSim.ScoreAttributeSetPair;
 import owltools.sim2.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 import owltools.sim2.scores.AttributePairScores;
 import owltools.sim2.scores.ElementPairScores;
 import owltools.util.ClassExpressionPair;
+import owltools.util.OwlHelper;
 
 
 /**
@@ -391,8 +380,8 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 
 	private Set<OWLClass> getParents(OWLClass c) {
 		Set<OWLClass> parents = new HashSet<OWLClass>();
-		Set<OWLClassExpression> xparents = c.getSuperClasses(sourceOntology);
-		xparents.addAll(c.getEquivalentClasses(sourceOntology));
+		Set<OWLClassExpression> xparents = OwlHelper.getSuperClasses(c, sourceOntology);
+		xparents.addAll(OwlHelper.getEquivalentClasses(c, sourceOntology));
 		for (OWLClassExpression x : xparents) {
 			parents.addAll(x.getClassesInSignature());
 		}
@@ -900,7 +889,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 
 	public Set<OWLClass> getAllAttributeClasses() {
 		if (cachedAttributeClasses == null)
-			return sourceOntology.getClassesInSignature(true);
+			return sourceOntology.getClassesInSignature(Imports.INCLUDED);
 		else
 			return new HashSet<OWLClass>(cachedAttributeClasses);
 	}
@@ -913,7 +902,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 	public void createElementAttributeMapFromOntology() {
 		elementToAttributesMap = new HashMap<OWLNamedIndividual,Set<OWLClass>>();
 		Set<OWLClass> allTypes = new HashSet<OWLClass>();
-		for (OWLNamedIndividual e : sourceOntology.getIndividualsInSignature(true)) {
+		for (OWLNamedIndividual e : sourceOntology.getIndividualsInSignature(Imports.INCLUDED)) {
 
 			// The attribute classes for an individual are the direct inferred
 			// named types. We assume that grouping classes have already been
@@ -925,7 +914,7 @@ public class SimpleOwlSim extends AbstractOwlSim implements OwlSim{
 		// need to materialize as classes...
 		LOG.info("Using " + allTypes.size()
 				+ " attribute classes, based on individuals: "
-				+ sourceOntology.getIndividualsInSignature(true).size());
+				+ sourceOntology.getIndividualsInSignature(Imports.INCLUDED).size());
 		cachedAttributeClasses = allTypes;
 	}
 

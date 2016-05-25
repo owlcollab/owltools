@@ -10,8 +10,8 @@ import org.obolibrary.oboformat.model.Clause;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
+import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
-import org.semanticweb.owlapi.io.RDFXMLOntologyFormat;
 import org.semanticweb.owlapi.io.SystemOutDocumentTarget;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -23,7 +23,7 @@ import owltools.io.ParserWrapper;
 public class RemoveDirectivesTest extends OWLToolsTestBasics {
 
 	// set this to true for debugging the ontology content
-	public static boolean USE_SYSTEM_OUT = true;
+	public static boolean USE_SYSTEM_OUT = false;
 	
 	@Test
 	public void testRemove() throws Exception {
@@ -46,7 +46,7 @@ public class RemoveDirectivesTest extends OWLToolsTestBasics {
 			System.out.println("------------------------");
 			OWLOntologyManager manager = merged.getOWLOntologyManager();
 			OWLOntologyDocumentTarget documentTarget = new SystemOutDocumentTarget();
-			manager.saveOntology(merged, new RDFXMLOntologyFormat(), documentTarget);
+			manager.saveOntology(merged, new RDFXMLDocumentFormat(), documentTarget);
 			System.out.println("------------------------");
 			String oboString = renderOBOtoString(mergedObo);
 			System.out.println(oboString);

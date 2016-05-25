@@ -23,6 +23,8 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import com.google.common.base.Optional;
+
 import owltools.gaf.eco.EcoMapper;
 import owltools.gaf.eco.EcoMapperFactory;
 import owltools.gaf.eco.TraversingEcoMapper;
@@ -68,9 +70,9 @@ public class EcoTools {
 		OWLOntology eco = null;
 		for (OWLOntology owlOntology : allOntologies) {
 			OWLOntologyID id = owlOntology.getOntologyID();
-			IRI ontologyIRI = id.getOntologyIRI();
-			if (ontologyIRI != null) {
-				if (ECO_PURL.equals(ontologyIRI.toString())) {
+			Optional<IRI> ontologyIRI = id.getOntologyIRI();
+			if (ontologyIRI.isPresent()) {
+				if (ECO_PURL.equals(ontologyIRI.get().toString())) {
 					eco = owlOntology;
 				}
 			}

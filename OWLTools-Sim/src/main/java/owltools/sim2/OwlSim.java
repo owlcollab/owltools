@@ -1,15 +1,12 @@
 package owltools.sim2;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Map.Entry;
 
 import org.apache.commons.math.MathException;
 import org.apache.commons.math3.stat.descriptive.StatisticalSummaryValues;

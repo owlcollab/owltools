@@ -17,6 +17,8 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.AxiomNotInProfileException;
 import org.semanticweb.owlapi.reasoner.BufferingMode;
 import org.semanticweb.owlapi.reasoner.ClassExpressionNotInProfileException;
@@ -117,7 +119,7 @@ public class GraphReasoner extends OWLReasonerBase implements OWLExtendedReasone
 	UnsupportedEntailmentTypeException, TimeOutException,
 	AxiomNotInProfileException, FreshEntitiesException,
 	InconsistentOntologyException {
-		return getRootOntology().containsAxiomIgnoreAnnotations(axiom, true);
+		return getRootOntology().containsAxiom(axiom, Imports.INCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS);
 	}
 
 	public boolean isEntailed(Set<? extends OWLAxiom> axioms)
@@ -126,7 +128,7 @@ public class GraphReasoner extends OWLReasonerBase implements OWLExtendedReasone
 	AxiomNotInProfileException, FreshEntitiesException,
 	InconsistentOntologyException {
 		for (OWLAxiom ax : axioms) {
-			if (!getRootOntology().containsAxiomIgnoreAnnotations(ax, true)) {
+			if (!getRootOntology().containsAxiom(ax, Imports.INCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS)) {
 				return false;
 			}
 		}

@@ -4,7 +4,6 @@ import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -12,11 +11,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,9 +23,9 @@ import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.commons.math3.stat.descriptive.AggregateSummaryStatistics;
 import org.apache.log4j.Logger;
-import org.coode.owlapi.turtle.TurtleOntologyFormat;
 import org.eclipse.jetty.server.Server;
 import org.obolibrary.macro.ManchesterSyntaxTool;
+import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -42,10 +39,8 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.Node;
 
 import owltools.cli.tools.CLIMethod;
-import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.sim2.ClassDifferentiaLearner;
-import owltools.sim2.CutoffException;
 import owltools.sim2.EnrichmentConfig;
 import owltools.sim2.EnrichmentResult;
 import owltools.sim2.FastOwlSim;
@@ -71,7 +66,6 @@ import owltools.sim2.io.TabularRenderer;
 import owltools.sim2.io.SimResultRenderer.AttributesSimScores;
 import owltools.sim2.io.SimResultRenderer.IndividualSimScores;
 import owltools.sim2.preprocessor.NullSimPreProcessor;
-import owltools.sim2.preprocessor.PhenoSimHQEPreProcessor;
 import owltools.sim2.preprocessor.PropertyViewSimPreProcessor;
 import owltools.sim2.preprocessor.SimPreProcessor;
 import owltools.sim2.scores.AttributePairScores;
@@ -1442,7 +1436,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 			owlsim.createElementAttributeMapFromOntology();
 		}
 		OWLOntology o = owlsim.cacheInformationContentInOntology();
-		TurtleOntologyFormat fmt = new TurtleOntologyFormat();
+		TurtleDocumentFormat fmt = new TurtleDocumentFormat();
 		fmt.setPrefix("obo", "http://purl.obolibrary.org/obo/");
 		fmt.setPrefix("sim", "http://owlsim.org/ontology/");
 		g.getManager().saveOntology(o, 

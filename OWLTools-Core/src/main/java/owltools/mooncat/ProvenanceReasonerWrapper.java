@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -14,6 +13,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
@@ -61,7 +61,7 @@ public class ProvenanceReasonerWrapper {
 
 		OWLReasoner reasoner = rf.createReasoner(ontology);
 		edges = new HashSet<OWLEdge>();
-		for (OWLClass c : ontology.getClassesInSignature(false)) {
+		for (OWLClass c : ontology.getClassesInSignature(Imports.EXCLUDED)) {
 			for (OWLClass p : reasoner.getSuperClasses(c, true).getFlattened()) {
 				
 				// only consider edges that could potentially be inferred
@@ -103,7 +103,6 @@ public class ProvenanceReasonerWrapper {
 
 	public void reasonLeavingOneOut(OWLOntology leaveOutOntology) throws OWLOntologyCreationException {
 		OWLOntologyManager m = getManager();
-		OWLDataFactory df = m.getOWLDataFactory();
 		OWLOntology ont2 = m.createOntology();
 		
 		LOG.info("LEAVE ONE OUT: "+leaveOutOntology);
@@ -126,7 +125,7 @@ public class ProvenanceReasonerWrapper {
 			}
 			//LOG.info("Testing "+e); 
 			if (!isEdgeEntailed(e, ont2, reasoner)) {
-				IRI req = leaveOutOntology.getOntologyID().getOntologyIRI();
+				IRI req = leaveOutOntology.getOntologyID().getOntologyIRI().orNull();
 				LOG.info(e + " requires "+req);
 				e.requires.add(req);
 				
@@ -137,7 +136,6 @@ public class ProvenanceReasonerWrapper {
 	
 	public boolean isEdgeEntailed(OWLEdge e, OWLOntology currentOntology, OWLReasoner reasoner) {
 		OWLOntologyManager m = getManager();
-		OWLDataFactory df = m.getOWLDataFactory();
 
 		Set<OWLSubClassOfAxiom> scas = currentOntology.getSubClassAxiomsForSubClass(e.c);
 		Set<OWLSubClassOfAxiom> rmAxioms = new HashSet<OWLSubClassOfAxiom>();

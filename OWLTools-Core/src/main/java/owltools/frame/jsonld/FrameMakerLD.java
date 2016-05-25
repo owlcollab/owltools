@@ -16,12 +16,9 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import owltools.frame.FrameMaker;
-import owltools.frame.Stub;
 import owltools.graph.OWLGraphWrapper;
+import owltools.util.OwlHelper;
 
 public class FrameMakerLD extends FrameMaker {
 	
@@ -79,7 +76,7 @@ public class FrameMakerLD extends FrameMaker {
 		f.directSuperclasses = new HashSet<StubLD>();
 		f.directRestrictions = new HashSet<RestrictionLD>();
 		f.equivalentClasses = new HashSet<ExpressionLD>();
-		for (OWLClassExpression x : c.getSuperClasses(g.getAllOntologies())) {
+		for (OWLClassExpression x : OwlHelper.getSuperClasses(c, g.getAllOntologies())) {
 			if (x.isAnonymous()) {
 				if (x instanceof OWLObjectSomeValuesFrom) {
 					f.directRestrictions.add(makeSomeValuesFrom((OWLObjectSomeValuesFrom)x));
@@ -89,12 +86,12 @@ public class FrameMakerLD extends FrameMaker {
 				f.directSuperclasses.add(makeStub(x));
 			}
 		}
-		for (OWLClassExpression x : c.getEquivalentClasses(g.getAllOntologies())) {
+		for (OWLClassExpression x : OwlHelper.getEquivalentClasses(c, g.getAllOntologies())) {
 			ExpressionLD xt = makeExpression(x);
 			f.equivalentClasses.add(xt);
 		}
 		for (OWLOntology ont : g.getAllOntologies()) {
-			for (OWLAnnotationAssertionAxiom aaa : c.getAnnotationAssertionAxioms(ont)) {
+			for (OWLAnnotationAssertionAxiom aaa : ont.getAnnotationAssertionAxioms(c.getIRI())) {
 				addAnnotations(aaa, f);
 			}
 		}

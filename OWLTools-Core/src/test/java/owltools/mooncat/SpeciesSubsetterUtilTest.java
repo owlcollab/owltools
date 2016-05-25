@@ -6,9 +6,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import org.coode.owlapi.obo.parser.OBOOntologyFormat;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.formats.OBODocumentFormat;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -40,7 +40,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
 		smu.reasoner = reasoner;
 		smu.removeOtherSpecies();
 		
-		p.saveOWL(smu.ont, new OBOOntologyFormat(), "target/speciesSubset.obo");
+		p.saveOWL(smu.ont, new OBODocumentFormat(), "target/speciesSubset.obo");
 		//p.saveOWL(smu.ont,  getResourceIRIString("target/speciesSubset.owl"));
 		
 		assertNull(graph.getOWLClassByIdentifier("U:24"));
@@ -48,6 +48,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
 	
 	/**
 	 * Test {@link SpeciesSubsetterUtil#removeSpecies()}.
+	 * @throws Exception
 	 */
     @Test
     public void testRemoveSpecies() throws Exception {

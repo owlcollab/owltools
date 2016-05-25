@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
@@ -18,14 +17,11 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
-import owltools.sim2.FastOwlSim.ClassCount;
-import owltools.sim2.scores.ElementPairScores;
 
 /**
  * Tests the JSON wrapper to OwlSim, used by OWLServer

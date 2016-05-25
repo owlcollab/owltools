@@ -153,7 +153,7 @@ public class GOReciprocalAnnotationRule extends AbstractAnnotationRule {
 	
 	private boolean isProteinBinding(GeneAnnotation a) {
 		String cls = a.getCls();
-		OWLClass owlClass = graph.getOWLClassByIdentifier(cls);
+		OWLClass owlClass = graph.getOWLClassByIdentifierNoAltIds(cls);
 		return owlClass != null && proteinBindingClasses.contains(owlClass);
 	}
 	
