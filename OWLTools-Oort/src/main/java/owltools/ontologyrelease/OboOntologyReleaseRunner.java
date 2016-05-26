@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.obolibrary.macro.MacroExpansionGCIVisitor;
 import org.obolibrary.macro.MacroExpansionVisitor;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
@@ -1195,8 +1196,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	{
 		logInfo("Creating simple ontology");
 
-		Owl2Obo owl2obo = new Owl2Obo();
-
 		Set<RemoveImport> ris = new HashSet<RemoveImport>();
 		for (OWLImportsDeclaration oid : mooncat.getOntology().getImportsDeclarations()) {
 			ris.add( new RemoveImport(mooncat.getOntology(), oid) );
@@ -1248,7 +1247,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		}
 		
 		for (OWLClass c : mooncat.getOntology().getClassesInSignature()) {
-			String idSpace = owl2obo.getIdentifier(c).replaceAll(":.*", "").toLowerCase();
+			String idSpace = getIdSpace(c);
 			if (sourcePrefixes.contains(idSpace)) {
 				coreSubset.add(c);
 			}
@@ -1305,6 +1304,11 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		
 		saveInAllFormats(ontologyId, "simple", version, gciOntology);
 		logInfo("Creating simple ontology completed");
+	}
+
+	private String getIdSpace(OWLClass c) {
+		// warning this is a hack. It assumes that the class IRIs are converted into OBO style IDs!
+		return OWLAPIOwl2Obo.getIdentifier(c.getIRI()).replaceAll(":.*", "").toLowerCase();
 	}
 
 	private String handleOntologyId() {
