@@ -96,7 +96,20 @@ public class OWLGraphWrapperBasic {
 		for (OWLImportsDeclaration oid: extOnt.getImportsDeclarations()) {
 			manager.applyChange(new AddImport(sourceOntology, oid));
 		}
-		addCommentToOntology(sourceOntology, "Includes "+extOnt);
+		addCommentToOntology(sourceOntology, "Includes "+summarizeOntology(extOnt));
+	}
+
+	static CharSequence summarizeOntology(OWLOntology ontology) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Ontology(");
+		sb.append(ontology.getOntologyID());
+		sb.append(") [Axioms: ");
+		int axiomCount = ontology.getAxiomCount();
+		sb.append(axiomCount);
+		sb.append(" Logical Axioms: ");
+		sb.append(ontology.getLogicalAxiomCount());
+		sb.append("]");
+		return sb;
 	}
 
 	public void mergeOntology(OWLOntology extOnt, boolean isRemoveFromSupportList) throws OWLOntologyCreationException {
@@ -263,7 +276,7 @@ public class OWLGraphWrapperBasic {
 			if (o.equals(sourceOntology))
 				continue;
 			
-			String comment = "Includes "+o;
+			String comment = "Includes "+summarizeOntology(o);
 			LOG.info(comment);
 			addCommentToOntology(sourceOntology, comment);
 			
@@ -291,7 +304,7 @@ public class OWLGraphWrapperBasic {
 				continue;
 			Optional<IRI> currentIRI = o.getOntologyID().getOntologyIRI();
 			if (currentIRI.isPresent() && currentIRI.get().equals(ontologyIRI)) {
-				String comment = "Includes "+o;
+				String comment = "Includes "+summarizeOntology(o);
 				LOG.info(comment);
 				addCommentToOntology(sourceOntology, comment);
 				manager.addAxioms(sourceOntology, o.getAxioms());	
