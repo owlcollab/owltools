@@ -1604,7 +1604,7 @@ public class Sim2CommandRunner extends SimCommandRunner {
 	// NEW
 	@CLIMethod("--all-by-all-enrichment-analysis")
 	public void owlsimEnrichmentAnalysisAllByAll(Opts opts) throws Exception {
-		opts.info("[-p pValCutOff] [-i IC_Cutoff] SAMPLECLASS TESTCLASS", 
+		opts.info("[-p pValCutOff] [-m MaxClassSize] [-i IC_Cutoff] SAMPLECLASS TESTCLASS", 
 				"performs all by all enrichment on every c x d where c Sub SAMPLECLASS and d Sub TESTCLASS");
 		OWLPrettyPrinter owlpp = getPrettyPrinter();
 		if (owlsim == null) {
@@ -1617,6 +1617,9 @@ public class Sim2CommandRunner extends SimCommandRunner {
 				ec.pValueCorrectedCutoff = Double.parseDouble(opts.nextOpt());
 			} else if (opts.nextEq("-i")) {
 				ec.attributeInformationContentCutoff = Double.parseDouble(opts
+						.nextOpt());
+			} else if (opts.nextEq("-m")) {
+				ec.maximumClassSize =  Integer.parseInt(opts
 						.nextOpt());
 			} else
 				break;
