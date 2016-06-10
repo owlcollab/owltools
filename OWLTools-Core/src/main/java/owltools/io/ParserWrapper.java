@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import no.s11.owlapijsonld.JsonLdOntologyFormat;
+import no.s11.owlapijsonld.JsonLdStorer;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Owl2Obo;
@@ -193,7 +196,7 @@ public class ParserWrapper {
 		saveOWL(ont, owlFormat, file);
 	}
 	public void saveOWL(OWLOntology ont, OWLDocumentFormat owlFormat, String file) throws OWLOntologyStorageException {
-		if ((owlFormat instanceof OBODocumentFormat) || (owlFormat instanceof OWLJSONFormat)){
+		if ((owlFormat instanceof OBODocumentFormat) || (owlFormat instanceof OWLJSONFormat) || (owlFormat instanceof OWLJsonLDFormat)){
 			try {
 				FileOutputStream os = new FileOutputStream(new File(file));
 				saveOWL(ont, owlFormat, os);
@@ -246,6 +249,14 @@ public class ParserWrapper {
 			finally {
 				IOUtils.closeQuietly(bw);
 			}
+		}
+		else if (owlFormat instanceof OWLJsonLDFormat) {
+			
+	        //JsonLdStorer.register(manager); // Needed once per ontologyManager
+
+	        //TODO: fix this after https://github.com/stain/owlapi-jsonld/issues/4
+	        //manager.saveOntology(ont, new JsonLdOntologyFormat(), outputStream); 
+			
 		}
 		else {
 			manager.saveOntology(ont, owlFormat, outputStream);

@@ -151,6 +151,7 @@ import owltools.io.GraphRenderer;
 import owltools.io.ImportClosureSlurper;
 import owltools.io.InferredParentRenderer;
 import owltools.io.OWLJSONFormat;
+import owltools.io.OWLJsonLDFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.ParserWrapper.OWLGraphWrapperNameProvider;
@@ -651,7 +652,7 @@ public class CommandRunner extends CommandRunnerBase {
 				smu.removeOtherSpecies();
 			}
 			else if (opts.nextEq("--merge-species-ontology")) {
-				opts.info("-t TAXCLASS","Creates a composite/merged species ontology");
+				opts.info("-t TAXCLASS [-s SUFFIX] [-p PROP] [-q PROPS]","Creates a composite/merged species ontology");
 				OWLObjectProperty viewProperty = g.getOWLObjectPropertyByIdentifier("BFO:0000050");
 				OWLClass taxClass = null;
 				String suffix = null;
@@ -664,6 +665,7 @@ public class CommandRunner extends CommandRunnerBase {
 						viewProperty = this.resolveObjectProperty(opts.nextOpt());
 					}
 					else if (opts.nextEq("-q|--include-property")) {
+						opts.info("PROPS", "object props to include - ALL if unspecified");
 						includeProps = this.resolveObjectPropertyList(opts);
 						LOG.info("|IP|"+includeProps.size());
 						LOG.info("IP"+includeProps);
@@ -2967,6 +2969,9 @@ public class CommandRunner extends CommandRunnerBase {
 						}
 						else if (ofmtname.equals("ojs")) {
 							ofmt = new OWLJSONFormat();
+						}
+						else if (ofmtname.equals("jsonld")) {
+							ofmt = new OWLJsonLDFormat();
 						}
 						else if (ofmtname.equals("obo")) {
 							if (opts.nextEq("-n|--no-check")) {
