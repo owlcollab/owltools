@@ -794,7 +794,7 @@ public class OWLGraphManipulator {
 		//todo?: everything could be done in one single walk from bottom nodes 
 		//to top nodes, this would be much faster, but would require much more memory.
 		Set<OWLClass> allClasses = 
-		        new HashSet<OWLClass>(this.getOwlGraphWrapper().getAllOWLClasses());
+		        new HashSet<OWLClass>(this.getOwlGraphWrapper().getAllRealOWLClasses());
 		
 		int relationsRemoved = 0;
         //variables for logging purpose
@@ -1494,7 +1494,7 @@ public class OWLGraphManipulator {
         if (log.isInfoEnabled()) {
     	    log.info("Start filtering subgraphs of allowed roots: " + 
                 allowedSubgraphRootIds);
-    	    classCount = this.getOwlGraphWrapper().getAllOWLClasses().size();
+    	    classCount = this.getOwlGraphWrapper().getAllRealOWLClasses().size();
         }
 
     	//first, we get all OWLObjects descendants and ancestors of the allowed roots, 
@@ -1650,7 +1650,7 @@ public class OWLGraphManipulator {
         int classCount   = 0;
         if (log.isInfoEnabled()) {
     	    log.info("Start removing subgraphs of undesired roots: " + subgraphRootIds);
-    	    classCount = this.getOwlGraphWrapper().getAllOWLClasses().size();
+    	    classCount = this.getOwlGraphWrapper().getAllRealOWLClasses().size();
         }
     	
     	//roots of the ontology not in subgraphRoots and not ancestors of subgraphRoots 

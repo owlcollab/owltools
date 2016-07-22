@@ -892,23 +892,23 @@ public class OWLGraphWrapperEdgesExtendedTest
 	}
 	
 	/**
-	 * Test {@link OWLGraphWrapperEdgesExtended#getAllOWLClasses()}
+	 * Test {@link OWLGraphWrapperEdgesExtended#getAllRealOWLClasses()}
 	 */
 	@Test
-	public void shouldGetAllOWLClasses()
+	public void shouldGetAllRealOWLClasses()
 	{
 		assertEquals("Incorrect Set of OWLClasses returned", 19, 
-				wrapper.getAllOWLClasses().size());
+				wrapper.getAllRealOWLClasses().size());
 	}
     
     /**
-     * Test {@link OWLGraphWrapperEdgesExtended#getAllOWLClassesFromSource()}
+     * Test {@link OWLGraphWrapperEdgesExtended#getAllOWLRealClassesFromSource()}
      */
     @Test
-    public void shouldGetAllOWLClassesFromSource()
+    public void shouldGetAllRealOWLClassesFromSource()
     {
         assertEquals("Incorrect Set of OWLClasses returned", 18, 
-                wrapper.getAllOWLClassesFromSource().size());
+                wrapper.getAllRealOWLClassesFromSource().size());
     }
 	
 	/**

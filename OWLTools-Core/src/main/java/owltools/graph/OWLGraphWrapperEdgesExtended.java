@@ -1563,12 +1563,12 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * Get all <code>OWLClass</code>es from all ontologies, 
      * that are neither top entity (owl:thing), nor bottom entity (owl:nothing), 
      * nor deprecated ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} 
-     * returns {@code false}).
+     * returns {@code false}), nor an OBO alt ID.
      * 
      * @return 	a <code>Set</code> containing all "real" <code>OWLClass</code>es 
      *          from all ontologies.
      */
-    public Set<OWLClass> getAllOWLClasses() {
+    public Set<OWLClass> getAllRealOWLClasses() {
     	//maybe classes can be shared between ontologies?
     	//use a Set to check
     	Set<OWLClass> allClasses = new HashSet<OWLClass>();
@@ -1586,12 +1586,13 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
      * Get only the <code>OWLClass</code>es from the {@code OWLOntology} returned 
      * by {@link #getSourceOntology()}, that are neither top entity (owl:thing), 
      * nor bottom entity (owl:nothing), nor deprecated ({@link 
-     * OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false}).
+     * OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false}), 
+     * nor an OBO alt ID.
      * 
      * @return  a <code>Set</code> of <code>OWLClass</code>es from the source ontology, 
      *          owl:thing, owl:nothing, deprecated classes excluded.
      */
-    public Set<OWLClass> getAllOWLClassesFromSource() {
+    public Set<OWLClass> getAllRealOWLClassesFromSource() {
         Set<OWLClass> allClasses = new HashSet<OWLClass>();
         for (OWLClass cls: this.getSourceOntology().getClassesInSignature()) {
             if (this.isRealClass(cls)) {
@@ -1781,7 +1782,8 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
     /**
      * Determines that {@code object} is an {@code OWLClass} that is neither owl:thing, 
      * nor owl:nothing, and that it is not deprecated 
-     * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false}).
+     * ({@link OWLGraphWrapperExtended#isObsolete(OWLObject)} returns {@code false}) 
+     * and that is not an OBO alt ID.
      * 
      * @param object    An {@code OWLObject} to be checked to be an {@code OWLClass} 
      *                  actually used.
