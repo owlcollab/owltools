@@ -1949,7 +1949,7 @@ public class OWLGraphManipulator {
             //an allowed rel.
             Set<OWLAxiom> propAxioms = new HashSet<OWLAxiom>();
             for (OWLOntology ont: wrapper.getAllOntologies()) {
-                propAxioms.addAll(ont.getAxioms(iteratedProp, Imports.EXCLUDED));
+                propAxioms.addAll(ont.getAxioms(iteratedProp, Imports.INCLUDED));
                 if (iteratedProp instanceof OWLEntity) {
                     //need the referencing axioms for the OWLSubPropertyChainOfAxiom, 
                     //weirdly it is not returned by ont.getAxioms
@@ -2379,7 +2379,7 @@ public class OWLGraphManipulator {
 	    ChangeApplied status = edge.getOntology().getOWLOntologyManager().removeAxioms(
 	            edge.getOntology(), edge.getAxioms());
 	    this.triggerWrapperUpdate();
-	    return (status == ChangeApplied.SUCCESSFULLY);
+	    return (status != ChangeApplied.UNSUCCESSFULLY);
 	}
 	/**
 	 * Remove {@code edges} from their related ontology. It means that the {@code OWLAxiom}s 
@@ -2421,7 +2421,7 @@ public class OWLGraphManipulator {
 	    ChangeApplied status = edge.getOntology().getOWLOntologyManager().addAxiom(
 	            edge.getOntology(), newAxiom);
 	    this.triggerWrapperUpdate();
-	    return (status == ChangeApplied.SUCCESSFULLY);
+	    return (status != ChangeApplied.UNSUCCESSFULLY);
 	}
 	/**
 	 * Add {@code edges} to their related ontology. 
@@ -2574,7 +2574,7 @@ public class OWLGraphManipulator {
     private boolean applyChanges(List<? extends OWLOntologyChange> changes) {
     	
     	ChangeApplied status = this.getOwlGraphWrapper().getManager().applyChanges(changes);
-    	if (status == ChangeApplied.SUCCESSFULLY) {
+    	if (status != ChangeApplied.UNSUCCESSFULLY) {
         	return true;
     	}
     	return false;

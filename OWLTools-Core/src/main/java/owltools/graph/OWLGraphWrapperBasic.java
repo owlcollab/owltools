@@ -365,6 +365,7 @@ public class OWLGraphWrapperBasic {
 	 * 
 	 * @return set of all {@link OWLClass}
 	 */
+	//FIXME: did you notice this was overridden in OWLGraphWrapperEdgesExtended :x
 	public Set<OWLClass> getAllOWLClasses() {
 		Set<OWLClass> owlClasses = new THashSet<OWLClass>();
 		for (OWLOntology o : getAllOntologies()) {
