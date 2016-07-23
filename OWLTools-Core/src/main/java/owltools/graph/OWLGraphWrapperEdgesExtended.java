@@ -690,8 +690,9 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
         Set<OWLGraphEdge> edgesCombined = new OWLGraphEdgeSet();
         
         for (OWLGraphEdge e: edges) {
-            //keep only edges going to a named target
-            if (!e.isTargetNamedObject()) {
+            //keep only edges going to a named target and not an OBO alt ID
+            if (!e.isTargetNamedObject() || 
+                    e.getTarget() instanceof OWLClass && this.isOboAltId((OWLClass) e.getTarget())) {
                 continue;
             }
             if (LOG.isTraceEnabled()) {
@@ -817,6 +818,10 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             if (LOG.isTraceEnabled()) {
                 LOG.trace("Walking edge: " + iteratedEdge);
             }
+            //not interested in OBO alt IDs
+            if (nuTarget instanceof OWLClass && this.isOboAltId((OWLClass) nuTarget)) {
+                continue;
+            }
             //check for cycles
             boolean isEdgeVisited = false;
             if (visitedMap.containsKey(nuTarget)) {
@@ -847,8 +852,10 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
             }
             visitedMap.get(nuTarget).add(iteratedEdge);
 
-            //we only want OWLNamedObjects
-            if (iteratedEdge.getTarget() instanceof OWLNamedObject) {
+            //we only want OWLNamedObjects and non OBO alt IDs
+            if (iteratedEdge.getTarget() instanceof OWLNamedObject && 
+                    (!(iteratedEdge.getTarget() instanceof OWLClass) || 
+                            !this.isOboAltId((OWLClass) iteratedEdge.getTarget()))) {
                 edges.add(iteratedEdge);
             }
             
@@ -1172,7 +1179,11 @@ public class OWLGraphWrapperEdgesExtended extends OWLGraphWrapperEdges {
                 if (relatives.contains(relative)) {
                     continue;
                 }
-                //we only want OWLNamedObjects
+                //not interested in OBO alt IDs
+                if (relative instanceof OWLClass && this.isOboAltId((OWLClass) relative)) {
+                    continue;
+                }
+                //we only want OWLNamedObjects and non OBO alt IDs
                 if (relative instanceof OWLNamedObject) {
                     relatives.add((OWLNamedObject) relative);
                 }
