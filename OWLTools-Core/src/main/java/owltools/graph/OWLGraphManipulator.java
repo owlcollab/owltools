@@ -1540,6 +1540,40 @@ public class OWLGraphManipulator {
         toKeep.addAll(allowedSubgraphRoots);
         toKeep.addAll(ancestors);
         toKeep.addAll(descendants);
+        
+        //When there are GCI relations, we also need to keep the GCI filler, 
+        //otherwise the relations will go away.
+        //Rather than retrieving the edge closure with combined properties, 
+        //we simply retrieve the relevant edges for each class to keep
+        Set<OWLClass> fillers = new HashSet<OWLClass>();
+        Set<OWLClass> useIncomingEdges = new HashSet<>(descendants);
+        useIncomingEdges.addAll(allowedSubgraphRoots);
+        for (OWLClass cls: useIncomingEdges) {
+            for (OWLGraphEdge edge: this.getOwlGraphWrapper().getIncomingEdgesWithGCI(cls)) {
+                if (edge.getGCIFiller() != null) {
+                    log.debug("Allowed filler: " + edge.getGCIFiller());
+                    fillers.add(edge.getGCIFiller());
+                    //add also all its super classes
+                    fillers.addAll(this.getOwlGraphWrapper().getAncestorsThroughIsA(edge.getGCIFiller()));
+                }
+            }
+        }
+        //TODO: refactor with descendants
+        Set<OWLClass> useOutgoingEdges = new HashSet<>(ancestors);
+        useOutgoingEdges.addAll(allowedSubgraphRoots);
+        for (OWLClass cls: useOutgoingEdges) {
+            for (OWLGraphEdge edge: this.getOwlGraphWrapper().getOutgoingEdgesWithGCI(cls)) {
+                if (edge.getGCIFiller() != null) {
+                    log.debug("Allowed filler: " + edge.getGCIFiller());
+                    fillers.add(edge.getGCIFiller());
+                    //add also all its super classes
+                    fillers.addAll(this.getOwlGraphWrapper().getAncestorsThroughIsA(edge.getGCIFiller()));
+                }
+            }
+        }
+        
+        toKeep.addAll(fillers);
+        
         if (log.isDebugEnabled()) {
             log.debug("Allowed classes: " + toKeep);
         }

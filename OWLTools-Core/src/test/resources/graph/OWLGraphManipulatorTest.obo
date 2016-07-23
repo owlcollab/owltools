@@ -120,6 +120,10 @@ is_a: NCBITaxon:7742
 id: NCBITaxon:10090
 is_a: NCBITaxon:7742
 
+[Term]
+id: NCBITaxon:7743
+is_a: NCBITaxon:1
+
 [Typedef]
 id: overlaps
 name: overlaps
