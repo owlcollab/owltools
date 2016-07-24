@@ -2548,8 +2548,9 @@ public class OWLGraphManipulator {
     	for (OWLOntology o : this.getOwlGraphWrapper().getAllOntologies()) {
     		for (OWLClass iterateClass: o.getClassesInSignature()) {
     		    log.info(iterateClass);
-    		    //don't delete OBO alt IDs
-    		    if (this.getOwlGraphWrapper().isOboAltId(iterateClass)) {
+    		    //don't delete OBO alt IDs nor owl:Nothing and owl:Thing
+    		    if (this.getOwlGraphWrapper().isOboAltId(iterateClass) || 
+    		            iterateClass.isTopEntity() || iterateClass.isBottomEntity()) {
     		        continue;
     		    }
 			    if (!classesToKeep.contains(iterateClass) && 
