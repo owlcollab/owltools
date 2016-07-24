@@ -1550,6 +1550,11 @@ public class OWLGraphManipulator {
         useIncomingEdges.addAll(allowedSubgraphRoots);
         for (OWLClass cls: useIncomingEdges) {
             for (OWLGraphEdge edge: this.getOwlGraphWrapper().getIncomingEdgesWithGCI(cls)) {
+                //not interested in edges coming from OBO alt IDs
+                if (edge.getSource() instanceof OWLClass && 
+                        this.getOwlGraphWrapper().isOboAltId((OWLClass) edge.getSource())) {
+                    continue;
+                }
                 if (edge.getGCIFiller() != null) {
                     log.debug("Allowed filler: " + edge.getGCIFiller());
                     fillers.add(edge.getGCIFiller());
@@ -1563,6 +1568,11 @@ public class OWLGraphManipulator {
         useOutgoingEdges.addAll(allowedSubgraphRoots);
         for (OWLClass cls: useOutgoingEdges) {
             for (OWLGraphEdge edge: this.getOwlGraphWrapper().getOutgoingEdgesWithGCI(cls)) {
+                //not interested in edges going to OBO alt IDs
+                if (edge.getTarget() instanceof OWLClass && 
+                        this.getOwlGraphWrapper().isOboAltId((OWLClass) edge.getTarget())) {
+                    continue;
+                }
                 if (edge.getGCIFiller() != null) {
                     log.debug("Allowed filler: " + edge.getGCIFiller());
                     fillers.add(edge.getGCIFiller());
@@ -1701,7 +1711,7 @@ public class OWLGraphManipulator {
         if (allowedSubgraphRootIds != null) {
             for (String allowedSubgraphRootId: allowedSubgraphRootIds) {
                 OWLClass allowedSubgraphRoot = 
-                        this.getOwlGraphWrapper().getOWLClassByIdentifier(allowedSubgraphRootId);
+                        this.getOwlGraphWrapper().getOWLClassByIdentifierNoAltIds(allowedSubgraphRootId);
                 if (allowedSubgraphRoot == null) {
                     throw new IllegalArgumentException(allowedSubgraphRootId + " was requested " +
                     		"to be kept in the ontology, but it does not exist.");
@@ -1719,7 +1729,7 @@ public class OWLGraphManipulator {
     	Set<String> classIdsRemoved = new HashSet<String>();
     	rootLoop: for (String rootId: subgraphRootIds) {
     		OWLClass subgraphRoot = 
-    				this.getOwlGraphWrapper().getOWLClassByIdentifier(rootId);
+    				this.getOwlGraphWrapper().getOWLClassByIdentifierNoAltIds(rootId);
     		if (subgraphRoot == null) {
     		    if (log.isDebugEnabled()) {
     			    log.debug("Discarded root class, maybe already removed: " + rootId);
@@ -2538,6 +2548,10 @@ public class OWLGraphManipulator {
     	for (OWLOntology o : this.getOwlGraphWrapper().getAllOntologies()) {
     		for (OWLClass iterateClass: o.getClassesInSignature()) {
     		    log.info(iterateClass);
+    		    //don't delete OBO alt IDs
+    		    if (this.getOwlGraphWrapper().isOboAltId(iterateClass)) {
+    		        continue;
+    		    }
 			    if (!classesToKeep.contains(iterateClass) && 
 			            this.removeClass(iterateClass)) {
 	                classesRemoved.add(iterateClass);
