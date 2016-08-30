@@ -454,7 +454,7 @@ public class GafCommandRunner extends CommandRunner {
 	}
 
 	@CLIMethod("--gaf2owl")
-	public void gaf2Owl(Opts opts) throws OWLException {
+	public void gaf2Owl(Opts opts) throws OWLException, IOException {
 		opts.info("[-n TARGET-IRI] [--named-class] [--none] [--class-exxpression] [--individual] [--basic] [-o FILE]", 
 				"translates previously loaded GAF document into OWL");
 		GAFOWLBridge bridge;

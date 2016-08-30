@@ -152,6 +152,7 @@ import owltools.io.ImportClosureSlurper;
 import owltools.io.InferredParentRenderer;
 import owltools.io.OWLJSONFormat;
 import owltools.io.OWLJsonLDFormat;
+import owltools.io.OWLOboGraphsFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.ParserWrapper.OWLGraphWrapperNameProvider;
@@ -807,9 +808,9 @@ public class CommandRunner extends CommandRunnerBase {
 					if (opts.nextEq("-p|--plist")) {
 						props = this.resolveObjectPropertyListAsList(opts);
 					}
-					else if (opts.nextEq("-o|--output")) {
-						out = opts.nextOpt();
-					}
+					//else if (opts.nextEq("-o|--output")) {
+					//	out = opts.nextOpt();
+					//}
 					else if (opts.nextEq("-gp|--gci-property")) {
 						gciProperty = this.resolveObjectProperty(opts.nextOpt());
 					}
@@ -817,6 +818,7 @@ public class CommandRunner extends CommandRunnerBase {
 						gciFillers = resolveClassList(opts);
 					}
 					else if (opts.nextEq("-m|--merge")) {
+					    opts.info("", "adds inferred axioms to current ontology (default is new");
 						isMerge = true;
 					}
 					else {
@@ -827,7 +829,7 @@ public class CommandRunner extends CommandRunnerBase {
 					System.err.println("REASONER NOT INITIALIZED!");
 				}
 				if (!(reasoner instanceof OWLExtendedReasoner)) {
-					System.err.println("REASONER NOT AN EXTENDED REASONER. Recommended: --reasoner mexr");
+					System.err.println("REASONER NOT AN EXTENDED REASONER. Recommended: add '--reasoner mexr' prior to this command");
 				}
 				OWLExtendedReasoner emr = (OWLExtendedReasoner) reasoner;
 
@@ -2970,9 +2972,12 @@ public class CommandRunner extends CommandRunnerBase {
 						else if (ofmtname.equals("ojs")) {
 							ofmt = new OWLJSONFormat();
 						}
-						else if (ofmtname.equals("jsonld")) {
-							ofmt = new OWLJsonLDFormat();
-						}
+                        else if (ofmtname.equals("jsonld")) {
+                            ofmt = new OWLJsonLDFormat();
+                        }
+                        else if (ofmtname.equals("og") || ofmtname.equals("json")) {
+                            ofmt = new OWLOboGraphsFormat();
+                        }
 						else if (ofmtname.equals("obo")) {
 							if (opts.nextEq("-n|--no-check")) {
 								pw.setCheckOboDoc(false);
@@ -3820,6 +3825,7 @@ public class CommandRunner extends CommandRunnerBase {
 				}
 			}
 			else if (opts.nextEq("--materialize-existentials")) {
+			    opts.info("[-p PROP][-l PROPLIST]", "builds view ontology with existentials named");
 				Set<OWLObjectSomeValuesFrom> svfs = new HashSet<OWLObjectSomeValuesFrom>();
 				Set<OWLObjectProperty> props = new HashSet<OWLObjectProperty>();
 				while (opts.hasOpts()) {
