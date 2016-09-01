@@ -400,6 +400,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		annP.setCls(getGraph().getIdentifier(c));
 		annP.setEvidence("IC", null);
 		annP.setWithInfos(Collections.singleton(with));
+		annP.setAssignedBy("GOC-OWL");
 		Prediction prediction = new Prediction(annP);
 		return prediction;
 	}
