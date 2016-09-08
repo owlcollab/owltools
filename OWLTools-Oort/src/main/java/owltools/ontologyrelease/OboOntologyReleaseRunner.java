@@ -1730,7 +1730,14 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
               
 	          ParserWrapper pw = new ParserWrapper();
-	          pw.saveOWL(ontologyToSave, new OWLOboGraphsFormat(), getOutputSteam(ofn));
+	          try {
+	              pw.saveOWL(ontologyToSave, new OWLOboGraphsFormat(), getOutputSteam(ofn));
+	          }
+	          catch (Exception e) {
+	              logError("Error saving to JSON (non-fatal, this is an experimental output");
+                  logError(e.getStackTrace().toString());
+                  logError(e.getMessage());
+	          }
 	      }
 	      else {
 	          logInfo("skipping json");
