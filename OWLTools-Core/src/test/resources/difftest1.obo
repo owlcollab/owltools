@@ -1,0 +1,20 @@
+ontology: d1
+subsetdef: t "T"
+
+[Term]
+id: X:0
+name: x0
+def: "def x0 v1" [XREF:2]
+subset: t
+
+[Term]
+id: X:1
+name: x1
+def: "def x1 v1"
+is_a: X:0
+
+[Term]
+id: Y:1
+name: y1
+def: "def y1 constant" [XREF:Y1]
+
