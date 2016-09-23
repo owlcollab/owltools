@@ -17,8 +17,8 @@ public class CommandRunnerDiffTest extends AbstractCommandRunnerTest {
 	public void testDiff() throws Exception {
         load("go_sample_mf_subset.obo");
         load("go_xp_predictor_test_subset.obo");
-		run("--diff -f obo --o1r target/o1r.owl --o2r target/o2r.owl --od target/od.owl");
-		
+		run("--diff -f obo --o1r target/o1r.owl --o2r target/o2r.owl");
+		//  --od target/od.owl
 	}
 	
 	
