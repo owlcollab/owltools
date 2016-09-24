@@ -520,7 +520,7 @@ public class OWLServerSimSearchTest {
 			.setPath("/owlsim/getAttributeInformationProfile/");
 			
 		List<OWLClass> allClasses = new ArrayList<OWLClass>();
-		allClasses.addAll(g.getAllOWLClasses());
+		allClasses.addAll(g.getAllRealOWLClasses());
 		Collections.shuffle(allClasses);
 		int i=0;
 

@@ -62,7 +62,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
         smu.reasoner = reasoner;
         smu.removeSpecies();
         
-        assertEquals("Incorrect number of classes", 10,  graph.getAllOWLClasses().size());
+        assertEquals("Incorrect number of classes", 10,  graph.getAllRealOWLClasses().size());
         assertNull(graph.getOWLClassByIdentifier("U:21"));
         assertNull(graph.getOWLClassByIdentifier("U:22"));
         assertNull(graph.getOWLClassByIdentifier("U:23"));
@@ -80,7 +80,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
         smu.reasoner = reasoner;
         smu.removeSpecies();
         
-        assertEquals("Incorrect number of classes", 11,  graph.getAllOWLClasses().size());
+        assertEquals("Incorrect number of classes", 11,  graph.getAllRealOWLClasses().size());
         assertNull(graph.getOWLClassByIdentifier("U:22"));
         assertNull(graph.getOWLClassByIdentifier("U:23"));
         assertNull(graph.getOWLClassByIdentifier("U:24"));
@@ -97,7 +97,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
         smu.reasoner = reasoner;
         smu.removeSpecies();
         
-        assertEquals("Incorrect number of classes", 14,  graph.getAllOWLClasses().size());
+        assertEquals("Incorrect number of classes", 14,  graph.getAllRealOWLClasses().size());
         assertTrue("OWL:Nothing incorrecty removed", 
                 owlOntology.containsClassInSignature(fac.getOWLNothing().getIRI()));
     }

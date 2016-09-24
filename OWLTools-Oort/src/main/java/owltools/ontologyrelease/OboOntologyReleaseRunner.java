@@ -78,6 +78,7 @@ import owltools.gaf.parser.GafObjectsBuilder;
 import owltools.graph.AxiomAnnotationTools;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
+import owltools.io.OWLOboGraphsFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.mooncat.Mooncat;
@@ -1635,7 +1636,8 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		SetOntologyID reset = null;
 
 		boolean writeOWL = !oortConfig.isSkipFormat("owl");
-		boolean writeOWX = !oortConfig.isSkipFormat("owx");
+        boolean writeOWX = !oortConfig.isSkipFormat("owx");
+        boolean writeJSON = !oortConfig.isSkipFormat("json");
 		boolean writeOFN = oortConfig.isWriteLabelOWL();
 		
 		if (changeOntologyId && (writeOWL || writeOWX)) {
@@ -1721,6 +1723,25 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 			bwriter.close();
 		}
+
+	      if (!oortConfig.isSkipFormat("json")) {
+	          String ofn = fileNameBase +".json";
+              logInfo("exporting json to "+ofn);
+
+              
+	          ParserWrapper pw = new ParserWrapper();
+	          try {
+	              pw.saveOWL(ontologyToSave, new OWLOboGraphsFormat(), getOutputSteam(ofn));
+	          }
+	          catch (Exception e) {
+	              logError("Error saving to JSON (non-fatal, this is an experimental output");
+                  logError(e.getStackTrace().toString());
+                  logError(e.getMessage());
+	          }
+	      }
+	      else {
+	          logInfo("skipping json");
+	      }
 
 		if (!oortConfig.isSkipFormat("metadata")) {
 			if (oortConfig.isWriteMetadata()) {

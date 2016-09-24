@@ -993,7 +993,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		return cls;
 	}
 	
-	boolean isOboAltId(OWLEntity e) {
+	public boolean isOboAltId(OWLEntity e) {
 		Set<OWLAnnotationAssertionAxiom> axioms = new HashSet<>();
 		for(OWLOntology ont : getAllOntologies()) {
 			axioms.addAll(ont.getAnnotationAssertionAxioms(e.getIRI()));

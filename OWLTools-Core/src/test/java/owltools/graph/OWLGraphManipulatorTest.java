@@ -1291,8 +1291,7 @@ public class OWLGraphManipulatorTest
 		toKeep.add("FOO:0014");
 		
 		Set<String> expectedClassesRemoved = new HashSet<String>(Arrays.asList("FOO:0100", 
-		        "FOO:0016", "FOO:0010", "NCBITaxon:10090", "NCBITaxon:9606", 
-		        "NCBITaxon:7742", "NCBITaxon:1"));
+		        "FOO:0016", "FOO:0010", "NCBITaxon:7743"));
 		Set<String> classesRemoved = this.graphManipulator.filterSubgraphs(toKeep);
 		
 		//The test ontology is designed so that 7 classes should have been removed
@@ -1321,8 +1320,13 @@ public class OWLGraphManipulatorTest
 		//that should be removed)
 		OWLClass root = 
 				this.graphManipulator.getOwlGraphWrapper().getOWLClassByIdentifier("FOO:0001");
+		boolean foo2Seen = false;
 		for (OWLGraphEdge incomingEdge: 
 		    this.graphManipulator.getOwlGraphWrapper().getIncomingEdgesWithGCI(root)) {
+		    if (this.graphManipulator.getOwlGraphWrapper().getIdentifier(
+                            incomingEdge.getSource()).equals("FOO:0002")) {
+		        foo2Seen = true;
+		    }
 			assertNotEquals("The relation FOO:0003 B is_a FOO:0001 root, " +
 					"causing an undesired subgraph, was not correctly removed", 
 					"FOO:0003", 
@@ -1339,6 +1343,7 @@ public class OWLGraphManipulatorTest
 					this.graphManipulator.getOwlGraphWrapper().getIdentifier(
 							incomingEdge.getSource()));
 		}
+        assertTrue("The GCI relation FOO:0002 A part_of FOO:0001 root, was incorrectly removed", foo2Seen);
 	}
 	
 	/**

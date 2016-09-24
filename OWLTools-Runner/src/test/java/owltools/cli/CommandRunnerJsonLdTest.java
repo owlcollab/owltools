@@ -17,8 +17,9 @@ public class CommandRunnerJsonLdTest extends AbstractCommandRunnerTest {
 	public void testParse() throws Exception {
 		load("ceph.obo");
 		run("-o target/ceph.owl");
-		run("--rdf-to-json-ld -o target/ceph.json target/ceph.owl");
-		run("--json-ld-to-rdf -o target/ceph.rdf target/ceph.json");
+		run("-o -f jsonld target/ceph.jsonld");
+		//run("--rdf-to-json-ld -o target/ceph.json target/ceph.owl");
+		//run("--json-ld-to-rdf -o target/ceph.rdf target/ceph.json");
 				
 	}
 	

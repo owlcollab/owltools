@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/owlcollab/owltools.svg?branch=master)](https://travis-ci.org/owlcollab/owltools)
+[![DOI](https://zenodo.org/badge/13996/owlcollab/owltools.svg)](https://zenodo.org/badge/latestdoi/13996/owlcollab/owltools)
+
 For full documentation, 
 
  * [see the Wiki](https://github.com/owlcollab/owltools/wiki).

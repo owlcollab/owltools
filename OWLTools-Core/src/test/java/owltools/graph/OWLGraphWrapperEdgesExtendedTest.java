@@ -892,23 +892,23 @@ public class OWLGraphWrapperEdgesExtendedTest
 	}
 	
 	/**
-	 * Test {@link OWLGraphWrapperEdgesExtended#getAllOWLClasses()}
+	 * Test {@link OWLGraphWrapperEdgesExtended#getAllRealOWLClasses()}
 	 */
 	@Test
-	public void shouldGetAllOWLClasses()
+	public void shouldGetAllRealOWLClasses()
 	{
-		assertEquals("Incorrect Set of OWLClasses returned", 19, 
-				wrapper.getAllOWLClasses().size());
+		assertEquals("Incorrect Set of OWLClasses returned", 20, 
+				wrapper.getAllRealOWLClasses().size());
 	}
     
     /**
-     * Test {@link OWLGraphWrapperEdgesExtended#getAllOWLClassesFromSource()}
+     * Test {@link OWLGraphWrapperEdgesExtended#getAllOWLRealClassesFromSource()}
      */
     @Test
-    public void shouldGetAllOWLClassesFromSource()
+    public void shouldGetAllRealOWLClassesFromSource()
     {
-        assertEquals("Incorrect Set of OWLClasses returned", 18, 
-                wrapper.getAllOWLClassesFromSource().size());
+        assertEquals("Incorrect Set of OWLClasses returned", 19, 
+                wrapper.getAllRealOWLClassesFromSource().size());
     }
 	
 	/**
@@ -948,7 +948,7 @@ public class OWLGraphWrapperEdgesExtendedTest
         //FOO:0012, FOO:0013, FOO:0014 and FOO:0015, an the taxon due to GCIs
         Set<OWLClass> leaves = wrapper.getOntologyLeaves();
         assertTrue("Incorrect leaves returned: " + leaves, 
-                leaves.size() == 8 && 
+                leaves.size() == 9 && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0100")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0003")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0005")) && 
@@ -956,7 +956,8 @@ public class OWLGraphWrapperEdgesExtendedTest
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0014")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("FOO:0015")) && 
                 leaves.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:9606")) && 
-                leaves.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:10090")));
+                leaves.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:10090")) && 
+                leaves.contains(wrapper.getOWLClassByIdentifier("NCBITaxon:7743")));
     }
 	
 	/**

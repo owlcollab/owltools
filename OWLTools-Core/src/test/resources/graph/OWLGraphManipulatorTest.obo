@@ -7,6 +7,7 @@ import: OWLGraphManipulatorTest_2.obo ! to test the merge of imported ontologies
 [Term]
 id: FOO:0001
 name: root
+alt_id: alt:test
 
 [Term]
 id: FOO:0100
@@ -45,6 +46,7 @@ id: FOO:0006
 name: subgraph2_root
 comment: term root of a subgraph to remove to test OWLGraphManipulator.filterSubgraphs(Collection<String>) and OWLGraphManipulator.removeSubgraphs(Collection<String>). Also, used to test delPartOfSubClassOfRelsToSubsetsIfNonOrphan.
 subset: test_subset1 
+alt_id: alt2:test
 is_a: FOO:0001 ! root
 
 [Term]
@@ -119,6 +121,10 @@ is_a: NCBITaxon:7742
 [Term]
 id: NCBITaxon:10090
 is_a: NCBITaxon:7742
+
+[Term]
+id: NCBITaxon:7743
+is_a: NCBITaxon:1
 
 [Typedef]
 id: overlaps

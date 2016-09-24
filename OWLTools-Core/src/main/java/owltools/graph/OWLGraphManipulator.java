@@ -794,7 +794,7 @@ public class OWLGraphManipulator {
 		//todo?: everything could be done in one single walk from bottom nodes 
 		//to top nodes, this would be much faster, but would require much more memory.
 		Set<OWLClass> allClasses = 
-		        new HashSet<OWLClass>(this.getOwlGraphWrapper().getAllOWLClasses());
+		        new HashSet<OWLClass>(this.getOwlGraphWrapper().getAllRealOWLClasses());
 		
 		int relationsRemoved = 0;
         //variables for logging purpose
@@ -1494,7 +1494,7 @@ public class OWLGraphManipulator {
         if (log.isInfoEnabled()) {
     	    log.info("Start filtering subgraphs of allowed roots: " + 
                 allowedSubgraphRootIds);
-    	    classCount = this.getOwlGraphWrapper().getAllOWLClasses().size();
+    	    classCount = this.getOwlGraphWrapper().getAllRealOWLClasses().size();
         }
 
     	//first, we get all OWLObjects descendants and ancestors of the allowed roots, 
@@ -1540,6 +1540,50 @@ public class OWLGraphManipulator {
         toKeep.addAll(allowedSubgraphRoots);
         toKeep.addAll(ancestors);
         toKeep.addAll(descendants);
+        
+        //When there are GCI relations, we also need to keep the GCI filler, 
+        //otherwise the relations will go away.
+        //Rather than retrieving the edge closure with combined properties, 
+        //we simply retrieve the relevant edges for each class to keep
+        Set<OWLClass> fillers = new HashSet<OWLClass>();
+        Set<OWLClass> useIncomingEdges = new HashSet<>(descendants);
+        useIncomingEdges.addAll(allowedSubgraphRoots);
+        for (OWLClass cls: useIncomingEdges) {
+            for (OWLGraphEdge edge: this.getOwlGraphWrapper().getIncomingEdgesWithGCI(cls)) {
+                //not interested in edges coming from OBO alt IDs
+                if (edge.getSource() instanceof OWLClass && 
+                        this.getOwlGraphWrapper().isOboAltId((OWLClass) edge.getSource())) {
+                    continue;
+                }
+                if (edge.getGCIFiller() != null) {
+                    log.debug("Allowed filler: " + edge.getGCIFiller());
+                    fillers.add(edge.getGCIFiller());
+                    //add also all its super classes
+                    fillers.addAll(this.getOwlGraphWrapper().getAncestorsThroughIsA(edge.getGCIFiller()));
+                }
+            }
+        }
+        //TODO: refactor with descendants
+        Set<OWLClass> useOutgoingEdges = new HashSet<>(ancestors);
+        useOutgoingEdges.addAll(allowedSubgraphRoots);
+        for (OWLClass cls: useOutgoingEdges) {
+            for (OWLGraphEdge edge: this.getOwlGraphWrapper().getOutgoingEdgesWithGCI(cls)) {
+                //not interested in edges going to OBO alt IDs
+                if (edge.getTarget() instanceof OWLClass && 
+                        this.getOwlGraphWrapper().isOboAltId((OWLClass) edge.getTarget())) {
+                    continue;
+                }
+                if (edge.getGCIFiller() != null) {
+                    log.debug("Allowed filler: " + edge.getGCIFiller());
+                    fillers.add(edge.getGCIFiller());
+                    //add also all its super classes
+                    fillers.addAll(this.getOwlGraphWrapper().getAncestorsThroughIsA(edge.getGCIFiller()));
+                }
+            }
+        }
+        
+        toKeep.addAll(fillers);
+        
         if (log.isDebugEnabled()) {
             log.debug("Allowed classes: " + toKeep);
         }
@@ -1650,7 +1694,7 @@ public class OWLGraphManipulator {
         int classCount   = 0;
         if (log.isInfoEnabled()) {
     	    log.info("Start removing subgraphs of undesired roots: " + subgraphRootIds);
-    	    classCount = this.getOwlGraphWrapper().getAllOWLClasses().size();
+    	    classCount = this.getOwlGraphWrapper().getAllRealOWLClasses().size();
         }
     	
     	//roots of the ontology not in subgraphRoots and not ancestors of subgraphRoots 
@@ -1667,7 +1711,7 @@ public class OWLGraphManipulator {
         if (allowedSubgraphRootIds != null) {
             for (String allowedSubgraphRootId: allowedSubgraphRootIds) {
                 OWLClass allowedSubgraphRoot = 
-                        this.getOwlGraphWrapper().getOWLClassByIdentifier(allowedSubgraphRootId);
+                        this.getOwlGraphWrapper().getOWLClassByIdentifierNoAltIds(allowedSubgraphRootId);
                 if (allowedSubgraphRoot == null) {
                     throw new IllegalArgumentException(allowedSubgraphRootId + " was requested " +
                     		"to be kept in the ontology, but it does not exist.");
@@ -1685,7 +1729,7 @@ public class OWLGraphManipulator {
     	Set<String> classIdsRemoved = new HashSet<String>();
     	rootLoop: for (String rootId: subgraphRootIds) {
     		OWLClass subgraphRoot = 
-    				this.getOwlGraphWrapper().getOWLClassByIdentifier(rootId);
+    				this.getOwlGraphWrapper().getOWLClassByIdentifierNoAltIds(rootId);
     		if (subgraphRoot == null) {
     		    if (log.isDebugEnabled()) {
     			    log.debug("Discarded root class, maybe already removed: " + rootId);
@@ -1949,7 +1993,7 @@ public class OWLGraphManipulator {
             //an allowed rel.
             Set<OWLAxiom> propAxioms = new HashSet<OWLAxiom>();
             for (OWLOntology ont: wrapper.getAllOntologies()) {
-                propAxioms.addAll(ont.getAxioms(iteratedProp, Imports.EXCLUDED));
+                propAxioms.addAll(ont.getAxioms(iteratedProp, Imports.INCLUDED));
                 if (iteratedProp instanceof OWLEntity) {
                     //need the referencing axioms for the OWLSubPropertyChainOfAxiom, 
                     //weirdly it is not returned by ont.getAxioms
@@ -2379,7 +2423,7 @@ public class OWLGraphManipulator {
 	    ChangeApplied status = edge.getOntology().getOWLOntologyManager().removeAxioms(
 	            edge.getOntology(), edge.getAxioms());
 	    this.triggerWrapperUpdate();
-	    return (status == ChangeApplied.SUCCESSFULLY);
+	    return (status != ChangeApplied.UNSUCCESSFULLY);
 	}
 	/**
 	 * Remove {@code edges} from their related ontology. It means that the {@code OWLAxiom}s 
@@ -2421,7 +2465,7 @@ public class OWLGraphManipulator {
 	    ChangeApplied status = edge.getOntology().getOWLOntologyManager().addAxiom(
 	            edge.getOntology(), newAxiom);
 	    this.triggerWrapperUpdate();
-	    return (status == ChangeApplied.SUCCESSFULLY);
+	    return (status != ChangeApplied.UNSUCCESSFULLY);
 	}
 	/**
 	 * Add {@code edges} to their related ontology. 
@@ -2504,6 +2548,11 @@ public class OWLGraphManipulator {
     	for (OWLOntology o : this.getOwlGraphWrapper().getAllOntologies()) {
     		for (OWLClass iterateClass: o.getClassesInSignature()) {
     		    log.info(iterateClass);
+    		    //don't delete OBO alt IDs nor owl:Nothing and owl:Thing
+    		    if (this.getOwlGraphWrapper().isOboAltId(iterateClass) || 
+    		            iterateClass.isTopEntity() || iterateClass.isBottomEntity()) {
+    		        continue;
+    		    }
 			    if (!classesToKeep.contains(iterateClass) && 
 			            this.removeClass(iterateClass)) {
 	                classesRemoved.add(iterateClass);
@@ -2574,7 +2623,7 @@ public class OWLGraphManipulator {
     private boolean applyChanges(List<? extends OWLOntologyChange> changes) {
     	
     	ChangeApplied status = this.getOwlGraphWrapper().getManager().applyChanges(changes);
-    	if (status == ChangeApplied.SUCCESSFULLY) {
+    	if (status != ChangeApplied.UNSUCCESSFULLY) {
         	return true;
     	}
     	return false;
