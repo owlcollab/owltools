@@ -1,13 +1,13 @@
 package owltools.gaf;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Bioentity{
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.log4j.Logger;
+
+public class Bioentity {
 
 	private String db; 					// GAF-Col  1	GPI namespace header?
 	private String id; 					// GAF-Col  1+2	GPI-Col 1
@@ -26,6 +26,8 @@ public class Bioentity{
 
 	private String seq_db = "";
 	private String seq_id = "";
+	private String sequence;
+	private String description;
 
 	// From PANTHER DB or some protein family tree DB
 	private String persistantNodeID;
@@ -34,7 +36,7 @@ public class Bioentity{
 	protected List<Bioentity> children;
 	private float distanceFromParent;
 	private float distanceFromRoot;
-
+	
 	private String type;
 	private String paint_id;
 
@@ -43,8 +45,9 @@ public class Bioentity{
 
 	private static Logger log = Logger.getLogger(Bioentity.class);
 
-	private static final String NODE_TYPE_DUPLICATION="1>0";
-	private static final String NODE_TYPE_HORIZONTAL_TRANSFER="0>0";
+	public static final String NODE_TYPE_DUPLICATION="1>0";
+	public static final String NODE_TYPE_SPECIATION="0>1";
+	public static final String NODE_TYPE_HORIZONTAL_TRANSFER="0>0";
 
 	public Bioentity(){
 		this.annotations = new ArrayList<GeneAnnotation>();
@@ -150,12 +153,12 @@ public class Bioentity{
 		if (this.synonyms == null) {
 			this.synonyms = new ArrayList<String>();
 		}
-        boolean addit = synonym != null && synonym.length() > 0;
+		boolean addit = synonym != null && synonym.length() > 0;
 		for (String s : synonyms) {
 			addit &= !s.equalsIgnoreCase(synonym);
 		}
-        addit &= getLocalId() == null || !synonym.equalsIgnoreCase(getLocalId());
-        addit &= getSymbol() == null || !synonym.equalsIgnoreCase(getSymbol());
+		addit &= getLocalId() == null || !synonym.equalsIgnoreCase(getLocalId());
+		addit &= getSymbol() == null || !synonym.equalsIgnoreCase(getSymbol());
 		if (addit)
 			this.synonyms.add(synonym);
 	}
@@ -239,7 +242,7 @@ public class Bioentity{
 	}
 
 	public Bioentity getParent() {
-		return parent;
+		return (Bioentity) parent;
 	}
 
 	public boolean isLeaf() {
@@ -257,21 +260,9 @@ public class Bioentity{
 	public void setPrune(boolean prune) {
 		this.pruned = prune;
 	}
-
-	public void setDistanceFromParent(float dist) {
-		distanceFromParent = dist;
-	}
-
-	public float getDistanceFromParent() {
-		return distanceFromParent;
-	}
-
-	public void setDistanceFromRoot(float dist) {
-		distanceFromRoot = dist;
-	}
-
-	public float getDistanceFromRoot() {
-		return distanceFromRoot;
+	
+	public boolean isRoot() {
+		return getParent() == null;
 	}
 
 	// Setter/Getter methods
@@ -290,7 +281,7 @@ public class Bioentity{
 		return true;
 	}
 
-    public List<Bioentity> getChildren() {
+	public List<Bioentity> getChildren() {
 		return children;
 	}
 
@@ -300,7 +291,7 @@ public class Bioentity{
 				leaves.add(this);
 			else
 				for (int i = 0; i < children.size(); i++) {
-					Bioentity child = children.get(i);
+					Bioentity child = (Bioentity) children.get(i);
 					child.getTermini(leaves);
 				}
 		}
@@ -366,7 +357,7 @@ public class Bioentity{
 			log.info ("Unable to add annotation");
 		}
 	}
-	
+
 	public List<Pair<String, String>> getProperties() {
 		return properties;
 	}
@@ -376,6 +367,91 @@ public class Bioentity{
 			properties = new ArrayList<Pair<String,String>>();
 		}
 		properties.add(Pair.of(key, value));
+	}
+
+	public void addChild(Bioentity child) {
+		if (child != null) {
+			List<Bioentity> current_children = getChildren();
+			if (current_children == null) {
+				current_children = new ArrayList<>();
+			}
+			current_children.add(child);
+			setChildren(current_children);
+		}
+	}
+
+	public Bioentity getChildNode(int i) {
+		if (children != null && (i < children.size())) {
+			return (Bioentity) children.get(i);
+		} else {
+			return null;
+		}
+	}
+
+	public void setDistanceFromParent(float dist) {
+		distanceFromParent = dist;
+	}
+
+	public void setDistanceToParent(double dist) {
+		setDistanceFromParent((float) dist);
+	}
+
+	public float getDistanceFromParent() {
+		return distanceFromParent;
+	}
+
+	public double getDistanceToParent() {
+		return (double) getDistanceFromParent();
+	}
+
+	public void setDistanceFromRoot(float dist) {
+		distanceFromRoot = dist;
+	}
+
+	public float getDistanceFromRoot() {
+		return distanceFromRoot;
+	}
+
+	public String getName() {
+		return this.getId();
+	}
+
+	public void setName(String name) {
+		this.setId(name);
+	}
+
+	public String getSequence() {
+		return sequence;
+	}
+
+	public void setSequence(String sequence) {
+		this.sequence = sequence;
+	}
+
+	public String getDescription() {
+		if (!isLeaf() && description == null) {
+			StringBuffer about_me = new StringBuffer();
+			myChildren(this, about_me);
+			description = about_me.toString();
+		}
+		if (description == null)
+			description = "";
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	private void myChildren(Bioentity node, StringBuffer about_me) {
+		List<Bioentity> children = node.getChildren();
+		for (Bioentity child : children) {
+			if (child.isLeaf()) {
+				about_me.append(child.getDBID() + " ");
+			} else {
+				myChildren(child, about_me);
+			}
+		}
 	}
 
 }
