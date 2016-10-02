@@ -153,6 +153,7 @@ import owltools.io.InferredParentRenderer;
 import owltools.io.OWLJSONFormat;
 import owltools.io.OWLJsonLDFormat;
 import owltools.io.OWLOboGraphsFormat;
+import owltools.io.OWLOboGraphsYamlFormat;
 import owltools.io.OWLPrettyPrinter;
 import owltools.io.ParserWrapper;
 import owltools.io.ParserWrapper.OWLGraphWrapperNameProvider;
@@ -443,9 +444,19 @@ public class CommandRunner extends CommandRunnerBase {
                     g.getManager().applyChange(ai);
                 }
             }
+            else if (opts.nextEq("--subtract")) {
+                
+                Set<OWLAxiom> rmAxioms = new HashSet<>();
+                for (OWLOntology o : g.getSupportOntologySet()) {
+                    for (OWLAxiom a : o.getAxioms()) {
+                        rmAxioms.add(a);
+                    }
+                }
+                g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);                
+            }
             else if (opts.nextEq("--diff")) {
                 opts.info("[--o1r FILE][--o2r FILE][--oi FILE][--od FILE][-u][-s][-f FMT]", 
-                        "ontology difference or substraction");
+                        "ontology difference or subtraction");
                 String o1r = null;
                 String o2r = null;
                 String oi = null;
@@ -499,9 +510,9 @@ public class CommandRunner extends CommandRunnerBase {
                 diff.isAddSharedDeclarations = isAddSharedDeclarations;
                 diff.isCompareClassesInCommon = isCompareClassesInCommon;
                 diff.isCompareUnannotatedForm = isCompareUnannotatedForm;
-                
+
                 diff = DiffUtil.getDiff(diff);
-                
+
                 System.out.println(diff);
                 final ParserWrapper pw = new ParserWrapper();
                 if (o1r != null)
@@ -1333,6 +1344,15 @@ public class CommandRunner extends CommandRunnerBase {
                 LOG.info("Mapped "+e2iri.size()+" entities!");
             }
             else if (opts.nextEq("--rename-entities-via-equivalent-classes")) {
+                String prefix = null;
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("-p|--prefix")) {
+                        prefix = opts.nextOpt();
+                    }
+                    else
+                        break;
+                }
+                
                 Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
                 OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
 
@@ -1353,9 +1373,14 @@ public class CommandRunner extends CommandRunnerBase {
 
                     for (OWLOntology ont : g.getAllOntologies()) {
                         OWLClass c = ont.getOWLOntologyManager().getOWLDataFactory().getOWLClass(e);
+                        if (prefix != null && !c.getIRI().toString().startsWith(prefix)) {
+                            continue;
+                        }
                         for (OWLClassExpression d : OwlHelper.getEquivalentClasses(c, ont)) {
-                            if (d instanceof OWLClass)
-                                e2iri.put(c, ((OWLClass) d).getIRI()); 
+                            if (d instanceof OWLClass) {
+                                e2iri.put(c, d.asOWLClass().getIRI());
+                                LOG.info("  "+c+" ==> "+d );
+                            }
                         }
                     }
                 }
@@ -3051,6 +3076,9 @@ public class CommandRunner extends CommandRunnerBase {
                         else if (ofmtname.equals("og") || ofmtname.equals("json")) {
                             ofmt = new OWLOboGraphsFormat();
                         }
+                        else if (ofmtname.equals("oy") || ofmtname.equals("yaml")) {
+                            ofmt = new OWLOboGraphsYamlFormat();
+                        }
                         else if (ofmtname.equals("obo")) {
                             if (opts.nextEq("-n|--no-check")) {
                                 pw.setCheckOboDoc(false);
@@ -4361,28 +4389,44 @@ public class CommandRunner extends CommandRunnerBase {
     @CLIMethod("--assert-abox-inferences")
     public void assertAboxInferences(Opts opts) throws Exception {
         opts.info("", "Finds all inferred OPEs and ClassAssertions and asserts them. Does not handle DPEs. Resulting ontology can be used for sparql queries");
+        boolean isNew = false;
+        while (opts.hasOpts()) {
+            if (opts.nextEq("-n|--new")) {
+                isNew = true;
+            }
+            else
+                break;
+        }
         Set<OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
         OWLOntology ont = g.getSourceOntology();
 
         // TODO : move this to a utility class
         OWLOntologyManager mgr = ont.getOWLOntologyManager();
         OWLDataFactory df = mgr.getOWLDataFactory();
+        LOG.info("Initial axioms:"+ont.getAxioms(true).size());
         for (OWLNamedIndividual ind : ont.getIndividualsInSignature(Imports.INCLUDED)) {
-            LOG.info("Checking: "+ind);
+            //LOG.info("Checking: "+ind);
             for (OWLObjectProperty p : ont.getObjectPropertiesInSignature(Imports.INCLUDED)) {
                 NodeSet<OWLNamedIndividual> vs = reasoner.getObjectPropertyValues(ind, p);
                 for (OWLNamedIndividual v : vs.getFlattened()) {
-                    LOG.info("NEW: "+ind+" -> "+p+" -> "+v);
+                    //LOG.info("NEW: "+ind+" -> "+p+" -> "+v);
                     newAxioms.add(df.getOWLObjectPropertyAssertionAxiom(p, ind, v));
                 }
             }
             for (OWLClass c : reasoner.getTypes(ind, false).getFlattened()) {
                 newAxioms.add(df.getOWLClassAssertionAxiom(c, ind));
-                LOG.info("NEW: "+ind+" :: "+c);
+                //LOG.info("NEW: "+ind+" :: "+c);
             }
         }
+        OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
+        for (OWLAxiom a : newAxioms) {
+            LOG.info("NEW: "+owlpp.render(a));
+        }
         LOG.info("# OF NEW AXIOMS: "+newAxioms.size());
-        mgr.addAxioms(ont, newAxioms);
+        if (isNew) {
+            g.setSourceOntology(mgr.createOntology());
+        }
+        mgr.addAxioms(g.getSourceOntology(), newAxioms);
     }
 
     @CLIMethod("--assert-inferred-subclass-axioms")
