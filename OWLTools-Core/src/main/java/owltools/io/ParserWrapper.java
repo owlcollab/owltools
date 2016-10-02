@@ -16,6 +16,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.lf5.util.StreamUtils;
 import org.geneontology.obographs.io.OgJsonGenerator;
+import org.geneontology.obographs.io.OgYamlGenerator;
 import org.geneontology.obographs.model.GraphDocument;
 import org.geneontology.obographs.owlapi.FromOwl;
 import org.obolibrary.obo2owl.Owl2Obo;
@@ -200,6 +201,7 @@ public class ParserWrapper {
     public void saveOWL(OWLOntology ont, OWLDocumentFormat owlFormat, String file) throws OWLOntologyStorageException, IOException {
         if ((owlFormat instanceof OBODocumentFormat) ||
                 (owlFormat instanceof OWLOboGraphsFormat) || 
+                (owlFormat instanceof OWLOboGraphsYamlFormat) || 
                 (owlFormat instanceof OWLJSONFormat) || 
                 (owlFormat instanceof OWLJsonLDFormat)){
             try {
@@ -255,16 +257,20 @@ public class ParserWrapper {
                 IOUtils.closeQuietly(bw);
             }
         }
-        else if (owlFormat instanceof OWLOboGraphsFormat) {
+        else if (owlFormat instanceof OWLOboGraphsFormat || owlFormat instanceof OWLOboGraphsYamlFormat) {
 
             // TODO: 
             FromOwl fromOwl = new FromOwl();
             GraphDocument gd = fromOwl.generateGraphDocument(ont);
-            String json = OgJsonGenerator.render(gd);
+            String out;
+            if (owlFormat instanceof OWLOboGraphsFormat)
+                out = OgJsonGenerator.render(gd);
+            else
+                out = OgYamlGenerator.render(gd);
             BufferedWriter bw = null;
             try {
                 bw = new BufferedWriter(new OutputStreamWriter(outputStream));
-                bw.write(json);
+                bw.write(out);
             }
             finally {
                 IOUtils.closeQuietly(bw);
