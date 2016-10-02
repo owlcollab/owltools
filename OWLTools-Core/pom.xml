@@ -112,7 +112,7 @@
 		<dependency>
 			<groupId>org.geneontology</groupId>
  			<artifactId>obographs</artifactId>
- 			<version>0.0.3</version>
+ 			<version>0.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
