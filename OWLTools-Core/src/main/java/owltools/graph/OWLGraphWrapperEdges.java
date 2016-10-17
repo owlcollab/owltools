@@ -306,8 +306,8 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	private void cacheReverseUnionMap() {
 		synchronized (edgeCacheMutex) {
-		    if (!isGraphReasonedAndRelaxed) {
-		        extraSubClassOfEdges = new HashMap<OWLObject, Set<OWLGraphEdge>>();
+		    extraSubClassOfEdges = new HashMap<OWLObject, Set<OWLGraphEdge>>();
+            if (!isGraphReasonedAndRelaxed) {
 		        for (OWLOntology o : getAllOntologies()) {
 		            for (OWLClass cls : o.getClassesInSignature()) {
 		                for (OWLEquivalentClassesAxiom eca : o.getEquivalentClassesAxioms(cls)) {
