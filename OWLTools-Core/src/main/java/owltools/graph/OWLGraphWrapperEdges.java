@@ -79,6 +79,10 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	private Map<OWLObject,Set<OWLGraphEdge>> edgeByTarget = null;
 	public Map<OWLObject,Set<OWLGraphEdge>> inferredEdgeBySource = null; // public to serialize
 	private Map<OWLObject,Set<OWLGraphEdge>> inferredEdgeByTarget = null;
+	
+	// true if graph is reasoned and relaxed, i.e. there is no need to dynamically relax equivalence axioms
+	// this is the default for most ontologies, including GO
+	private boolean isGraphReasonedAndRelaxed = true; 
 
 	// used to store mappings child->parent, where
 	// parent = UnionOf( ..., child, ...)
@@ -302,24 +306,26 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 
 	private void cacheReverseUnionMap() {
 		synchronized (edgeCacheMutex) {
-			extraSubClassOfEdges = new HashMap<OWLObject, Set<OWLGraphEdge>>();
-			for (OWLOntology o : getAllOntologies()) {
-				for (OWLClass cls : o.getClassesInSignature()) {
-					for (OWLEquivalentClassesAxiom eca : o.getEquivalentClassesAxioms(cls)) {
-						for (OWLClassExpression ce : eca.getClassExpressions()) {
-							if (ce instanceof OWLObjectUnionOf) {
-								for (OWLObject child : ((OWLObjectUnionOf)ce).getOperands()) {
-									if (!extraSubClassOfEdges.containsKey(child)) {
-									    extraSubClassOfEdges.put(child, new OWLGraphEdgeSet());
-									}
-									extraSubClassOfEdges.get(child).add(
-									        createSubClassOfEdge(child,cls,o,eca));
-								}
-							}
-						}
-					}
-				}
-			}
+		    if (!isGraphReasonedAndRelaxed) {
+		        extraSubClassOfEdges = new HashMap<OWLObject, Set<OWLGraphEdge>>();
+		        for (OWLOntology o : getAllOntologies()) {
+		            for (OWLClass cls : o.getClassesInSignature()) {
+		                for (OWLEquivalentClassesAxiom eca : o.getEquivalentClassesAxioms(cls)) {
+		                    for (OWLClassExpression ce : eca.getClassExpressions()) {
+		                        if (ce instanceof OWLObjectUnionOf) {
+		                            for (OWLObject child : ((OWLObjectUnionOf)ce).getOperands()) {
+		                                if (!extraSubClassOfEdges.containsKey(child)) {
+		                                    extraSubClassOfEdges.put(child, new OWLGraphEdgeSet());
+		                                }
+		                                extraSubClassOfEdges.get(child).add(
+		                                        createSubClassOfEdge(child,cls,o,eca));
+		                            }
+		                        }
+		                    }
+		                }
+		            }
+		        }
+		    }
 		}
 	}
 
@@ -343,11 +349,13 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				for (OWLSubClassOfAxiom sca : o.getSubClassAxiomsForSubClass((OWLClass) s)) {
 					edges.add(createSubClassOfEdge(sca.getSubClass(), sca.getSuperClass(), o, sca));
 				}
-				for (OWLEquivalentClassesAxiom eqa : o.getEquivalentClassesAxioms((OWLClass) s)) {
-					for (OWLClassExpression ce : eqa.getClassExpressions()) {
-						if (!ce.equals(s))
-						    edges.add(createSubClassOfEdge(s, ce, o, eqa));
-					}
+				if (!isGraphReasonedAndRelaxed) {
+				    for (OWLEquivalentClassesAxiom eqa : o.getEquivalentClassesAxioms((OWLClass) s)) {
+				        for (OWLClassExpression ce : eqa.getClassExpressions()) {
+				            if (!ce.equals(s))
+				                edges.add(createSubClassOfEdge(s, ce, o, eqa));
+				        }
+				    }
 				}
 				for (OWLGraphEdge unionEdge : getOutgoingEdgesViaReverseUnion(s)) {
 					if (unionEdge.getTarget() instanceof OWLClass)
@@ -1097,13 +1105,15 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		// equivalent classes - substitute a named class in the query for an expression
 		else if (t instanceof OWLClass) {
 			for (OWLOntology ont : this.getAllOntologies()) {
-				for (OWLEquivalentClassesAxiom ax : ont.getEquivalentClassesAxioms((OWLClass)t)) {
-					for (OWLClassExpression y : ax.getClassExpressions()) {
-						if (y instanceof OWLClass)
-							continue;
-						results.addAll(queryDescendants(y, isInstances, isClasses));
-					}
-				}
+			    if (!isGraphReasonedAndRelaxed) {
+			        for (OWLEquivalentClassesAxiom ax : ont.getEquivalentClassesAxioms((OWLClass)t)) {
+			            for (OWLClassExpression y : ax.getClassExpressions()) {
+			                if (y instanceof OWLClass)
+			                    continue;
+			                results.addAll(queryDescendants(y, isInstances, isClasses));
+			            }
+			        }
+			    }
 			}
 		}
 		else {
