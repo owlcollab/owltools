@@ -26,6 +26,7 @@ public class ShuntGraphUtilsTest extends OWLToolsTestBasics {
 	@BeforeClass
 	public static void beforeClass() throws Exception {
 		g = getGraph("go-saga-module.obo");
+		g.getConfig().isGraphReasonedAndRelaxed = false; // temporary
 	}
 
 	@Test

@@ -80,9 +80,6 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	public Map<OWLObject,Set<OWLGraphEdge>> inferredEdgeBySource = null; // public to serialize
 	private Map<OWLObject,Set<OWLGraphEdge>> inferredEdgeByTarget = null;
 	
-	// true if graph is reasoned and relaxed, i.e. there is no need to dynamically relax equivalence axioms
-	// this is the default for most ontologies, including GO
-	private boolean isGraphReasonedAndRelaxed = true; 
 
 	// used to store mappings child->parent, where
 	// parent = UnionOf( ..., child, ...)
@@ -118,6 +115,10 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		public Set<OWLQuantifiedProperty> graphEdgeIncludeSet = null;
 		public Set<OWLQuantifiedProperty> graphEdgeExcludeSet = null;
 		public OWLClass excludeMetaClass = null;
+
+		// true if graph is reasoned and relaxed, i.e. there is no need to dynamically relax equivalence axioms
+	    // this is the default for most ontologies, including GO
+	    public boolean isGraphReasonedAndRelaxed = true; 
 
 		/**
 		 * @param p
@@ -307,7 +308,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 	private void cacheReverseUnionMap() {
 		synchronized (edgeCacheMutex) {
 		    extraSubClassOfEdges = new HashMap<OWLObject, Set<OWLGraphEdge>>();
-            if (!isGraphReasonedAndRelaxed) {
+            if (!config.isGraphReasonedAndRelaxed) {
 		        for (OWLOntology o : getAllOntologies()) {
 		            for (OWLClass cls : o.getClassesInSignature()) {
 		                for (OWLEquivalentClassesAxiom eca : o.getEquivalentClassesAxioms(cls)) {
@@ -349,7 +350,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 				for (OWLSubClassOfAxiom sca : o.getSubClassAxiomsForSubClass((OWLClass) s)) {
 					edges.add(createSubClassOfEdge(sca.getSubClass(), sca.getSuperClass(), o, sca));
 				}
-				if (!isGraphReasonedAndRelaxed) {
+				if (!config.isGraphReasonedAndRelaxed) {
 				    for (OWLEquivalentClassesAxiom eqa : o.getEquivalentClassesAxioms((OWLClass) s)) {
 				        for (OWLClassExpression ce : eqa.getClassExpressions()) {
 				            if (!ce.equals(s))
@@ -1105,7 +1106,7 @@ public class OWLGraphWrapperEdges extends OWLGraphWrapperExtended {
 		// equivalent classes - substitute a named class in the query for an expression
 		else if (t instanceof OWLClass) {
 			for (OWLOntology ont : this.getAllOntologies()) {
-			    if (!isGraphReasonedAndRelaxed) {
+			    if (!config.isGraphReasonedAndRelaxed) {
 			        for (OWLEquivalentClassesAxiom ax : ont.getEquivalentClassesAxioms((OWLClass)t)) {
 			            for (OWLClassExpression y : ax.getClassExpressions()) {
 			                if (y instanceof OWLClass)

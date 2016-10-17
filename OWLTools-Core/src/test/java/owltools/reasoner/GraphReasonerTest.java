@@ -7,8 +7,7 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 
 /**
- * tests getLeastCommonSubsumerSimpleClassExpression
- * 
+ *  
  * @author cjm
  *
  */
@@ -17,9 +16,10 @@ public class GraphReasonerTest extends AbstractReasonerTest {
 	OWLGraphWrapper g;
 	OWLPrettyPrinter pp;
 
-	@Test
+	//@Test
 	public void testOrganismPair() throws Exception{
 		g =  getOntologyWrapper("q-in-e-v1.omn");
+		g.getConfig().isGraphReasonedAndRelaxed = false;
 		OWLReasoner r = getGraphReasoner(g);
 		
 		try {

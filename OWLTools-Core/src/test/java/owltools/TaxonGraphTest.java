@@ -47,6 +47,7 @@ public class TaxonGraphTest extends OWLToolsTestBasics {
 		
 		OWLOntology ont = obo2Owl.convert(merged);
 		gw = new OWLGraphWrapper(ont);
+		gw.getConfig().isGraphReasonedAndRelaxed = false;
 	}
 	
 	@Test

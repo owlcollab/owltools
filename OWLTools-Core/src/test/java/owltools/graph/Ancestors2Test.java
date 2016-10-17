@@ -25,6 +25,7 @@ public class Ancestors2Test extends OWLToolsTestBasics {
 	@Test
 	public void testIntersectionsReturnedInClosure() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
+		g.config.isGraphReasonedAndRelaxed = false;
 		OWLObject obj = g.getOWLObject("http://example.org#o1");
 		boolean ok = false;
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosureReflexive(obj)) {
@@ -40,6 +41,7 @@ public class Ancestors2Test extends OWLToolsTestBasics {
 	@Test
 	public void testRestrictionsReturnedInClosure() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
+		g.config.isGraphReasonedAndRelaxed = false;
 		OWLObject obj = g.getOWLObject("http://example.org#deformed_hippocampus");
 		boolean ok = false;
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosureReflexive(obj)) {

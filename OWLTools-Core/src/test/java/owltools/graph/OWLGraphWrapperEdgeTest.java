@@ -117,6 +117,7 @@ public class OWLGraphWrapperEdgeTest extends OWLToolsTestBasics {
 	@Test
 	public void testOWLGraphEdgeAxioms() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
         OWLGraphWrapper g = getGraph("graph/owlgraphedge.obo");
+        g.config.isGraphReasonedAndRelaxed = false;
         
         OWLOntology o = g.getSourceOntology();
         OWLOntologyManager m = o.getOWLOntologyManager();
