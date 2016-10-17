@@ -635,7 +635,7 @@ public class GafCommandRunner extends CommandRunner {
 
 	@CLIMethod("--gaf-calculate-specificity")
 	public void gaCalculateSpecificity(Opts opts) {
-		opts.info("", "Calculate IC for every term based on an input GAF. Ensure relations are filtered accordingly first");
+		opts.info("", "Calculate avg depth for all annotations. Ensure relations are filtered accordingly first");
 		// TODO - ensure has_part and other relations are excluded
 		Map<OWLObject,Set<String>> aMap = new HashMap<OWLObject,Set<String>>();
 		double corpusSize = gafdoc.getBioentities().size();
