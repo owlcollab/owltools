@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.geneontology.reasoner.ExpressionMaterializingReasoner;
@@ -20,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -684,6 +686,11 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		addPropertiesForMaterialization(props);
 		ExpressionMaterializingReasoner materializingReasoner = getMaterializingReasoner();
 		Set<OWLClassExpression> classExpressions = materializingReasoner.getSuperClassExpressions(c, false);
+		OWLEntity owlThing = this.getManager().getOWLDataFactory().getOWLThing();
+		
+		// remove owl:Thing - although logically valid, it is not of use to the consumer
+		// see https://github.com/geneontology/amigo/issues/395
+		classExpressions = classExpressions.stream().filter(x -> x.getSignature().contains(owlThing)).collect(Collectors.toSet());
 		for (OWLClassExpression ce : classExpressions) {
 			ce.accept(new OWLClassExpressionVisitorAdapter(){
 
