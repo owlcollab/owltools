@@ -690,7 +690,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		
 		// remove owl:Thing - although logically valid, it is not of use to the consumer
 		// see https://github.com/geneontology/amigo/issues/395
-		classExpressions = classExpressions.stream().filter(x -> x.getSignature().contains(owlThing)).collect(Collectors.toSet());
+		classExpressions = classExpressions.stream().filter(x -> !x.getSignature().contains(owlThing)).collect(Collectors.toSet());
 		for (OWLClassExpression ce : classExpressions) {
 			ce.accept(new OWLClassExpressionVisitorAdapter(){
 
