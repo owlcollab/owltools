@@ -13,6 +13,7 @@ import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.io.SystemOutDocumentTarget;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
@@ -30,15 +31,20 @@ public class RemoveDirectivesTest extends OWLToolsTestBasics {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("mooncat/remove-directives-test1.obo"));
 		
+		System.out.println(g.getSourceOntology().getAxioms(AxiomType.EQUIVALENT_CLASSES));
 		OWLOntology secondary = pw.parse(getResourceIRIString("mooncat/remove-directives-test2.obo"));
+        System.out.println(secondary.getAxioms(AxiomType.EQUIVALENT_CLASSES));
 		g.addSupportOntology(secondary);
 		
 		Mooncat mooncat = new Mooncat(g);
 		
-		mooncat.mergeOntologies();
+		//mooncat.mergeOntologies();
+		g.mergeOntology(secondary);
 		
 		OWLOntology merged = g.getSourceOntology();
-		
+
+		System.out.println(merged.getAxioms(AxiomType.EQUIVALENT_CLASSES));
+
 		Owl2Obo owl2Obo = new Owl2Obo();
 		OBODoc mergedObo = owl2Obo.convert(merged);
 		
@@ -58,7 +64,7 @@ public class RemoveDirectivesTest extends OWLToolsTestBasics {
 		assertNotNull(owlAxiomString);
 		
 		
-		Frame frame = mergedObo.getTermFrame("X:3");
+		Frame frame = mergedObo.getTermFrame("X:1");
 		Collection<Clause> clauses = frame.getClauses(OboFormatTag.TAG_INTERSECTION_OF);
 		assertEquals(2, clauses.size());
 	}
