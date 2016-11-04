@@ -445,7 +445,7 @@ public class CommandRunner extends CommandRunnerBase {
                 }
             }
             else if (opts.nextEq("--subtract")) {
-                
+
                 Set<OWLAxiom> rmAxioms = new HashSet<>();
                 for (OWLOntology o : g.getSupportOntologySet()) {
                     for (OWLAxiom a : o.getAxioms()) {
@@ -1352,7 +1352,7 @@ public class CommandRunner extends CommandRunnerBase {
                     else
                         break;
                 }
-                
+
                 Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
                 OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
 
@@ -2235,6 +2235,7 @@ public class CommandRunner extends CommandRunnerBase {
                 g.getManager().removeAxioms(g.getSourceOntology(), axs);
             }
             else if (opts.nextEq("--check-disjointness-axioms")) {
+                opts.info("", "DEPRECATED: this command precedes the ability of Elk to check disjointness");
                 boolean isTranslateEquivalentToNothing = true;
                 OWLPrettyPrinter owlpp = getPrettyPrinter();
 
@@ -2525,6 +2526,33 @@ public class CommandRunner extends CommandRunnerBase {
                 boolean isQueryProcessed = false;
                 if (reasoner == null) {
                     reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+                }
+                if (isShowUnsatisfiable || isRemoveUnsatisfiable) {
+                    OWLClass nothing = g.getDataFactory().getOWLNothing();
+                    Set<OWLObjectProperty> unsats = new HashSet<>();
+                    for (OWLObjectProperty p : g.getSourceOntology().getObjectPropertiesInSignature(true)) {
+                        try {
+                            if (reasoner.getObjectPropertyDomains(p, false).getFlattened().contains(nothing)) {
+                                LOG.error("Domain is unsat: "+p);
+                                unsats.add(p);
+                            }
+                            if (reasoner.getObjectPropertyRanges(p, false).getFlattened().contains(nothing)) {
+                                LOG.error("Range is unsat: "+p);
+                                unsats.add(p);
+                            }
+                        }
+                        catch (UnsupportedOperationException e) {
+                            LOG.warn("Could not perform operation (expected with Elk)");
+                        }
+                    }
+                    if (unsats.size() > 0) {
+                        LOG.error("Ontology has unsat properties - will not proceed");
+                        exit(1);
+                    }
+                    else {
+                        LOG.info("All properties have satisfiable domain and range");
+                    }
+
                 }
                 if (isShowUnsatisfiable || isRemoveUnsatisfiable) {
                     int n = 0;
