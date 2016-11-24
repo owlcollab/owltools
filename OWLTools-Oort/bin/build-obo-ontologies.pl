@@ -371,13 +371,17 @@ if (@failed_infallible_onts) {
 }
 
 if ($errcode) {
-    print "PROBLEMS WITH BUILD\n";
+    # http://stackoverflow.com/questions/8148122/how-to-mark-a-build-unstable-in-jenkins-when-running-shell-scripts
+    print "UNSTABLE: PROBLEMS WITH BUILD\n";
 }
 else {
     print "COMPLETED SUCCESSFULLY!\n";
 }
 
-exit $errcode;
+# note that if we reach this point we want to exit with a successful error code;
+# the build may still be marked unstable for jenkins
+exit 0;
+#exit $errcode;
 
 # --SUBROUTINES--
 
