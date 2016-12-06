@@ -394,14 +394,20 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--read-model-folder")
 	public void processModelFolder(Opts opts) throws Exception {
+	    // TODO - make cofigurable; 
+	    //see https://github.com/geneontology/minerva/commit/ebbe2937735a80dc7744e6cb516c5262755642e1
+	    String fileSuffix = "ttl"; 
 		legoFiles = new ArrayList<File>();
 		String modelFolderString = opts.nextOpt();
 		File modelFolder = new File(modelFolderString).getCanonicalFile();
 		File[] modelFiles = modelFolder.listFiles(new FilenameFilter() {
-			
+		    final String fileSuffixFinal = fileSuffix;
 			@Override
 			public boolean accept(File dir, String name) {
-				return StringUtils.isAlphanumeric(name);
+			    if (fileSuffixFinal != null && fileSuffixFinal.length() > 0)
+        	        return name.endsWith("."+fileSuffixFinal);
+			    else
+     		        return StringUtils.isAlphanumeric(name);
 			}
 		});
 		Arrays.sort(modelFiles);
