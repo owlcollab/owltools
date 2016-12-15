@@ -34,6 +34,7 @@ import java.util.Stack;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -3265,6 +3266,38 @@ public class CommandRunner extends CommandRunnerBase {
                 String subset = opts.nextOpt();
                 Set<OWLClass> cset = g.getOWLClassesInSubset(subset);
                 LOG.info("Removing "+cset.size()+" classes");
+                Mooncat m = new Mooncat(g);
+                m.removeSubsetClasses(cset, isRemoveDangling);
+            }
+            else if (opts.nextEq("--remove-classes-in-idspace")) {
+                opts.info("[-d] [-s IDSPACE]", "Removes classes in an ID space from ontology");
+               String idspace = null;
+               boolean isRemoveDangling = true;
+               while (opts.hasOpts()) {
+                    if (opts.nextEq("-s|--idspace")) {
+                        opts.info("",
+                                "ID space");
+                        idspace = opts.nextOpt();
+                    }
+                    else if (opts.nextEq("-d|--keep-dangling")) {
+                        opts.info("",
+                                "if specified, dangling axioms (ie pointing to removed classes) are preserved");
+                        isRemoveDangling = false;
+                    }
+                   else
+                        break;
+                }
+               if (idspace == null)
+                   idspace = opts.nextOpt();
+               
+                String idspaceFinal = idspace + ":";
+                LOG.info("IDSPACE: "+idspaceFinal);
+                Set<OWLClass> cset = 
+                        g.getAllOWLClasses().stream().filter(
+                                c -> g.getIdentifier(c).startsWith(idspaceFinal)
+                                ).collect(Collectors.toSet());
+                LOG.info("Removing "+cset.size()+
+                        " classes from "+g.getAllOWLClasses().size());
                 Mooncat m = new Mooncat(g);
                 m.removeSubsetClasses(cset, isRemoveDangling);
             }
