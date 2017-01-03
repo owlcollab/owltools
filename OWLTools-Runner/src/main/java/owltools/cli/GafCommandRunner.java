@@ -1002,7 +1002,7 @@ public class GafCommandRunner extends CommandRunner {
 				
 				// pre-check ontology
 				int code = preCheckOntology("Can't validate with an inconsistent ontology", 
-						"Can't validate with an ontology with unsatisfiable classes", null);
+						"Can't validate with an ontology with unsatisfiable classes", gafTaxonModule);
 				if (code != 0) {
 					exit(code);
 					return;
