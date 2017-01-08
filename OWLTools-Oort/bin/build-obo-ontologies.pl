@@ -350,8 +350,10 @@ else {
         debug("deploying $ont");
         # TODO - copy main .obo and .owl to top level
         run("rsync -avz --delete $ont/ $target_dir/$ont");
-        run("rsync $ont/$ont.obo $target_dir");
-        run("rsync $ont/$ont.owl $target_dir");
+
+        deploy($ont, 'obo', $target_dir, 1);
+        deploy($ont, 'owl', $target_dir, 1);
+        deploy($ont, 'json', $target_dir, 0);
     }
     if (-d 'rss') {
         run("rsync -avz rss/ $target_dir/rss");
@@ -384,6 +386,19 @@ exit 0;
 #exit $errcode;
 
 # --SUBROUTINES--
+
+sub deploy {
+    my ($ont, $fmt, $target_dir, $is_forced) = @_;
+    my $srcf = "$ont/$ont.$fmt";
+    if (! -f $srcf && !$is_forced) {
+        print STDERR "NOT FOUND: $srcf\n";
+        return;
+    }
+    
+    run("rsync $srcf $target_dir");
+    run("gzip -c $srcf > $srcf.gz && rsync $srcf.gz $target_dir");
+
+}
 
 # Run command in the shell
 # globals affected: $n_errs, @errs
