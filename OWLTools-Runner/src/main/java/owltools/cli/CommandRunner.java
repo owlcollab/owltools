@@ -437,6 +437,7 @@ public class CommandRunner extends CommandRunnerBase {
                 }
             }
             else if (opts.nextEq("--add-imports-declarations")) {
+                opts.info("IRI-LIST", "Adds declaration for each ontology IRI");
                 List<String> importsIRIs = opts.nextList();
                 for (String importIRI : importsIRIs) {
                     AddImport ai = 
@@ -776,6 +777,89 @@ public class CommandRunner extends CommandRunnerBase {
                 for (OWLOntology ont : g.getAllOntologies()) {
                     summarizeOntology(ont);
                 }
+            }
+            else if (opts.nextEq("--reason-intra-ontology")) {
+                opts.info("[-r reasoner] ONT", "");
+                String ont = null;
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("-r|--reasoner")) {
+                        opts.info("REASONER", "select reasoner.");
+                        reasonerName = opts.nextOpt();              
+                    }
+                    else {
+                        break;
+                    }
+                }
+                ont = opts.nextOpt();
+                OWLPrettyPrinter owlpp = getPrettyPrinter();
+
+
+                for (OWLClass c : g.getAllOWLClasses()) {
+                    if (g.getIdSpace(c).equals(ont)) {
+                        Set<OWLClassExpression> parents = g.getSourceOntology().getSubClassAxiomsForSubClass(c).stream().map( a -> a.getSuperClass()).collect(Collectors.toSet());
+                        Set<OWLClass> infParents = reasoner.getSuperClasses(c, true).getFlattened();
+                        for (OWLClass p : infParents) {
+                            if (g.getIdSpace(p).equals(ont)) {
+                                if (!parents.contains(p)) {
+                                    System.out.println("INFERRED: "+owlpp(c)+" SubClassOf " + owlpp(p));
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+            }
+            else if (opts.nextEq("--spike-and-reason")) {
+                opts.info("[-r reasoner]", "spikes in support ontologies and determines new inferences");
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("-r|--reasoner")) {
+                        opts.info("REASONER", "select reasoner.");
+                        reasonerName = opts.nextOpt();              
+                    }
+                    else {
+                        break;
+                    }
+                }
+                OWLPrettyPrinter owlpp = getPrettyPrinter();
+
+                Set<OWLClass> cs = g.getSourceOntology().getClassesInSignature(Imports.EXCLUDED);
+                reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+
+                Map<OWLClass, Set<OWLClass>> assertedParentMap = new HashMap<>();
+                for (OWLClass c : cs) {
+                    assertedParentMap.put(c, reasoner.getSuperClasses(c, false).getFlattened());
+                }
+                reasoner.dispose();
+                LOG.info("CLASSES PRIOR:" +cs.size());
+
+                // spike
+                for (OWLOntology ont : g.getSupportOntologySet()) {
+                    LOG.info("MERGING:" +ont);
+                    g.mergeOntology(ont);
+                }
+                g.setSupportOntologySet(new HashSet<OWLOntology>());
+
+                // test
+                reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+                int n = 0;
+                LOG.info("TESTING:" +cs.size());
+                for (OWLClass c : cs) {
+                    Set<OWLClass> infParents = 
+                            new HashSet<>(reasoner.getSuperClasses(c, false).getFlattened());
+                    Set<OWLClass> infParentsDirect = 
+                            new HashSet<>(reasoner.getSuperClasses(c, true).getFlattened());
+                    infParents.removeAll(assertedParentMap.get(c));
+                    for (OWLClass p : infParents) {
+                        if (cs.contains(p)) {
+                            String isDirect = infParentsDirect.contains(p) ? "PARENT" : "ANCESTOR";
+                            System.out.println("NEW_INFERRED: "+owlpp.render(c)+
+                                    " " + isDirect + " " + owlpp.render(p));
+                            n++;
+                        }
+                    }
+                }
+                LOG.info("NEW SUPERCLASSES:"+n);
             }
             else if (opts.nextEq("--save-superclass-closure")) {
                 opts.info("[-r reasoner] FILENAME", "write out superclass closure of graph.");
@@ -2795,11 +2879,17 @@ public class CommandRunner extends CommandRunnerBase {
                 if (opts.nextEq("-f|--fail-on-cycle")) {
                     failOnCycle = true;
                 }
+                OWLPrettyPrinter owlpp = getPrettyPrinter();
+
                 int n = 0;
                 for (OWLObject x : g.getAllOWLObjects()) {
                     for (OWLObject y : g.getAncestors(x)) {
                         if (g.getAncestors(y).contains(x)) {
-                            System.out.println(x + " in-cycle-with "+y);
+                            if (y instanceof OWLClass) {
+                                for (OWLGraphEdge e : g.getEdgesBetween(x, y)) {
+                                    System.out.println(owlpp.render(x) + " in-cycle-with "+owlpp.render(y)+" // via " + e.getQuantifiedPropertyList());
+                                }
+                            }
                             n++;
                         }
                     }
@@ -3159,9 +3249,11 @@ public class CommandRunner extends CommandRunnerBase {
                 }
             }
             else if (opts.nextEq("--remove-axioms")) {
+                opts.info("-t Type", "Removes axioms of specified type. May be specified multiple times");
                 AxiomType t = null;
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-t|--axiom-type")) {
+                        opts.info("Type", "OWLAPI type. E.g. DisjointClasses");
                         t = AxiomType.getAxiomType(opts.nextOpt());
                     }
                     else {
@@ -3175,6 +3267,7 @@ public class CommandRunner extends CommandRunnerBase {
                 }
             }
             else if (opts.nextEq("--remove-axiom-annotations")) {
+                opts.info("", "If an axiom has 1 or more annotations, replace with annotation-free version");
                 for (OWLAxiom a : g.getSourceOntology().getAxioms()) {
                     Set<OWLAnnotation> anns = a.getAnnotations();
                     if (anns.size() > 0) {
@@ -3271,9 +3364,9 @@ public class CommandRunner extends CommandRunnerBase {
             }
             else if (opts.nextEq("--remove-classes-in-idspace")) {
                 opts.info("[-d] [-s IDSPACE]", "Removes classes in an ID space from ontology");
-               String idspace = null;
-               boolean isRemoveDangling = true;
-               while (opts.hasOpts()) {
+                String idspace = null;
+                boolean isRemoveDangling = true;
+                while (opts.hasOpts()) {
                     if (opts.nextEq("-s|--idspace")) {
                         opts.info("",
                                 "ID space");
@@ -3284,12 +3377,12 @@ public class CommandRunner extends CommandRunnerBase {
                                 "if specified, dangling axioms (ie pointing to removed classes) are preserved");
                         isRemoveDangling = false;
                     }
-                   else
+                    else
                         break;
                 }
-               if (idspace == null)
-                   idspace = opts.nextOpt();
-               
+                if (idspace == null)
+                    idspace = opts.nextOpt();
+
                 String idspaceFinal = idspace + ":";
                 LOG.info("IDSPACE: "+idspaceFinal);
                 Set<OWLClass> cset = 
@@ -4213,6 +4306,11 @@ public class CommandRunner extends CommandRunnerBase {
                 }
             }
         }
+    }
+
+    private String owlpp(OWLClass c) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     static Set<OWLAxiom> traceAxioms(Set<OWLAxiom> axioms, OWLGraphWrapper g, OWLDataFactory df) {
