@@ -176,7 +176,11 @@ foreach my $k (keys %ont_info) {
                 }
 
                 # Oort places package files directly in target area, if successful
-                $success = run($env."ontology-release-runner --skip-release-folder --skip-format owx --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
+                my @skips = ['--skip-format owx'];
+                if ($ont eq 'pr' || $ont eq 'chebi' || $ont eq 'ncbitaxon') {
+                    push(@skips, '--skip-format json');
+                }
+                $success = run($env."ontology-release-runner --skip-release-folder @skips --ignoreLock --allow-overwrite --outdir $ont @OORT_ARGS --asserted --simple $SRC");
                 if ($success) {
                     run("mv $SRC $SRC.prev");
                 }
