@@ -447,13 +447,39 @@ public class CommandRunner extends CommandRunnerBase {
                 }
             }
             else if (opts.nextEq("--subtract")) {
-
-                Set<OWLAxiom> rmAxioms = new HashSet<>();
-                for (OWLOntology o : g.getSupportOntologySet()) {
-                    for (OWLAxiom a : o.getAxioms()) {
-                        rmAxioms.add(a);
+                opts.info("ONTS", "subtract axioms in support ontology from main ontology");
+                boolean preserveDeclarations = false;
+                boolean preserveAnnotations = false;
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("-d|--preserve-declarations")) {
+                        preserveDeclarations = true;
+                    }
+                    if (opts.nextEq("-a|--preserve-annotations")) {
+                        preserveAnnotations = true;
+                    }
+                    else {
+                        break;
                     }
                 }
+                List<String> ontFiles = opts.nextList();
+                for (String ontFile: ontFiles) {
+                    g.addSupportOntology(pw.parse(ontFile));
+                }
+                Set<OWLAxiom> rmAxioms = new HashSet<>();
+                int n=0;
+                for (OWLOntology o : g.getSupportOntologySet()) {
+                    for (OWLAxiom a : o.getAxioms()) {
+                        if (preserveDeclarations && a instanceof OWLDeclarationAxiom) {
+                            continue;
+                        }
+                        if (preserveAnnotations && a.isAnnotationAxiom()) {
+                            continue;
+                        }
+                        rmAxioms.add(a);
+                        n++;
+                    }
+                }
+                LOG.info("Removing "+n+" axioms");
                 g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);                
             }
             else if (opts.nextEq("--diff")) {
