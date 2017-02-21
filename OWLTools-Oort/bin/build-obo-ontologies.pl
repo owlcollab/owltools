@@ -183,7 +183,7 @@ foreach my $k (keys %ont_info) {
                 }
 
                 # Oort places package files directly in target area, if successful
-                my @skips = ('--skip-format owx');
+                my @skips = ('--skip-format owx', '--skip-format metadata');
                 if ($ont eq 'pr' || $ont eq 'chebi' || $ont eq 'ncbitaxon') {
                     push(@skips, '--skip-format json');
                 }
