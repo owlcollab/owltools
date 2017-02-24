@@ -1,0 +1,1859 @@
+format-version: 1.2
+ontology: go/extensions/go-plus
+subsetdef: goantislim_grouping "Grouping classes that can be excluded"
+subsetdef: gocheck_do_not_annotate "Term not to be used for direct annotation"
+subsetdef: gocheck_do_not_manually_annotate "Term not to be used for direct manual annotation"
+subsetdef: goslim_aspergillus "Aspergillus GO slim"
+subsetdef: goslim_candida "Candida GO slim"
+subsetdef: goslim_chembl "ChEMBL protein targets summary"
+subsetdef: goslim_generic "Generic GO slim"
+subsetdef: goslim_goa "GOA and proteome slim"
+subsetdef: goslim_metagenomics "Metagenomics GO slim"
+subsetdef: goslim_mouse "Mouse GO slim"
+subsetdef: goslim_pir "PIR GO slim"
+subsetdef: goslim_plant "Plant GO slim"
+subsetdef: goslim_pombe "Fission yeast GO slim"
+subsetdef: goslim_synapse "synapse GO slim"
+subsetdef: goslim_virus "Viral GO slim"
+subsetdef: goslim_yeast "Yeast GO slim"
+subsetdef: gosubset_prok "Prokaryotic GO subset"
+subsetdef: mf_needs_review "Catalytic activity terms in need of attention"
+subsetdef: termgenie_unvetted "Terms created by TermGenie that do not follow a template and require additional vetting by editors"
+subsetdef: virus_checked "Viral overhaul terms"
+synonymtypedef: syngo_official_label "label approved by the SynGO project"
+synonymtypedef: systematic_synonym "Systematic synonym" EXACT
+
+[Term]
+id: CL:0000000
+name: cell
+namespace: gene_ontology
+def: "A material entity of anatomical origin (part of or deriving from an organism) that has as its parts a maximally connected cell compartment surrounded by a plasma membrane." []
+
+[Term]
+id: CL:0000003
+name: native cell
+namespace: gene_ontology
+def: "A cell that is found in a natural setting, which includes multicellular organism cells 'in vivo' (i.e. part of an organism), and unicellular organisms 'in environment' (i.e. part of a natural environment)." []
+synonym: "cell in vivo" NARROW []
+is_a: CL:0000000  ! cell
+
+[Term]
+id: CL:0000066
+name: epithelial cell
+namespace: gene_ontology
+def: "A cell that is usually found in a two-dimensional sheet with a free surface. The cell has a cytoskeleton that allows for tight cell to cell contact and for cell polarity where apical part is directed towards the lumen and the basal part to the basal lamina." []
+synonym: "epitheliocyte" EXACT []
+is_a: CL:0000548  ! animal cell
+relationship: part_of UBERON:0000483 ! epithelium
+
+[Term]
+id: CL:0000255
+name: eukaryotic cell
+namespace: gene_ontology
+is_a: CL:0000003  ! native cell
+
+[Term]
+id: CL:0000306
+name: crystallin accumulating cell
+namespace: gene_ontology
+synonym: "lens cell" EXACT []
+is_a: CL:0000325  ! stuff accumulating cell
+
+[Term]
+id: CL:0000325
+name: stuff accumulating cell
+namespace: gene_ontology
+def: "A cell that is specialised to accumulate a particular substance(s)." []
+is_a: CL:0000003  ! native cell
+
+[Term]
+id: CL:0000548
+name: animal cell
+namespace: gene_ontology
+is_a: CL:0000255  ! eukaryotic cell
+
+[Term]
+id: CL:0002222
+name: vertebrate lens cell
+namespace: gene_ontology
+def: "A cell comprising the transparent, biconvex body separating the posterior chamber and vitreous body, and constituting part of the refracting mechanism of the mammalian eye." []
+is_a: CL:0000066  ! epithelial cell
+is_a: CL:0000306  ! crystallin accumulating cell
+is_a: CL:0002371  ! somatic cell
+relationship: part_of UBERON:0000965 ! lens of camera-type eye
+
+[Term]
+id: CL:0002371
+name: somatic cell
+namespace: gene_ontology
+def: "A cell of an organism that does not pass on its genetic material to the organism's offspring (i.e. a non-germ line cell)." []
+is_a: CL:0000003  ! native cell
+
+[Term]
+id: CL:0011004
+name: lens fiber cell
+namespace: gene_ontology
+def: "A vetebrate lens cell that is any of the elongated, tightly packed cells that make up the bulk of the mature lens in a camera-type eye." []
+synonym: "lens fibre cell" EXACT []
+is_a: CL:0002222  ! vertebrate lens cell
+
+[Term]
+id: GO:0005575
+name: cellular_component
+namespace: cellular_component
+alt_id: GO:0008372
+def: "The part of a cell, extracellular environment or virus in which a gene product is located. A gene product may be located in one or more parts of a cell and its location may be as specific as a particular macromolecular complex, that is, a stable, persistent association of macromolecules that function together." [GOC:go_curators, NIF_Subcellular:sao-1337158144]
+comment: Note that, in addition to forming the root of the cellular component ontology, this term is recommended for use for the annotation of gene products whose cellular component is unknown. Note that when this term is used for annotation, it indicates that no information was available about the cellular component of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_chembl  ! ChEMBL protein targets summary
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell or subcellular entity" EXACT []
+synonym: "cellular component" EXACT []
+synonym: "subcellular entity" RELATED [NIF_Subcellular:nlx_subcell_100315]
+xref: NIF_Subcellular:sao-1337158144
+xref: NIF_Subcellular:sao1337158144
+disjoint_from: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0005623
+name: cell
+namespace: cellular_component
+def: "The basic structural and functional unit of all organisms. Includes the plasma membrane and any external encapsulating structures such as the cell wall and cell envelope." [GOC:go_curators]
+subset: goslim_chembl  ! ChEMBL protein targets summary
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+xref: NIF_Subcellular:sao1813327414
+xref: Wikipedia:Cell_(biology)
+is_a: GO:0005575  ! cellular_component
+relationship: only_in_taxon NCBITaxon:131567 {id="GOTAX:0000057"} ! cellular organisms
+disjoint_from: GO:0019012  ! virion
+disjoint_from: GO:0031012  ! extracellular matrix
+disjoint_from: GO:0032991  ! macromolecular complex
+disjoint_from: GO:0043226  ! organelle
+disjoint_from: GO:0055044  ! symplast
+property_value: IAO:0000589 "cell and encapsulating structures" xsd:string
+
+[Term]
+id: GO:0005886
+name: plasma membrane
+namespace: cellular_component
+alt_id: GO:0005904
+def: "The membrane surrounding a cell that separates the cell from its external environment. It consists of a phospholipid bilayer and associated proteins." [ISBN:0716731363]
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_chembl  ! ChEMBL protein targets summary
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_mouse  ! Mouse GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "bacterial inner membrane" NARROW []
+synonym: "cell membrane" EXACT []
+synonym: "cellular membrane" EXACT [NIF_Subcellular:sao6433132645]
+synonym: "cytoplasmic membrane" EXACT []
+synonym: "inner endospore membrane" NARROW []
+synonym: "juxtamembrane" BROAD []
+synonym: "plasma membrane lipid bilayer" NARROW [GOC:mah]
+synonym: "plasmalemma" EXACT []
+xref: NIF_Subcellular:sao1663586795
+xref: Wikipedia:Cell_membrane
+is_a: GO:0016020  ! membrane
+is_a: GO:0044464  ! cell part
+relationship: part_of GO:0071944 ! cell periphery
+
+[Term]
+id: GO:0006915
+name: apoptotic process
+namespace: biological_process
+alt_id: GO:0006917
+alt_id: GO:0008632
+def: "A programmed cell death process which begins when a cell receives an internal (e.g. DNA damage) or external signal (e.g. an extracellular death ligand), and proceeds through a series of biochemical events (signaling pathway phase) which trigger an execution phase. The execution phase is the last step of an apoptotic process, and is typically characterized by rounding-up of the cell, retraction of pseudopodes, reduction of cellular volume (pyknosis), chromatin condensation, nuclear fragmentation (karyorrhexis), plasma membrane blebbing and fragmentation of the cell into apoptotic bodies. When the execution phase is completed, the cell has died." [GOC:cjm, GOC:dhl, GOC:ecd, GOC:go_curators, GOC:mtg_apoptosis, GOC:tb, ISBN:0198506732, PMID:18846107, PMID:21494263]
+synonym: "activation of apoptosis" NARROW []
+synonym: "apoptosis" NARROW []
+synonym: "apoptosis activator activity" RELATED []
+synonym: "apoptosis signaling" NARROW []
+synonym: "apoptotic cell death" EXACT [GOC:sl]
+synonym: "apoptotic program" NARROW [GOC:add]
+synonym: "apoptotic programmed cell death" EXACT []
+synonym: "caspase-dependent programmed cell death" RELATED []
+synonym: "cell suicide" BROAD []
+synonym: "cellular suicide" BROAD []
+synonym: "commitment to apoptosis" RELATED []
+synonym: "induction of apoptosis" RELATED []
+synonym: "induction of apoptosis by p53" RELATED []
+synonym: "programmed cell death by apoptosis" EXACT []
+synonym: "signaling (initiator) caspase activity" RELATED []
+synonym: "type I programmed cell death" NARROW []
+xref: Reactome:REACT_100045
+xref: Reactome:REACT_100962
+xref: Reactome:REACT_101249
+xref: Reactome:REACT_104187
+xref: Reactome:REACT_105149
+xref: Reactome:REACT_106405
+xref: Reactome:REACT_106672
+xref: Reactome:REACT_107264
+xref: Reactome:REACT_108651
+xref: Reactome:REACT_109165
+xref: Reactome:REACT_110081
+xref: Reactome:REACT_111964
+xref: Reactome:REACT_13526
+xref: Reactome:REACT_13638
+xref: Reactome:REACT_13643
+xref: Reactome:REACT_28087
+xref: Reactome:REACT_28795
+xref: Reactome:REACT_28816
+xref: Reactome:REACT_30266
+xref: Reactome:REACT_30361
+xref: Reactome:REACT_30371
+xref: Reactome:REACT_30548
+xref: Reactome:REACT_30763
+xref: Reactome:REACT_31349
+xref: Reactome:REACT_34139
+xref: Reactome:REACT_578
+xref: Reactome:REACT_77132
+xref: Reactome:REACT_77313
+xref: Reactome:REACT_77415
+xref: Reactome:REACT_78287
+xref: Reactome:REACT_78802
+xref: Reactome:REACT_79809
+xref: Reactome:REACT_82724
+xref: Reactome:REACT_83328
+xref: Reactome:REACT_85877
+xref: Reactome:REACT_86749
+xref: Reactome:REACT_86873
+xref: Reactome:REACT_87570
+xref: Reactome:REACT_88740
+xref: Reactome:REACT_88784
+xref: Reactome:REACT_89196
+xref: Reactome:REACT_90267
+xref: Reactome:REACT_91011
+xref: Reactome:REACT_91243
+xref: Reactome:REACT_93937
+xref: Reactome:REACT_94099
+xref: Reactome:REACT_95069
+xref: Reactome:REACT_95675
+xref: Reactome:REACT_97627
+xref: Reactome:REACT_99784
+xref: Reactome:REACT_99799
+xref: Wikipedia:Apoptosis
+is_a: GO:0012501  ! programmed cell death
+relationship: ends_with GO:0097194 ! execution phase of apoptosis
+relationship: only_in_taxon NCBITaxon:33154 ! Opisthokonta
+relationship: starts_with GO:0097190 ! apoptotic signaling pathway
+
+[Term]
+id: GO:0007154
+name: cell communication
+namespace: biological_process
+def: "Any process that mediates interactions between a cell and its surroundings. Encompasses interactions such as signaling or attachment between one cell and another cell, between a cell and an extracellular matrix, or between a cell and any other aspect of its environment." [GOC:mah]
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+xref: Wikipedia:Cell_signaling
+is_a: GO:0009987  ! cellular process
+
+[Term]
+id: GO:0007165
+name: signal transduction
+namespace: biological_process
+alt_id: GO:0023033
+def: "The cellular process in which a signal is conveyed to trigger a change in the activity or state of a cell. Signal transduction begins with reception of a signal (e.g. a ligand binding to a receptor or receptor activation by a stimulus such as light), or for signal transduction in the absence of ligand, signal-withdrawal or the activity of a constitutively active receptor. Signal transduction ends with regulation of a downstream cellular process, e.g. regulation of transcription or regulation of a metabolic process. Signal transduction covers signaling from receptors located on the surface of the cell and signaling via molecules located within the cell. For signaling between cells, signal transduction is restricted to events at and within the receiving cell." [GOC:go_curators, GOC:mtg_signaling_feb11]
+comment: Note that signal transduction is defined broadly to include a ligand interacting with a receptor, downstream signaling steps and a response being triggered. A change in form of the signal in every step is not necessary. Note that in many cases the end of this process is regulation of the initiation of transcription. Note that specific transcription factors may be annotated to this term, but core/general transcription machinery such as RNA polymerase should not.
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_chembl  ! ChEMBL protein targets summary
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "signaling cascade" NARROW []
+synonym: "signaling pathway" RELATED []
+synonym: "signalling cascade" NARROW []
+synonym: "signalling pathway" RELATED [GOC:mah]
+xref: Reactome:REACT_100624
+xref: Reactome:REACT_102354
+xref: Reactome:REACT_112130
+xref: Reactome:REACT_112549
+xref: Reactome:REACT_113151
+xref: Reactome:REACT_113601
+xref: Reactome:REACT_113964
+xref: Reactome:REACT_114657
+xref: Reactome:REACT_114690
+xref: Reactome:REACT_114820
+xref: Reactome:REACT_114910
+xref: Reactome:REACT_115037
+xref: Reactome:REACT_115147
+xref: Reactome:REACT_12478
+xref: Reactome:REACT_31232
+xref: Reactome:REACT_78535
+xref: Reactome:REACT_89740
+xref: Reactome:REACT_93680
+xref: Reactome:REACT_98872
+xref: Wikipedia:Signal_transduction
+is_a: GO:0009987  ! cellular process
+is_a: GO:0050794  ! regulation of cellular process
+relationship: part_of GO:0007154 ! cell communication
+relationship: part_of GO:0044700 ! single organism signaling
+relationship: part_of GO:0051716 ! cellular response to stimulus
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_chembl  ! ChEMBL protein targets summary
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: goslim_pombe  ! Fission yeast GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "biological process" EXACT []
+synonym: "physiological process" EXACT []
+xref: Wikipedia:Biological_process
+
+[Term]
+id: GO:0008219
+name: cell death
+namespace: biological_process
+def: "Any biological process that results in permanent cessation of all vital functions of a cell. A cell should be considered dead when any one of the following molecular or morphological criteria is met: (1) the cell has lost the integrity of its plasma membrane; (2) the cell, including its nucleus, has undergone complete fragmentation into discrete bodies (frequently referred to as apoptotic bodies). The cell corpse (or its fragments) may be engulfed by an adjacent cell in vivo, but engulfment of whole cells should not be considered a strict criteria to define cell death as, under some circumstances, live engulfed cells can be released from phagosomes (see PMID:18045538)." [GOC:mah, GOC:mtg_apoptosis, PMID:25236395]
+comment: This term should not be used for direct annotation. The only exception should be when experimental data (e.g., staining with trypan blue or propidium iodide) show that cell death has occurred, but fail to provide details on death modality (accidental versus programmed). When information is provided on the cell death mechanism, annotations should be made to the appropriate descendant of 'cell death' (such as, but not limited to, GO:0097300 'programmed necrotic cell death' or GO:0006915 'apoptotic process'). Also, if experimental data suggest that a gene product influences cell death indirectly, rather than being involved in the death process directly, consider annotating to a 'regulation' term.
+subset: goslim_chembl  ! ChEMBL protein targets summary
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_mouse  ! Mouse GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "accidental cell death" RELATED []
+synonym: "necrosis" RELATED []
+is_a: GO:0044763  ! single-organism cellular process
+
+[Term]
+id: GO:0009987
+name: cellular process
+namespace: biological_process
+alt_id: GO:0008151
+alt_id: GO:0050875
+def: "Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators, GOC:isa_complete]
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell growth and/or maintenance" NARROW []
+synonym: "cell physiology" EXACT []
+synonym: "cellular physiological process" EXACT []
+is_a: GO:0008150  ! biological_process
+disjoint_from: GO:0044848  ! biological phase
+
+[Term]
+id: GO:0012501
+name: programmed cell death
+namespace: biological_process
+alt_id: GO:0016244
+def: "A process which begins when a cell receives an internal or external signal and activates a series of biochemical events (signaling pathway). The process ends with the death of the cell." [GOC:lr, GOC:mtg_apoptosis]
+comment: Note that this term should be used to annotate gene products in the organism undergoing the programmed cell death. To annotate genes in another organism whose products modulate programmed cell death in a host organism, consider the term 'modulation by symbiont of host programmed cell death ; GO:0052040'. Also, note that 'programmed cell death ; GO:0012501' should be used to refer to instances of caspase-independent cell death mechanisms, in the absence of further indications on the process taking place. At present, caspase-independent cell death is not yet represented in GO due to the lack of consensus and in-depth research on the topic. 'programmed cell death ; GO:0012501' may also be used to annotate gene products in taxa where apoptosis as defined in GO:0006915 does not occur, such as plants. You may also consider these specific children: GO:0097468 'programmed cell death in response to reactive oxygen species' (with descendants GO:0010421 'hydrogen peroxide-mediated programmed cell death' and GO:0010343 'singlet oxygen-mediated programmed cell death'), and GO:0009626 'plant-type hypersensitive response' and its children, which are descendants of GO:0034050 'host programmed cell death induced by symbiont'.
+synonym: "PCD" RELATED []
+synonym: "RCD" RELATED []
+synonym: "caspase-independent apoptosis" RELATED []
+synonym: "caspase-independent cell death" NARROW []
+synonym: "non-apoptotic programmed cell death" NARROW []
+synonym: "nonapoptotic programmed cell death" NARROW []
+synonym: "regulated cell death" BROAD []
+xref: Wikipedia:Programmed_cell_death
+is_a: GO:0008219  ! cell death
+relationship: starts_with GO:0007165 ! signal transduction
+intersection_of: GO:0008219  ! cell death
+intersection_of: starts_with GO:0007165 ! signal transduction
+
+[Term]
+id: GO:0016020
+name: membrane
+namespace: cellular_component
+def: "A lipid bilayer along with all the proteins and protein complexes embedded in it an attached to it." [GOC:dos, GOC:mah, ISBN:0815316194]
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: goslim_chembl  ! ChEMBL protein targets summary
+subset: goslim_metagenomics  ! Metagenomics GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: goslim_yeast  ! Yeast GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+xref: Wikipedia:Biological_membrane
+is_a: GO:0005575  ! cellular_component
+disjoint_from: GO:0031012  ! extracellular matrix
+
+[Term]
+id: GO:0016043
+name: cellular component organization
+namespace: biological_process
+alt_id: GO:0044235
+alt_id: GO:0071842
+def: "A process that results in the assembly, arrangement of constituent parts, or disassembly of a cellular component." [GOC:ai, GOC:jl, GOC:mah]
+subset: goslim_mouse  ! Mouse GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: goslim_plant  ! Plant GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell organisation" EXACT []
+synonym: "cell organization and biogenesis" RELATED [GOC:mah]
+synonym: "cellular component organisation at cellular level" EXACT [GOC:mah]
+synonym: "cellular component organisation in other organism" EXACT [GOC:mah]
+synonym: "cellular component organization at cellular level" EXACT []
+synonym: "cellular component organization in other organism" EXACT []
+is_a: GO:0009987  ! cellular process
+is_a: GO:0071840  ! cellular component organization or biogenesis
+relationship: results_in_organization_of GO:0005575 ! cellular_component
+intersection_of: GO:0009987  ! cellular process
+intersection_of: results_in_organization_of GO:0005575 ! cellular_component
+
+[Term]
+id: GO:0022607
+name: cellular component assembly
+namespace: biological_process
+alt_id: GO:0071844
+def: "The aggregation, arrangement and bonding together of a cellular component." [GOC:isa_complete]
+subset: goslim_chembl  ! ChEMBL protein targets summary
+subset: goslim_generic  ! Generic GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell structure assembly" EXACT []
+synonym: "cellular component assembly at cellular level" EXACT []
+is_a: GO:0016043  ! cellular component organization
+relationship: part_of GO:0044085 ! cellular component biogenesis
+relationship: results_in_assembly_of GO:0005575 ! cellular_component
+intersection_of: GO:0009987  ! cellular process
+intersection_of: results_in_assembly_of GO:0005575 ! cellular_component
+
+[Term]
+id: GO:0023052
+name: signaling
+namespace: biological_process
+alt_id: GO:0023046
+def: "The entirety of a process in which information is transmitted within a biological system. This process begins with an active signal and ends when a cellular response has been triggered." [GOC:mtg_signal, GOC:mtg_signaling_feb11, GOC:signaling]
+comment: Note that a signal is any variable property or parameter that serves to convey information, and may be a physical entity such as a gene product or small molecule, a photon, or a change in state such as movement or voltage change.
+subset: goslim_mouse  ! Mouse GO slim
+subset: goslim_pombe  ! Fission yeast GO slim
+subset: goslim_yeast  ! Yeast GO slim
+synonym: "biological signaling" EXACT []
+synonym: "signaling process" EXACT []
+synonym: "signalling" EXACT []
+synonym: "signalling process" RELATED [GOC:mah]
+is_a: GO:0008150  ! biological_process
+disjoint_from: GO:0044848  ! biological phase
+
+[Term]
+id: GO:0030030
+name: cell projection organization
+namespace: biological_process
+def: "A process that is carried out at the cellular level which results in the assembly, arrangement of constituent parts, or disassembly of a prolongation or process extending from a cell, e.g. a flagellum or axon." [GOC:jl, GOC:mah, http://www.cogsci.princeton.edu/~wn/]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell projection organisation" EXACT [GOC:curators]
+synonym: "cell projection organization and biogenesis" RELATED [GOC:mah]
+synonym: "cell surface structure organization and biogenesis" RELATED [GOC:mah]
+is_a: GO:0016043  ! cellular component organization
+is_a: GO:0044763  ! single-organism cellular process
+relationship: results_in_organization_of GO:0042995 ! cell projection
+intersection_of: GO:0016043  ! cellular component organization
+intersection_of: results_in_organization_of GO:0042995 ! cell projection
+
+[Term]
+id: GO:0030031
+name: cell projection assembly
+namespace: biological_process
+def: "Formation of a prolongation or process extending from a cell, e.g. a flagellum or axon." [GOC:jl, GOC:mah, http://www.cogsci.princeton.edu/~wn/]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell projection biogenesis" RELATED [GOC:mah]
+synonym: "formation of a cell surface projection" EXACT []
+is_a: GO:0022607  ! cellular component assembly
+is_a: GO:0030030  ! cell projection organization
+relationship: results_in_assembly_of GO:0042995 ! cell projection
+intersection_of: GO:0022607  ! cellular component assembly
+intersection_of: results_in_assembly_of GO:0042995 ! cell projection
+
+[Term]
+id: GO:0032059
+name: bleb
+namespace: cellular_component
+def: "A cell extension caused by localized decoupling of the cytoskeleton from the plasma membrane and characterized by rapid formation, rounded shape, and scarcity of organelles within the protrusion. Blebs are formed during apoptosis and other cellular processes, including cell locomotion, cell division, and as a result of physical or chemical stresses." [GOC:mtg_apoptosis, PMID:12083798, PMID:16624291, http://en.wikipedia.org/wiki/Bleb_(cell_biology)]
+subset: goslim_pir  ! PIR GO slim
+synonym: "plasma membrane bleb" EXACT [GOC:pr]
+xref: Wikipedia:Bleb_(cell_biology)
+is_a: GO:0042995  ! cell projection
+
+[Term]
+id: GO:0032060
+name: bleb assembly
+namespace: biological_process
+def: "The assembly of a bleb, a cell extension caused by localized decoupling of the cytoskeleton from the plasma membrane and characterized by rapid formation, rounded shape, and scarcity of organelles within the protrusion. Plasma membrane blebbing occurs during apoptosis and other cellular processes, including cell locomotion, cell division, and as a result of physical or chemical stresses." [GOC:mah, GOC:mtg_apoptosis, PMID:12083798, PMID:16624291, http://en.wikipedia.org/wiki/Bleb_(cell_biology)]
+synonym: "blebbing" BROAD [GOC:pr]
+synonym: "cell blebbing" EXACT []
+synonym: "membrane blebbing" BROAD [GOC:pr]
+synonym: "plasma membrane bleb assembly" EXACT [GOC:pr]
+synonym: "plasma membrane blebbing" EXACT [GOC:pr]
+is_a: GO:0030031  ! cell projection assembly
+relationship: results_in_assembly_of GO:0032059 ! bleb
+intersection_of: GO:0022607  ! cellular component assembly
+intersection_of: results_in_assembly_of GO:0032059 ! bleb
+
+[Term]
+id: GO:0042995
+name: cell projection
+namespace: cellular_component
+def: "A prolongation or process extending from a cell, e.g. a flagellum or axon." [GOC:jl, http://www.cogsci.princeton.edu/~wn/]
+subset: goslim_mouse  ! Mouse GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cell process" BROAD []
+synonym: "cellular process" BROAD []
+synonym: "cellular projection" EXACT []
+is_a: GO:0044464  ! cell part
+relationship: has_part GO:0098590 ! plasma membrane region
+
+[Term]
+id: GO:0044085
+name: cellular component biogenesis
+namespace: biological_process
+alt_id: GO:0071843
+def: "A process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a cellular component. Includes biosynthesis of constituent macromolecules, and those macromolecular modifications that are involved in synthesis or assembly of the cellular component." [GOC:jl, GOC:mah]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cellular component biogenesis at cellular level" EXACT []
+is_a: GO:0071840  ! cellular component organization or biogenesis
+
+[Term]
+id: GO:0044425
+name: membrane part
+namespace: cellular_component
+def: "Any constituent part of a membrane, a double layer of lipid molecules that encloses all cells, and, in eukaryotes, many organelles; may be a single or double lipid bilayer; also includes associated proteins." [GOC:jl]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: goantislim_grouping  ! Grouping classes that can be excluded
+subset: gocheck_do_not_annotate  ! Term not to be used for direct annotation
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0005575  ! cellular_component
+relationship: part_of GO:0016020 ! membrane
+intersection_of: GO:0005575  ! cellular_component
+intersection_of: part_of GO:0016020 ! membrane
+
+[Term]
+id: GO:0044459
+name: plasma membrane part
+namespace: cellular_component
+def: "Any constituent part of the plasma membrane, the membrane surrounding a cell that separates the cell from its external environment. It consists of a phospholipid bilayer and associated proteins." [GOC:jl]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: goantislim_grouping  ! Grouping classes that can be excluded
+subset: gocheck_do_not_annotate  ! Term not to be used for direct annotation
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0044425  ! membrane part
+is_a: GO:0044464  ! cell part
+relationship: part_of GO:0005886 ! plasma membrane
+intersection_of: GO:0005575  ! cellular_component
+intersection_of: part_of GO:0005886 ! plasma membrane
+
+[Term]
+id: GO:0044464
+name: cell part
+namespace: cellular_component
+def: "Any constituent part of a cell, the basic structural and functional unit of all organisms." [GOC:jl]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: goantislim_grouping  ! Grouping classes that can be excluded
+subset: gocheck_do_not_annotate  ! Term not to be used for direct annotation
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "cellular subcomponent" EXACT [NIF_Subcellular:sao628508602]
+synonym: "protoplast" RELATED [GOC:mah]
+xref: NIF_Subcellular:sao628508602
+is_a: GO:0005575  ! cellular_component
+relationship: part_of GO:0005623 ! cell
+intersection_of: GO:0005575  ! cellular_component
+intersection_of: part_of GO:0005623 ! cell
+
+[Term]
+id: GO:0044699
+name: single-organism process
+namespace: biological_process
+def: "A biological process that involves only one organism." [GOC:jl]
+synonym: "single organism process" EXACT []
+is_a: GO:0008150  ! biological_process
+relationship: bearer_of PATO:0002487 ! single organismal process quality
+intersection_of: GO:0008150  ! biological_process
+intersection_of: bearer_of PATO:0002487 ! single organismal process quality
+disjoint_from: GO:0044848  ! biological phase
+
+[Term]
+id: GO:0044700
+name: single organism signaling
+namespace: biological_process
+def: "A signaling process occurring within a single organism." [GOC:jl]
+is_a: GO:0023052  ! signaling
+is_a: GO:0044699  ! single-organism process
+relationship: bearer_of PATO:0002487 ! single organismal process quality
+intersection_of: GO:0023052  ! signaling
+intersection_of: bearer_of PATO:0002487 ! single organismal process quality
+
+[Term]
+id: GO:0044763
+name: single-organism cellular process
+namespace: biological_process
+def: "Any process that is carried out at the cellular level, occurring within a single organism." [GOC:jl]
+is_a: GO:0009987  ! cellular process
+is_a: GO:0044699  ! single-organism process
+relationship: bearer_of PATO:0002487 ! single organismal process quality
+intersection_of: GO:0009987  ! cellular process
+intersection_of: bearer_of PATO:0002487 ! single organismal process quality
+
+[Term]
+id: GO:0050789
+name: regulation of biological process
+namespace: biological_process
+alt_id: GO:0050791
+def: "Any process that modulates the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule." [GOC:ai, GOC:go_curators]
+subset: goslim_aspergillus  ! Aspergillus GO slim
+subset: goslim_candida  ! Candida GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "regulation of physiological process" EXACT []
+is_a: GO:0065007  ! biological regulation
+relationship: regulates GO:0008150 ! biological_process
+intersection_of: GO:0008150  ! biological_process
+intersection_of: regulates GO:0008150 ! biological_process
+
+[Term]
+id: GO:0050794
+name: regulation of cellular process
+namespace: biological_process
+alt_id: GO:0051244
+def: "Any process that modulates the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators]
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "regulation of cellular physiological process" EXACT []
+is_a: GO:0050789  ! regulation of biological process
+relationship: regulates GO:0009987 ! cellular process
+intersection_of: GO:0008150  ! biological_process
+intersection_of: regulates GO:0009987 ! cellular process
+
+[Term]
+id: GO:0050896
+name: response to stimulus
+namespace: biological_process
+alt_id: GO:0051869
+def: "Any process that results in a change in state or activity of a cell or an organism (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus. The process begins with detection of the stimulus and ends with a change in state or activity or the cell or organism." [GOC:ai, GOC:bf]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_manually_annotate  ! Term not to be used for direct manual annotation
+subset: goslim_mouse  ! Mouse GO slim
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "physiological response to stimulus" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0051716
+name: cellular response to stimulus
+namespace: biological_process
+def: "Any process that results in a change in state or activity of a cell (in terms of movement, secretion, enzyme production, gene expression, etc.) as a result of a stimulus. The process begins with detection of the stimulus by a cell and ends with a change in state or activity or the cell." [GOC:bf, GOC:jl]
+comment: Note that this term is in the subset of terms that should not be used for direct gene product annotation. Instead, select a child term or, if no appropriate child term exists, please request a new term. Direct annotations to this term may be amended during annotation QC.
+subset: gocheck_do_not_manually_annotate  ! Term not to be used for direct manual annotation
+subset: gosubset_prok  ! Prokaryotic GO subset
+is_a: GO:0009987  ! cellular process
+is_a: GO:0050896  ! response to stimulus
+
+[Term]
+id: GO:0065007
+name: biological regulation
+namespace: biological_process
+def: "Any process that modulates a measurable attribute of any biological process, quality or function." [GOC:dph, GOC:isa_complete, GOC:mah, GOC:pr, GOC:vw]
+subset: goslim_pir  ! PIR GO slim
+subset: gosubset_prok  ! Prokaryotic GO subset
+synonym: "regulation" BROAD []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0071840
+name: cellular component organization or biogenesis
+namespace: biological_process
+alt_id: GO:0071841
+def: "A process that results in the biosynthesis of constituent macromolecules, assembly, arrangement of constituent parts, or disassembly of a cellular component." [GOC:mah]
+subset: goslim_metagenomics  ! Metagenomics GO slim
+synonym: "cellular component organisation or biogenesis" EXACT [GOC:mah]
+synonym: "cellular component organisation or biogenesis at cellular level" EXACT [GOC:mah]
+synonym: "cellular component organization or biogenesis at cellular level" EXACT []
+is_a: GO:0008150  ! biological_process
+
+[Term]
+id: GO:0071944
+name: cell periphery
+namespace: cellular_component
+def: "The part of a cell encompassing the cell cortex, the plasma membrane, and any external encapsulating structures." [GOC:mah]
+is_a: GO:0044464  ! cell part
+
+[Term]
+id: GO:0097190
+name: apoptotic signaling pathway
+namespace: biological_process
+alt_id: GO:0008624
+def: "A series of molecular signals which triggers the apoptotic death of a cell. The pathway starts with reception of a signal, and ends when the execution phase of apoptosis is triggered." [GOC:mtg_apoptosis]
+comment: This term can be used to annotate gene products involved in apoptotic events happening downstream of the cross-talk point between the extrinsic and intrinsic apoptotic pathways. The cross-talk starts when caspase-8 cleaves Bid and truncated Bid interacts with mitochondria. From this point on it is not possible to distinguish between extrinsic and intrinsic pathways.
+synonym: "apoptotic signalling pathway" EXACT [GOC:mah]
+synonym: "induction of apoptosis by extracellular signals" EXACT []
+xref: Reactome:REACT_101039
+xref: Reactome:REACT_101287
+xref: Reactome:REACT_101722
+xref: Reactome:REACT_102105
+xref: Reactome:REACT_102682
+xref: Reactome:REACT_103565
+xref: Reactome:REACT_104430
+xref: Reactome:REACT_104446
+xref: Reactome:REACT_104880
+xref: Reactome:REACT_105789
+xref: Reactome:REACT_1059
+xref: Reactome:REACT_106019
+xref: Reactome:REACT_106417
+xref: Reactome:REACT_107145
+xref: Reactome:REACT_107277
+xref: Reactome:REACT_108226
+xref: Reactome:REACT_108738
+xref: Reactome:REACT_108954
+xref: Reactome:REACT_110327
+xref: Reactome:REACT_110777
+xref: Reactome:REACT_113012
+xref: Reactome:REACT_113720
+xref: Reactome:REACT_114928
+xref: Reactome:REACT_115331
+xref: Reactome:REACT_13720
+xref: Reactome:REACT_13806
+xref: Reactome:REACT_1426
+xref: Reactome:REACT_1619
+xref: Reactome:REACT_28136
+xref: Reactome:REACT_30777
+xref: Reactome:REACT_32035
+xref: Reactome:REACT_33023
+xref: Reactome:REACT_33363
+xref: Reactome:REACT_47012
+xref: Reactome:REACT_78512
+xref: Reactome:REACT_78709
+xref: Reactome:REACT_79738
+xref: Reactome:REACT_81353
+xref: Reactome:REACT_81381
+xref: Reactome:REACT_82611
+xref: Reactome:REACT_83750
+xref: Reactome:REACT_84151
+xref: Reactome:REACT_85830
+xref: Reactome:REACT_86320
+xref: Reactome:REACT_86807
+xref: Reactome:REACT_88410
+xref: Reactome:REACT_88562
+xref: Reactome:REACT_89305
+xref: Reactome:REACT_89421
+xref: Reactome:REACT_900
+xref: Reactome:REACT_90409
+xref: Reactome:REACT_90414
+xref: Reactome:REACT_90980
+xref: Reactome:REACT_91488
+xref: Reactome:REACT_92659
+xref: Reactome:REACT_92947
+xref: Reactome:REACT_93354
+xref: Reactome:REACT_93927
+xref: Reactome:REACT_94832
+xref: Reactome:REACT_94837
+xref: Reactome:REACT_95750
+xref: Reactome:REACT_95777
+xref: Reactome:REACT_96066
+xref: Reactome:REACT_96229
+xref: Reactome:REACT_96867
+xref: Reactome:REACT_97301
+xref: Reactome:REACT_98119
+xref: Reactome:REACT_98804
+xref: Reactome:REACT_99367
+xref: Reactome:REACT_99865
+is_a: GO:0007165  ! signal transduction
+relationship: part_of GO:0006915 ! apoptotic process
+
+[Term]
+id: GO:0097194
+name: execution phase of apoptosis
+namespace: biological_process
+def: "A stage of the apoptotic process that starts with the controlled breakdown of the cell through the action of effector caspases or other effector molecules (e.g. cathepsins, calpains etc.). Key steps of the execution phase are rounding-up of the cell, retraction of pseudopodes, reduction of cellular volume (pyknosis), chromatin condensation, nuclear fragmentation (karyorrhexis), plasma membrane blebbing and fragmentation of the cell into apoptotic bodies. When the execution phase is completed, the cell has died." [GOC:mtg_apoptosis, PMID:21760595]
+synonym: "apoptosis" NARROW []
+synonym: "execution phase of apoptotic process" EXACT []
+is_a: GO:0044763  ! single-organism cellular process
+relationship: has_part GO:0032060 ! bleb assembly
+relationship: part_of GO:0006915 ! apoptotic process
+
+[Term]
+id: GO:0098590
+name: plasma membrane region
+namespace: cellular_component
+def: "A membrane that is a (regional) part of the plasma membrane." [GOC:dos]
+comment: Note that this term should not be used for direct manual annotation as it should always be possible to choose a more specific subclass.
+subset: gocheck_do_not_manually_annotate  ! Term not to be used for direct manual annotation
+synonym: "region of plasma membrane" EXACT []
+is_a: GO:0016020  ! membrane
+is_a: GO:0044459  ! plasma membrane part
+relationship: part_of GO:0005886 ! plasma membrane
+intersection_of: GO:0016020  ! membrane
+intersection_of: part_of GO:0005886 ! plasma membrane
+
+[Term]
+id: GO:1904019
+name: epithelial cell apoptotic process
+namespace: biological_process
+def: "Any apoptotic process in an epithelial cell." [GOC:TermGenie, GO_REF:0000085, PMID:19137015]
+synonym: "epithelial cell apoptosis" NARROW [GOC:TermGenie]
+synonym: "epitheliocyte apoptosis" NARROW [GOC:TermGenie]
+synonym: "epitheliocyte apoptotic process" EXACT [GOC:TermGenie]
+is_a: GO:0006915  ! apoptotic process
+relationship: occurs_in CL:0000066 ! epithelial cell
+intersection_of: GO:0006915  ! apoptotic process
+intersection_of: occurs_in CL:0000066 ! epithelial cell
+
+[Term]
+id: GO:1990086
+name: lens fiber cell apoptotic process
+namespace: biological_process
+def: "Any apoptotic process in a lens fiber cell. Lens fiber cells are elongated, tightly packed cells that make up the bulk of the mature lens in a camera-type eye." [CL:0011004, GOC:hjd, PMID:11095619]
+is_a: GO:1904019  ! epithelial cell apoptotic process
+relationship: occurs_in CL:0011004 ! lens fiber cell
+intersection_of: GO:0006915  ! apoptotic process
+intersection_of: occurs_in CL:0011004 ! lens fiber cell
+
+[Term]
+id: NCBITaxon:1
+name: root
+namespace: ncbi_taxonomy
+synonym: "all" RELATED []
+xref: GC_ID:1
+
+[Term]
+id: NCBITaxon:131567
+name: cellular organisms
+namespace: ncbi_taxonomy
+synonym: "biota" RELATED []
+xref: GC_ID:1
+is_a: NCBITaxon:1  ! root
+is_a: NCBITaxon_Union:0000030  ! cellular organisms or viruses
+
+[Term]
+id: NCBITaxon:2759
+name: Eukaryota
+namespace: ncbi_taxonomy
+synonym: "Eucarya" RELATED []
+synonym: "Eucaryotae" RELATED []
+synonym: "Eukarya" RELATED []
+synonym: "Eukaryotae" RELATED []
+synonym: "eucaryotes" EXACT []
+synonym: "eukaryotes" EXACT []
+xref: GC_ID:1
+xref: PMID:23020233
+is_a: NCBITaxon:131567  ! cellular organisms
+is_a: NCBITaxon_Union:0000025  ! Archaea or Eukaryota
+relationship: in_taxon NCBITaxon:2759 ! Eukaryota
+property_value: has_rank NCBITaxon:superkingdom
+
+[Term]
+id: NCBITaxon:33154
+name: Opisthokonta
+namespace: ncbi_taxonomy
+synonym: "Fungi/Metazoa group" RELATED []
+synonym: "opisthokonts" RELATED []
+xref: GC_ID:1
+is_a: NCBITaxon:2759  ! Eukaryota
+is_a: NCBITaxon_Union:0000024  ! Unikonta
+relationship: in_taxon NCBITaxon:33154 ! Opisthokonta
+disjoint_from: NCBITaxon:33630  ! Alveolata
+disjoint_from: NCBITaxon:33634  ! Stramenopiles
+disjoint_from: NCBITaxon:33682  ! Euglenozoa
+disjoint_from: NCBITaxon:38254  ! Glaucocystophyceae
+disjoint_from: NCBITaxon:554915  ! Amoebozoa
+
+[Term]
+id: NCBITaxon:33208
+name: Metazoa
+namespace: ncbi_taxonomy
+synonym: "Animalia" RELATED []
+synonym: "animals" RELATED []
+synonym: "metazoans" EXACT []
+synonym: "multicellular animals" EXACT []
+xref: GC_ID:1
+is_a: NCBITaxon:33154  ! Opisthokonta
+relationship: in_taxon NCBITaxon:33208 ! Metazoa
+disjoint_from: NCBITaxon:4751  ! Fungi
+property_value: has_rank NCBITaxon:kingdom
+
+[Term]
+id: NCBITaxon:33213
+name: Bilateria
+namespace: ncbi_taxonomy
+xref: GC_ID:1
+is_a: NCBITaxon:6072  ! Eumetazoa
+relationship: in_taxon NCBITaxon:33213 ! Bilateria
+
+[Term]
+id: NCBITaxon:33511
+name: Deuterostomia
+namespace: ncbi_taxonomy
+synonym: "deuterostomes" EXACT []
+xref: GC_ID:1
+is_a: NCBITaxon:33213  ! Bilateria
+relationship: in_taxon NCBITaxon:33511 ! Deuterostomia
+disjoint_from: NCBITaxon:6157  ! Platyhelminthes
+
+[Term]
+id: NCBITaxon:6072
+name: Eumetazoa
+namespace: ncbi_taxonomy
+xref: GC_ID:1
+is_a: NCBITaxon:33208  ! Metazoa
+relationship: in_taxon NCBITaxon:6072 ! Eumetazoa
+
+[Term]
+id: NCBITaxon:7711
+name: Chordata
+namespace: ncbi_taxonomy
+synonym: "chordates" EXACT []
+xref: GC_ID:1
+is_a: NCBITaxon:33511  ! Deuterostomia
+relationship: in_taxon NCBITaxon:7711 ! Chordata
+property_value: has_rank NCBITaxon:phylum
+
+[Term]
+id: NCBITaxon_Union:0000024
+name: Unikonta
+namespace: gene_ontology
+def: "The unikonts have a triple-gene fusion that is lacking in the bikonts. The three genes that are fused together in the unikonts but not bacteria or bikonts encode enzymes for synthesis of the pyrimidine nucleotides: carbamoyl phosphate synthase, dihydroorotase, aspartate carbamoyltransferase. This must have involved a double fusion, a rare pair of events, supporting the shared ancestry of Opisthokonta and Amoebozoa." []
+synonym: "unikonts" EXACT []
+is_a: NCBITaxon:2759  ! Eukaryota
+union_of: NCBITaxon:33154  ! Opisthokonta
+union_of: NCBITaxon:554915  ! Amoebozoa
+
+[Term]
+id: NCBITaxon_Union:0000025
+name: Archaea or Eukaryota
+namespace: gene_ontology
+synonym: "archaea-eukaryota" EXACT []
+is_a: NCBITaxon:131567  ! cellular organisms
+union_of: NCBITaxon:2157  ! Archaea
+union_of: NCBITaxon:2759  ! Eukaryota
+
+[Term]
+id: NCBITaxon_Union:0000030
+name: cellular organisms or viruses
+namespace: gene_ontology
+is_a: NCBITaxon:1  ! root
+union_of: NCBITaxon:10239  ! Viruses
+union_of: NCBITaxon:131567  ! cellular organisms
+
+[Term]
+id: PATO:0000001
+name: quality
+namespace: gene_ontology
+
+[Term]
+id: PATO:0001236
+name: process quality
+namespace: gene_ontology
+is_a: PATO:0000001  ! quality
+
+[Term]
+id: PATO:0002487
+name: single organismal process quality
+namespace: gene_ontology
+is_a: PATO:0001236  ! process quality
+
+[Term]
+id: UBERON:0000019
+name: camera-type eye
+namespace: gene_ontology
+def: "An organ of sight that includes the camera-type eyeball and supporting structures such as the lacrimal apparatus, the conjunctiva, the eyelid." []
+synonym: "camera-type eye plus associated structures" RELATED []
+synonym: "eye" BROAD []
+synonym: "eyes" RELATED []
+synonym: "orbital part of face" RELATED []
+synonym: "orbital region" RELATED []
+synonym: "regio orbitalis" EXACT []
+synonym: "vertebrate eye" NARROW []
+is_a: UBERON:0000047  ! simple eye
+is_a: UBERON:0004121  ! ectoderm-derived structure
+is_a: UBERON:0010314  ! structure with developmental contribution from neural crest
+is_a: UBERON:0015212  ! lateral structure
+relationship: develops_from UBERON:0003072 ! optic cup
+relationship: part_of UBERON:0004088 ! orbital region
+
+[Term]
+id: UBERON:0000020
+name: sense organ
+namespace: gene_ontology
+def: "An organ that is capable of transducing sensory stimulus to the nervous system." []
+synonym: "Sinnesorgan" RELATED []
+synonym: "organ of sense organ system" EXACT []
+synonym: "organ of sensory organ system" EXACT []
+synonym: "organ of sensory system" EXACT []
+synonym: "sense organ system organ" EXACT []
+synonym: "sensillum" NARROW []
+synonym: "sensor" RELATED []
+synonym: "sensory organ" EXACT []
+synonym: "sensory organ system organ" EXACT []
+synonym: "sensory system organ" EXACT []
+is_a: UBERON:0000062  ! organ
+relationship: part_of UBERON:0001032 ! sensory system
+
+[Term]
+id: UBERON:0000033
+name: head
+namespace: gene_ontology
+def: "The head is the anterior-most division of the body [GO]." []
+synonym: "adult head" NARROW []
+synonym: "cephalic area" RELATED []
+synonym: "head (volume)" EXACT []
+is_a: UBERON:0011676  ! subdivision of organism along main body axis
+relationship: only_in_taxon NCBITaxon:33213 ! Bilateria
+relationship: part_of UBERON:0007811 ! craniocervical region
+
+[Term]
+id: UBERON:0000047
+name: simple eye
+namespace: gene_ontology
+def: "An eye with one concave chamber. Note that 'simple' does not imply a reduced level of complexity or acuity." []
+is_a: UBERON:0000970  ! eye
+
+[Term]
+id: UBERON:0000061
+name: anatomical structure
+namespace: gene_ontology
+def: "Material anatomical entity that is a single connected structure with inherent 3D shape generated by coordinated expression of the organism's own genome." []
+synonym: "biological structure" EXACT []
+synonym: "connected biological structure" EXACT []
+is_a: UBERON:0000465  ! material anatomical entity
+
+[Term]
+id: UBERON:0000062
+name: organ
+namespace: gene_ontology
+def: "Anatomical structure that performs a specific function or group of functions [WP]." []
+synonym: "anatomical unit" RELATED []
+synonym: "body organ" RELATED []
+synonym: "element" RELATED []
+is_a: UBERON:0010000  ! multicellular anatomical structure
+relationship: part_of UBERON:0000467 ! anatomical system
+disjoint_from: UBERON:0034921  ! multi organ part structure
+
+[Term]
+id: UBERON:0000063
+name: organ subunit
+namespace: gene_ontology
+def: "A part of an organ that constitutes a distinct modular sub-unit. In some cases, the organ may also contain other sub-units of identical or similar types, in other cases this may be a distinct entity." []
+synonym: "organ region with fixed fiat boundary" RELATED []
+synonym: "organ segment" RELATED []
+synonym: "segment of organ" RELATED []
+is_a: UBERON:0000064  ! organ part
+
+[Term]
+id: UBERON:0000064
+name: organ part
+namespace: gene_ontology
+def: "A multicellular structure that is a part of an organ." []
+synonym: "cardinal organ part" EXACT []
+synonym: "regional part of organ" RELATED []
+is_a: UBERON:0010000  ! multicellular anatomical structure
+relationship: part_of UBERON:0000062 ! organ
+
+[Term]
+id: UBERON:0000153
+name: anterior region of body
+namespace: gene_ontology
+is_a: UBERON:0000475  ! organism subdivision
+relationship: only_in_taxon NCBITaxon:33213 ! Bilateria
+disjoint_from: UBERON:0000154  ! posterior region of body
+
+[Term]
+id: UBERON:0000307
+name: blastula
+namespace: gene_ontology
+def: "Organism at the blastula stage - an early stage of embryonic development in animals. It is produced by cleavage of a fertilized ovum and consists of a spherical layer of around 128 cells surrounding a central fluid-filled cavity called the blastocoel. The blastula follows the morula and precedes the gastrula in the developmental sequence." []
+synonym: "blastosphere" RELATED []
+synonym: "blastula embryo" EXACT []
+is_a: UBERON:0000922  ! embryo
+relationship: develops_from UBERON:0007010 ! cleaving embryo
+
+[Term]
+id: UBERON:0000465
+name: material anatomical entity
+namespace: gene_ontology
+def: "Anatomical entity that has mass." []
+is_a: UBERON:0001062  ! anatomical entity
+
+[Term]
+id: UBERON:0000467
+name: anatomical system
+namespace: gene_ontology
+def: "Multicellular, connected anatomical structure that has multiple organs as parts and whose parts work together to achieve some shared function." []
+synonym: "anatomical systems" RELATED []
+synonym: "body system" EXACT []
+synonym: "connected anatomical system" EXACT []
+synonym: "organ system" EXACT []
+synonym: "system" BROAD []
+is_a: UBERON:0000061  ! anatomical structure
+relationship: part_of UBERON:0000468 ! multicellular organism
+
+[Term]
+id: UBERON:0000468
+name: multicellular organism
+namespace: gene_ontology
+def: "Anatomical structure that is an individual member of a species and consists of more than one cell." []
+synonym: "Koerper" RELATED []
+synonym: "animal" NARROW []
+synonym: "body" RELATED []
+synonym: "multi-cellular organism" EXACT []
+synonym: "organism" EXACT []
+synonym: "whole body" RELATED []
+synonym: "whole organism" EXACT []
+is_a: UBERON:0010000  ! multicellular anatomical structure
+
+[Term]
+id: UBERON:0000475
+name: organism subdivision
+namespace: gene_ontology
+def: "Anatomical structure which is a subdivision of a whole organism, consisting of components of multiple anatomical systems, largely surrounded by a contiguous region of integument." []
+synonym: "anatomic region" EXACT []
+synonym: "body part" RELATED []
+synonym: "body region" RELATED []
+synonym: "cardinal body part" RELATED []
+is_a: UBERON:0010000  ! multicellular anatomical structure
+relationship: part_of UBERON:0000468 ! multicellular organism
+
+[Term]
+id: UBERON:0000479
+name: tissue
+namespace: gene_ontology
+def: "Multicellular anatomical structure that consists of many cells of one or a few types, arranged in an extracellular matrix such that their long-range organisation is at least partly a repetition of their short-range organisation." []
+synonym: "portion of tissue" EXACT []
+synonym: "simple tissue" NARROW []
+synonym: "tissue portion" EXACT []
+is_a: UBERON:0010000  ! multicellular anatomical structure
+relationship: part_of UBERON:0000468 ! multicellular organism
+
+[Term]
+id: UBERON:0000481
+name: multi-tissue structure
+namespace: gene_ontology
+def: "Anatomical structure that has as its parts two or more portions of tissue of at least two different types and which through specific morphogenetic processes forms a single distinct structural unit demarcated by bona-fide boundaries from other distinct structural units of different types." []
+synonym: "multi-tissue structures" RELATED []
+is_a: UBERON:0010000  ! multicellular anatomical structure
+relationship: part_of NCBITaxon:6072 ! Eumetazoa
+
+[Term]
+id: UBERON:0000483
+name: epithelium
+namespace: gene_ontology
+def: "Portion of tissue, that consists of one or more layers of epithelial cells connected to each other by cell junctions and which is underlain by a basal lamina. Examples: simple squamous epithelium, glandular cuboidal epithelium, transitional epithelium, myoepithelium[CARO]." []
+synonym: "epithelial tissue" EXACT []
+synonym: "portion of epithelium" EXACT []
+is_a: UBERON:0000479  ! tissue
+relationship: only_in_taxon NCBITaxon:6072 ! Eumetazoa
+union_of: UBERON:0000486  ! multilaminar epithelium
+union_of: UBERON:0000490  ! unilaminar epithelium
+
+[Term]
+id: UBERON:0000490
+name: unilaminar epithelium
+namespace: gene_ontology
+def: "Epithelium which consists of a single layer of epithelial cells. Examples: endothelium, mesothelium, glandular squamous epithelium.[FMA]" []
+synonym: "simple epithelium" EXACT []
+synonym: "unilaminar epithelia" RELATED []
+is_a: UBERON:0000483  ! epithelium
+
+[Term]
+id: UBERON:0000922
+name: embryo
+namespace: gene_ontology
+def: "Anatomical entity that comprises the organism in the early stages of growth and differentiation that are characterized by cleavage, the laying down of fundamental tissues, and the formation of primitive organs and organ systems. For example, for mammals, the process would begin with zygote formation and end with birth. For insects, the process would begin at zygote formation and end with larval hatching. For plant zygotic embryos, this would be from zygote formation to the end of seed dormancy. For plant vegetative embryos, this would be from the initial determination of the cell or group of cells to form an embryo until the point when the embryo becomes independent of the parent plant." []
+synonym: "developing organism" RELATED []
+synonym: "developmental tissue" RELATED []
+synonym: "embryonic organism" EXACT []
+is_a: UBERON:0000468  ! multicellular organism
+
+[Term]
+id: UBERON:0000923
+name: germ layer
+namespace: gene_ontology
+def: "A layer of cells produced during the process of gastrulation during the early development of the animal embryo, which is distinct from other such layers of cells, as an early step of cell differentiation. The three types of germ layers are the endoderm, ectoderm, and mesoderm." []
+synonym: "embryonic germ layer" RELATED []
+synonym: "embryonic germ layers" RELATED []
+synonym: "embryonic tissue" BROAD []
+synonym: "germinal layer" EXACT []
+synonym: "primary germ layer" NARROW []
+is_a: UBERON:0010316  ! germ layer / neural crest
+relationship: only_in_taxon NCBITaxon:6072 ! Eumetazoa
+
+[Term]
+id: UBERON:0000924
+name: ectoderm
+namespace: gene_ontology
+def: "Primary germ layer that is the outer of the embryo's three germ layers and gives rise to epidermis and neural tissue." []
+synonym: "embryonic ectoderm" EXACT []
+is_a: UBERON:0000923  ! germ layer
+relationship: immediate_transformation_of UBERON:0006601 ! presumptive ectoderm
+
+[Term]
+id: UBERON:0000965
+name: lens of camera-type eye
+namespace: gene_ontology
+def: "Transparent part of camera-type eye that helps to refract light to be focused on the retina." []
+synonym: "camera-type eye lens" EXACT []
+synonym: "crystalline lens" RELATED []
+synonym: "eye lens" EXACT []
+synonym: "lens" EXACT []
+synonym: "lens crystallina" EXACT []
+synonym: "lenses" RELATED []
+synonym: "ocular lens" RELATED []
+is_a: UBERON:0004121  ! ectoderm-derived structure
+is_a: UBERON:0005389  ! transparent eye structure
+relationship: develops_from UBERON:0005426 ! lens vesicle
+relationship: part_of UBERON:0001801 ! anterior segment of eyeball
+
+[Term]
+id: UBERON:0000970
+name: eye
+namespace: gene_ontology
+def: "An organ that detects light." []
+synonym: "light-detecting organ" RELATED []
+synonym: "visual apparatus" RELATED []
+is_a: UBERON:0000020  ! sense organ
+relationship: part_of UBERON:0002104 ! visual system
+
+[Term]
+id: UBERON:0001032
+name: sensory system
+namespace: gene_ontology
+def: "Anatomical system that overlaps the nervous system and is responsible for receiving and processing sensory information." []
+synonym: "organa sensuum" EXACT []
+synonym: "sense organ subsystem" EXACT []
+synonym: "sense organs" EXACT []
+synonym: "sense organs set" EXACT []
+synonym: "sensory organ system" RELATED []
+synonym: "sensory subsystem" EXACT []
+synonym: "sensory systems" EXACT []
+synonym: "set of sense organs" RELATED []
+is_a: UBERON:0000467  ! anatomical system
+relationship: part_of UBERON:0004456 ! entire sense organ system
+
+[Term]
+id: UBERON:0001048
+name: primordium
+namespace: gene_ontology
+def: "Primordia are populations of contiguous cells that are morphologically distinct and already correspond in extent to a later organ/tissue[FBbt, Hartenstein, V. (2004)]." []
+synonym: "bud" RELATED []
+synonym: "future organ" RELATED []
+synonym: "placode" RELATED []
+synonym: "primordia" RELATED []
+synonym: "rudiment" RELATED []
+is_a: UBERON:0005423  ! developing anatomical structure
+relationship: part_of UBERON:0000468 ! multicellular organism
+
+[Term]
+id: UBERON:0001062
+name: anatomical entity
+namespace: gene_ontology
+def: "Biological entity that is either an individual member of a biological species or constitutes the structural organization of an individual member of a biological species." []
+
+[Term]
+id: UBERON:0001444
+name: subdivision of head
+namespace: gene_ontology
+synonym: "head region" RELATED []
+synonym: "head subdivision" EXACT []
+synonym: "region of head" RELATED []
+is_a: UBERON:0000475  ! organism subdivision
+relationship: part_of UBERON:0000033 ! head
+
+[Term]
+id: UBERON:0001456
+name: face
+namespace: gene_ontology
+def: "A subdivision of the head that has as parts the layers deep to the surface of the anterior surface, including the mouth, eyes, and nose (when present). In vertebrates, this includes the facial skeleton and structures superficial to the facial skeleton (cheeks, mouth, eyeballs, skin of face, etc)." []
+synonym: "facia/facies" RELATED []
+synonym: "visage" RELATED []
+is_a: UBERON:0001444  ! subdivision of head
+
+[Term]
+id: UBERON:0001801
+name: anterior segment of eyeball
+namespace: gene_ontology
+def: "any of the parts of the eye that lie in front of, or ventral to, the lens (inclusive)" []
+synonym: "anterior eye segment" EXACT []
+synonym: "anterior segment eye" EXACT []
+synonym: "anterior segment of eye" EXACT []
+synonym: "anterior segment of the eye" EXACT []
+synonym: "eye anterior segment" EXACT []
+synonym: "segmentum anterius (bulbus oculi)" EXACT []
+synonym: "segmentum anterius bulbi oculi" RELATED []
+is_a: UBERON:0000063  ! organ subunit
+is_a: UBERON:0004121  ! ectoderm-derived structure
+relationship: part_of UBERON:0010230 ! eyeball of camera-type eye
+disjoint_from: UBERON:0001802  ! posterior segment of eyeball
+
+[Term]
+id: UBERON:0002050
+name: embryonic structure
+namespace: gene_ontology
+def: "Anatomical structure that is part of an embryo." []
+synonym: "developing embryonic structure" EXACT []
+synonym: "developing structure" RELATED []
+synonym: "embryonale Struktur" RELATED []
+synonym: "embryonic anatomical structure" EXACT []
+synonym: "embryonic structures" RELATED []
+is_a: UBERON:0005423  ! developing anatomical structure
+intersection_of: UBERON:0005423  ! developing anatomical structure
+intersection_of: part_of UBERON:0000922 ! embryo
+
+[Term]
+id: UBERON:0002104
+name: visual system
+namespace: gene_ontology
+def: "The sensory system subserving the sense of vision." []
+synonym: "photosensory system" EXACT []
+synonym: "visual organ system" EXACT []
+is_a: UBERON:0001032  ! sensory system
+
+[Term]
+id: UBERON:0002346
+name: neurectoderm
+namespace: gene_ontology
+def: "Embryonic ectoderm that gives rise to nervous tissue." []
+synonym: "epithelium tubi neuralis; neuroectoderma" RELATED []
+synonym: "neuaral ectoderm" RELATED []
+synonym: "neural ectoderm" EXACT []
+synonym: "neuroectoderm" EXACT []
+synonym: "presumptive central nervous system" RELATED []
+synonym: "ventral neurogenic region" RELATED []
+is_a: UBERON:0000923  ! germ layer
+is_a: UBERON:0004121  ! ectoderm-derived structure
+relationship: develops_from UBERON:0000924 ! ectoderm
+
+[Term]
+id: UBERON:0002532
+name: epiblast (generic)
+namespace: gene_ontology
+def: "In amniote animal embryology, the epiblast is a tissue type derived either from the inner cell mass in mammals or the blastodisc in birds and reptiles. It lies above the hypoblast. In mammalian embryogenesis, the columnar cells of the epiblast are adjacent to the trophoblast, while the cuboidal cells of the hypoblast are closer to the blastocoele. The epiblast, whilst referred to as the primary ectoderm, differentiates to form all three layers of the trilaminar germ disc in a process called gastrulation[WP]. The outer of the two layers of the blastoderm that form during gastrulation, corresponding to primitive ectoderm during gastrulation and to the definitive ectoderm after gastrulation[ZFA]" []
+synonym: "blastocyst" RELATED []
+synonym: "ectoblast" RELATED []
+synonym: "epiblast" EXACT []
+synonym: "epiblastus" RELATED []
+synonym: "primitive ectoderm" RELATED []
+is_a: UBERON:0002050  ! embryonic structure
+
+[Term]
+id: UBERON:0002546
+name: cranial placode
+namespace: gene_ontology
+def: "Ectodermal placode that develops in the head into a part of the sensory nervous system. With a few exceptions (lens, adenohypophyseal), cranial placodes are neurogenic." []
+synonym: "cranial placodes" RELATED []
+synonym: "ectodermal cranial placode" EXACT []
+synonym: "ectodermal placode" BROAD []
+synonym: "placode" BROAD []
+is_a: UBERON:0005085  ! ectodermal placode
+relationship: only_in_taxon NCBITaxon:7711 ! Chordata
+relationship: part_of UBERON:0000033 ! head
+
+[Term]
+id: UBERON:0003056
+name: pre-chordal neural plate
+namespace: gene_ontology
+def: "The portion of neural plate anterior to the mid-hindbrain junction." []
+synonym: "anterior neural plate" RELATED []
+is_a: UBERON:0004121  ! ectoderm-derived structure
+is_a: UBERON:0005291  ! embryonic tissue
+relationship: part_of UBERON:0003075 ! neural plate
+
+[Term]
+id: UBERON:0003071
+name: eye primordium
+namespace: gene_ontology
+def: "Portion of tissue that is part of the anterior neural keel and will form the optic vesicle[ZFA]. A paired ectodermal placode that becomes invaginated to form the embryonic lens vesicles." []
+synonym: "eye anlage" RELATED []
+synonym: "eye field" RELATED []
+synonym: "eye placode" EXACT []
+synonym: "occular primordium" EXACT []
+synonym: "ocular primordium" EXACT []
+synonym: "optic field" RELATED []
+synonym: "optic placode" EXACT []
+synonym: "optic placode of camera-type eye" EXACT []
+synonym: "optic placodes" RELATED []
+synonym: "optic primordium" EXACT []
+is_a: UBERON:0000490  ! unilaminar epithelium
+is_a: UBERON:0001048  ! primordium
+is_a: UBERON:0005291  ! embryonic tissue
+is_a: UBERON:0006598  ! presumptive structure
+is_a: UBERON:0010371  ! ecto-epithelium
+relationship: part_of UBERON:0003056 ! pre-chordal neural plate
+
+[Term]
+id: UBERON:0003072
+name: optic cup
+namespace: gene_ontology
+def: "Multi-tissue structure that is comprised of neural and non-neural epithelial layers which will form the retina and retinal pigmented epithelium of the mature eye[ZFA]. double walled structured formed by expansion and invagination of the distal end of the optic vesicle that develops into the pigmented and sensory layers of the retina while the mouth of the optic cup eventually forms the pupil of the eye[MP]." []
+synonym: "eye cup" RELATED []
+synonym: "eyecup" RELATED []
+synonym: "ocular cup" RELATED []
+synonym: "ophtalmic cup" RELATED []
+is_a: UBERON:0000481  ! multi-tissue structure
+is_a: UBERON:0004121  ! ectoderm-derived structure
+relationship: develops_from UBERON:0004128 ! optic vesicle
+relationship: part_of UBERON:0010312 ! immature eye
+
+[Term]
+id: UBERON:0003073
+name: lens placode
+namespace: gene_ontology
+def: "A thickened portion of ectoderm which serves as the precursor to the lens. SOX2 and Pou2f1 are involved in its development[WP]." []
+synonym: "lens placodes" RELATED []
+synonym: "placoda lentis" RELATED []
+is_a: UBERON:0002546  ! cranial placode
+is_a: UBERON:0006598  ! presumptive structure
+is_a: UBERON:0010312  ! immature eye
+is_a: UBERON:0011814  ! non-neurogenic ectodermal placode
+relationship: part_of UBERON:0010312 ! immature eye
+
+[Term]
+id: UBERON:0003075
+name: neural plate
+namespace: gene_ontology
+def: "A region of embryonic ectodermal cells that lie directly above the notochord. During neurulation, they change shape and produce an infolding of the neural plate (the neural fold) that then seals to form the neural tube[XAO]. The earliest recognizable dorsal ectodermal primordium of the central nervous system present near the end of gastrulation before infolding to form the neural keel; consists of a thickened pseudostratified epithelium[ZFA]" []
+synonym: "lamina neuralis" RELATED []
+synonym: "presumptive central nervous system" RELATED []
+is_a: UBERON:0000483  ! epithelium
+is_a: UBERON:0005291  ! embryonic tissue
+is_a: UBERON:0010371  ! ecto-epithelium
+is_a: UBERON:0016879  ! future central nervous system
+relationship: immediate_transformation_of UBERON:0007284 ! presumptive neural plate
+relationship: only_in_taxon NCBITaxon:7711 ! Chordata
+
+[Term]
+id: UBERON:0004088
+name: orbital region
+namespace: gene_ontology
+def: "The subdivision of the face that includes the eye (eyeball plus adnexa such as eyelids) and the orbit of the skull and associated parts of the face such as the eyebrows, if present" []
+synonym: "content of orbital part of eye" EXACT []
+synonym: "eye region" EXACT []
+synonym: "ocular and peri-ocular region" RELATED []
+synonym: "ocular region" RELATED []
+synonym: "orbital content" RELATED []
+synonym: "orbital part of eye" RELATED []
+synonym: "orbital part of face" EXACT []
+is_a: UBERON:0001444  ! subdivision of head
+relationship: part_of UBERON:0001456 ! face
+
+[Term]
+id: UBERON:0004121
+name: ectoderm-derived structure
+namespace: gene_ontology
+def: "An anatomical structure that develops (entirely or partially) from the ectoderm." []
+synonym: "ectodermal deriviative" EXACT []
+is_a: UBERON:0000061  ! anatomical structure
+intersection_of: UBERON:0000061  ! anatomical structure
+intersection_of: develops_from UBERON:0000924 ! ectoderm
+
+[Term]
+id: UBERON:0004128
+name: optic vesicle
+namespace: gene_ontology
+def: "The optic vesicle is the evagination of neurectoderm that precedes formation of the optic cup[GO]. Portion of tissue that is comprised of neuroepitheium which has pinched off from the anterior neural keel and will form the optic cup[ZFA]." []
+synonym: "evagination" RELATED []
+synonym: "eye vesicle" RELATED []
+synonym: "ocular vesicle" RELATED []
+synonym: "optic vesicles" RELATED []
+is_a: UBERON:0000479  ! tissue
+is_a: UBERON:0004121  ! ectoderm-derived structure
+relationship: develops_from UBERON:0002346 ! neurectoderm
+relationship: develops_from UBERON:0003071 ! eye primordium
+relationship: part_of UBERON:0010312 ! immature eye
+
+[Term]
+id: UBERON:0004456
+name: entire sense organ system
+namespace: gene_ontology
+def: "Sum of all sensory systems in an organism." []
+synonym: "sense organ system" EXACT []
+is_a: UBERON:0000467  ! anatomical system
+
+[Term]
+id: UBERON:0004734
+name: gastrula
+namespace: gene_ontology
+def: "Organism at the gastrula stage." []
+synonym: "blastocystis trilaminaris" RELATED []
+synonym: "gastrula embryo" EXACT []
+synonym: "tri-laminar disc" RELATED []
+synonym: "tri-laminar disk" RELATED []
+synonym: "trilaminar blastocyst" RELATED []
+synonym: "trilaminar blastoderm" RELATED []
+synonym: "trilaminar disc" RELATED []
+synonym: "trilaminar disk" RELATED []
+synonym: "trilaminar germ" RELATED []
+is_a: UBERON:0000922  ! embryo
+relationship: develops_from UBERON:0000307 ! blastula
+
+[Term]
+id: UBERON:0005085
+name: ectodermal placode
+namespace: gene_ontology
+def: "An ectodermal placode is a thickening of the ectoderm that is the primordium of many structures derived from the ectoderm[GO]" []
+synonym: "epithelial placode" RELATED []
+is_a: UBERON:0001048  ! primordium
+is_a: UBERON:0002050  ! embryonic structure
+relationship: part_of UBERON:0000924 ! ectoderm
+
+[Term]
+id: UBERON:0005291
+name: embryonic tissue
+namespace: gene_ontology
+def: "A portion of tissue that is part of an embryo." []
+synonym: "developing tissue" RELATED []
+synonym: "portion of embryonic tissue" EXACT []
+is_a: UBERON:0000479  ! tissue
+relationship: part_of UBERON:0002050 ! embryonic structure
+intersection_of: UBERON:0000479  ! tissue
+intersection_of: part_of UBERON:0000922 ! embryo
+
+[Term]
+id: UBERON:0005389
+name: transparent eye structure
+namespace: gene_ontology
+def: "A transparent structure that is part of a visual sense organ, the function of which is to direct or focus light onto a photoreceptor array." []
+synonym: "lens" NARROW []
+is_a: UBERON:0000061  ! anatomical structure
+relationship: part_of UBERON:0000970 ! eye
+
+[Term]
+id: UBERON:0005423
+name: developing anatomical structure
+namespace: gene_ontology
+synonym: "developing structure" RELATED []
+synonym: "developmental structure" RELATED []
+synonym: "developmental tissue" RELATED []
+is_a: UBERON:0000465  ! material anatomical entity
+
+[Term]
+id: UBERON:0005426
+name: lens vesicle
+namespace: gene_ontology
+def: "Portion of tissue that gives rise to the lens." []
+synonym: "hollow lens vesicle" NARROW []
+synonym: "immature lens" RELATED []
+synonym: "lens mass" RELATED []
+synonym: "presumptive lens" RELATED []
+synonym: "solid lens vesicle" NARROW []
+is_a: UBERON:0000479  ! tissue
+is_a: UBERON:0004121  ! ectoderm-derived structure
+relationship: develops_from UBERON:0003073 ! lens placode
+
+[Term]
+id: UBERON:0006598
+name: presumptive structure
+namespace: gene_ontology
+def: "Portion of embryonic tissue determined by fate mapping to become a structure." []
+synonym: "future structure" EXACT []
+synonym: "presumptive structures" EXACT []
+is_a: UBERON:0002050  ! embryonic structure
+
+[Term]
+id: UBERON:0006601
+name: presumptive ectoderm
+namespace: gene_ontology
+def: "Presumptive structure of the blastula that will develop into ectoderm." []
+synonym: "presumptive epidermis" RELATED []
+is_a: UBERON:0006598  ! presumptive structure
+relationship: only_in_taxon NCBITaxon:6072 ! Eumetazoa
+
+[Term]
+id: UBERON:0007010
+name: cleaving embryo
+namespace: gene_ontology
+def: "Organism at the cleavage stage." []
+is_a: UBERON:0000922  ! embryo
+
+[Term]
+id: UBERON:0007284
+name: presumptive neural plate
+namespace: gene_ontology
+def: "A presumptive structure that has the potential to develop into a neural plate." []
+synonym: "prospective neuroectoderm" EXACT []
+synonym: "prospective vegetal ectoderm" EXACT []
+is_a: UBERON:0016879  ! future central nervous system
+relationship: develops_from UBERON:0002346 ! neurectoderm
+relationship: part_of UBERON:0004734 ! gastrula
+
+[Term]
+id: UBERON:0007811
+name: craniocervical region
+namespace: gene_ontology
+def: "The anteriormost subdivision of the body that includes the head, jaws, pharyngeal region and the neck (if present). In vertebrates this is the subdivision that includes the cervical vertebrae." []
+synonym: "cephalic area" RELATED []
+synonym: "cephalic part of animal" RELATED []
+synonym: "cephalic region" RELATED []
+synonym: "head and neck" RELATED []
+synonym: "head or neck" RELATED []
+is_a: UBERON:0000475  ! organism subdivision
+relationship: part_of UBERON:0000153 ! anterior region of body
+relationship: part_of UBERON:0013702 ! body proper
+
+[Term]
+id: UBERON:0010000
+name: multicellular anatomical structure
+namespace: gene_ontology
+def: "An anatomical structure that has more than one cell as a part." []
+synonym: "multicellular structure" EXACT []
+is_a: UBERON:0000061  ! anatomical structure
+
+[Term]
+id: UBERON:0010230
+name: eyeball of camera-type eye
+namespace: gene_ontology
+def: "The core globe-shaped component of the camera-type eye." []
+synonym: "bulbus oculi" EXACT []
+synonym: "eye" RELATED []
+synonym: "eye globe" EXACT []
+synonym: "eyeball" EXACT []
+synonym: "globe" RELATED []
+is_a: UBERON:0000020  ! sense organ
+is_a: UBERON:0004121  ! ectoderm-derived structure
+relationship: part_of UBERON:0000019 ! camera-type eye
+
+[Term]
+id: UBERON:0010312
+name: immature eye
+namespace: gene_ontology
+def: "Developing anatomical structure that develops into the eyeball and associated structures." []
+synonym: "future eye" EXACT []
+is_a: UBERON:0005423  ! developing anatomical structure
+relationship: develops_from UBERON:0003071 ! eye primordium
+
+[Term]
+id: UBERON:0010314
+name: structure with developmental contribution from neural crest
+namespace: gene_ontology
+def: "An anatomical structure that has some part that develops from the neural crest." []
+is_a: UBERON:0000061  ! anatomical structure
+
+[Term]
+id: UBERON:0010316
+name: germ layer / neural crest
+namespace: gene_ontology
+is_a: UBERON:0000479  ! tissue
+is_a: UBERON:0002050  ! embryonic structure
+is_a: UBERON:0005291  ! embryonic tissue
+relationship: develops_from UBERON:0002532 ! epiblast (generic)
+
+[Term]
+id: UBERON:0010371
+name: ecto-epithelium
+namespace: gene_ontology
+def: "Epithelium composed of cells that develops from the ectoderm[FMA,modified]." []
+synonym: "ectoderm-derived epithelium" EXACT []
+is_a: UBERON:0000483  ! epithelium
+is_a: UBERON:0004121  ! ectoderm-derived structure
+intersection_of: UBERON:0000483  ! epithelium
+intersection_of: develops_from UBERON:0000924 ! ectoderm
+
+[Term]
+id: UBERON:0011676
+name: subdivision of organism along main body axis
+namespace: gene_ontology
+def: "A major subdivision of an organism that divides an organism along its main body axis (typically anterio-posterior axis). In vertebrates, this is based on the vertebral column." []
+synonym: "axial subdivision of organism" EXACT []
+synonym: "body segment" RELATED []
+synonym: "main body segment" RELATED []
+is_a: UBERON:0000475  ! organism subdivision
+relationship: part_of UBERON:0013701 ! main body axis
+
+[Term]
+id: UBERON:0011814
+name: non-neurogenic ectodermal placode
+namespace: gene_ontology
+def: "Ectodermal placode that does not develop into a component of the nervous system." []
+is_a: UBERON:0005085  ! ectodermal placode
+
+[Term]
+id: UBERON:0013701
+name: main body axis
+namespace: gene_ontology
+def: "A principle subdivision of an organism that includes all structures along the primary axis, typically the anterior-posterior axis, from head to tail, including structures of the body proper where present (for example, ribs), but excluding appendages." []
+is_a: UBERON:0000475  ! organism subdivision
+relationship: only_in_taxon NCBITaxon:6072 ! Eumetazoa
+
+[Term]
+id: UBERON:0013702
+name: body proper
+namespace: gene_ontology
+def: "The region of the organism associated with the visceral organs." []
+synonym: "body" RELATED []
+synonym: "whole body" RELATED []
+is_a: UBERON:0000475  ! organism subdivision
+relationship: part_of UBERON:0013701 ! main body axis
+
+[Term]
+id: UBERON:0015212
+name: lateral structure
+namespace: gene_ontology
+def: "Any structure that is placed on one side of the left-right axis of a bilaterian." []
+is_a: UBERON:0000061  ! anatomical structure
+relationship: only_in_taxon NCBITaxon:33213 ! Bilateria
+
+[Term]
+id: UBERON:0016879
+name: future central nervous system
+namespace: gene_ontology
+def: "Primordium that develops into the central nervous system" []
+synonym: "future CNS" EXACT []
+synonym: "presumptive central nervous system" EXACT []
+is_a: UBERON:0006598  ! presumptive structure
+relationship: develops_from UBERON:0000924 ! ectoderm
+relationship: part_of UBERON:0016880 ! future nervous system
+relationship: develops_from UBERON:0002346 {gci_relation="part_of",gci_filler="NCBITaxon:7742"} ! neurectoderm
+
+[Term]
+id: UBERON:0016880
+name: future nervous system
+namespace: gene_ontology
+def: "Primordium that develops into the nervous system" []
+synonym: "presumptive nervous system" EXACT []
+is_a: UBERON:0006598  ! presumptive structure
+
+[Typedef]
+id: bearer_of
+name: bearer of
+namespace: external
+def: "a relation between an independent continuant (the bearer) and a specifically dependent continuant (the dependent), in which the dependent specifically depends on the bearer for its existence" []
+xref: RO:0000053
+
+[Typedef]
+id: develops_from
+name: develops from
+namespace: external
+def: "x develops from y if and only if either (a) x directly develops from y or (b) there exists some z such that x directly develops from z and z develops from y" []
+is_transitive: true
+inverse_of: develops_into  ! develops into
+xref: RO:0002202
+is_a: developmentally_preceded_by  ! developmentally preceded by
+transitive_over: part_of  ! part of
+holds_over_chain: part_of develops_from  ! develops from
+
+[Typedef]
+id: ends_with
+name: ends with
+namespace: external
+def: "x ends with y if and only if x has part y and the time point at which x ends is equivalent to the time point at which y ends. Formally: N1(y) > N1(x) b' O	(y) = O	(x), where N1 is a function that maps a process to a start point, and O	 is a function that maps a process to an end point." []
+is_transitive: true
+xref: RO:0002230
+is_a: has_part  ! has part
+is_a: temporally_related_to  ! temporally related to
+
+[Typedef]
+id: has_part
+name: has part
+namespace: external
+def: "a core relation that holds between a whole and its part" []
+is_transitive: true
+xref: BFO:0000051
+is_a: overlaps  ! overlaps
+
+[Typedef]
+id: immediate_transformation_of
+name: immediate transformation of
+namespace: external
+def: "x immediate transformation of y iff x immediately succeeds y temporally at a time boundary t, and all of the matter present in x at t is present in y at t, and all the matter in y at t is present in x at t" []
+synonym: "direct_transformation_of" EXACT []
+synonym: "immediately transforms from" EXACT []
+xref: RO:0002495
+is_a: directly_develops_from  ! directly develops from
+is_a: transformation_of  ! transformation of
+
+[Typedef]
+id: in_taxon
+name: in taxon
+namespace: external
+def: "x is in taxon y if an only if y is an organism, and the relationship between x and y is one of: part of (reflexive), developmentally preceded by, derives from, secreted by, expressed." []
+xref: RO:0002162
+is_a: evolutionarily_related_to  ! evolutionarily related to
+holds_over_chain: capable_of in_taxon  ! in taxon
+holds_over_chain: develops_from in_taxon  ! in taxon
+holds_over_chain: develops_from_part_of in_taxon  ! in taxon
+holds_over_chain: has_developmental_contribution_from in_taxon  ! in taxon
+holds_over_chain: has_part in_taxon  ! in taxon
+holds_over_chain: part_of in_taxon  ! in taxon
+holds_over_chain: results_in_developmental_progression_of in_taxon  ! in taxon
+
+[Typedef]
+id: occurs_in
+name: occurs in
+namespace: external
+def: "b occurs_in c =def b is a process and c is a material entity or immaterial entity& there exists a spatiotemporal region r and b occupies_spatiotemporal_region r.& forall(t) if b exists_at t then c exists_at t & there exist spatial regions s and sb where & b spatially_projects_onto s at t& c is occupies_spatial_region sb at t& s is a proper_continuant_part_of sb at t" []
+inverse_of: contains_process  ! contains process
+xref: BFO:0000066
+transitive_over: part_of  ! part of
+holds_over_chain: part_of occurs_in  ! occurs in
+holds_over_chain: transports_or_maintains_localization_of part_of  ! part of
+
+[Typedef]
+id: only_in_taxon
+name: only in taxon
+namespace: external
+def: "S only_in_taxon T iff: S SubClassOf in_taxon only T" []
+xref: RO:0002160
+is_a: in_taxon  ! in taxon
+
+[Typedef]
+id: part_of
+name: part of
+namespace: external
+def: "a core relation that holds between a part and its whole" []
+is_transitive: true
+inverse_of: has_part  ! has part
+xref: BFO:0000050
+is_a: overlaps  ! overlaps
+
+[Typedef]
+id: regulates
+name: regulates
+namespace: external
+def: "x regulates y if and only if the x is the realization of a function to exert an effect on the frequency, rate or extent of y" []
+is_transitive: true
+inverse_of: regulated_by  ! regulated by
+xref: RO:0002211
+is_a: causally_related_to  ! causally related to
+is_a: causally_upstream_of  ! causally upstream of
+is_a: causally_upstream_of_or_within  ! causally upstream of or within
+is_a: functionally_related_to  ! functionally related to
+transitive_over: part_of  ! part of
+holds_over_chain: directly_regulates directly_regulates  ! directly regulates
+holds_over_chain: ends_with regulates  ! regulates
+
+[Typedef]
+id: results_in_assembly_of
+name: results_in_assembly_of
+namespace: external
+xref: GOREL:0002001
+is_a: results_in_organization_of  ! results_in_organization_of
+
+[Typedef]
+id: results_in_organization_of
+name: results_in_organization_of
+namespace: external
+xref: GOREL:0002006
+
+[Typedef]
+id: starts_with
+name: starts with
+namespace: external
+def: "x starts with y if and only if x has part y and the time point at which x starts is equivalent to the time point at which y starts. Formally: N1(y) = N1(x) b' O	(y) < O	(x), where N1 is a function that maps a process to a start point, and O	 is a function that maps a process to an end point." []
+is_transitive: true
+xref: RO:0002224
+is_a: has_part  ! has part
+is_a: temporally_related_to  ! temporally related to
+
