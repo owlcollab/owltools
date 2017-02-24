@@ -258,7 +258,16 @@ public class ShuntGraphUtilsNRTest extends OWLToolsTestBasics {
 		containsRel("GO:0044428", "GO:0005634", "BFO:0000050", shunt, g, remaining); // nuclear part -> nucleus
 		
 		containsRel("GO:0044428", "GO:0044446", "rdfs:subClassOf", shunt, g, remaining); // nuclear part -> intracellular organelle part
+		
+		// test for https://github.com/geneontology/amigo/issues/366
+		// The ontology contains an axiom: Class GO:0044428 EquivalentTo:  GO:0005575 AND part-of some GO:0005634
+		//  This trivially entails: "Class GO:0044428 SubClassOf GO:0005575"
+		//  however, we exclude such trivially weakened axioms as they are potentially redundant (as is the case here)
+		//  we expect that the graph is reduced
+		assertTrue(g.getConfig().isGraphReasonedAndRelaxed);
 		containsNotRel("GO:0044428", "GO:0005575", "rdfs:subClassOf", shunt, g, remaining); // REDUNDANT nuclear part -> cellular_component
+
+		
 		containsRel("GO:0070013", "GO:0044446", "rdfs:subClassOf", shunt, g, remaining); // intracellular organelle lumen -> intracellular organelle part
 		containsRel("GO:0070013", "GO:0043233", "rdfs:subClassOf", shunt, g, remaining); // intracellular organelle lumen -> organelle lumen
 		containsRel("GO:0005634", "GO:0043231", "rdfs:subClassOf", shunt, g, remaining); // nucleus -> intracellular membrane-bounded organelle
