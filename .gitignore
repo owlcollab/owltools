@@ -23,4 +23,4 @@ tramp
 
 **/.DS_Store
 **/*.iml
-
+.idea/

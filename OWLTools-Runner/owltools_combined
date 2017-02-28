@@ -1,0 +1,4 @@
+
+THIS_PATH=`which $0`
+exec /usr/bin/java -Xms2048M -DentityExpansionLimit=4086000 -Djava.awt.headless=true -classpath $THIS_PATH owltools.cli.CommandLineInterface "$@"
+exit 1
