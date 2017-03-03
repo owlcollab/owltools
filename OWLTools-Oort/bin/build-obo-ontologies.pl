@@ -5,6 +5,7 @@ use YAML::Syck;
 # For documentation, see usage() method, or run with "-h" option
 
 my %selection = ();  # subset of ontologies to run on (defaults to all)
+my %omit = ();  # subset of ontologies to omit (defaults to all)
 my $dry_run = 0;     # do not deploy if dry run is set
 my $target_dir = './deployed-ontologies';  # in a production setting, this would be a path to web-visible area, e.g. berkeley CDN or NFS
 my $is_compare_obo = 0;
@@ -21,6 +22,9 @@ while ($ARGV[0] && $ARGV[0] =~ /^\-/) {
     }
     elsif ($opt eq '-s' || $opt eq '--select') {
         $selection{shift @ARGV} = 1;
+    }
+    elsif ($opt eq '-x' || $opt eq '--omit') {
+        $omit{shift @ARGV} = 1;
     }
     elsif ($opt eq '-t' || $opt eq '--target-dir') {
         $target_dir = shift @ARGV;
@@ -82,6 +86,9 @@ foreach my $k (keys %ont_info) {
 
     if (keys %selection) {
         next unless $selection{$ont};
+    }
+    if (keys %omit) {
+        next if $omit{$ont};
     }
     debug("ONTOLOGY: $ont");
 
@@ -176,7 +183,7 @@ foreach my $k (keys %ont_info) {
                 }
 
                 # Oort places package files directly in target area, if successful
-                my @skips = ['--skip-format owx'];
+                my @skips = ('--skip-format owx', '--skip-format metadata');
                 if ($ont eq 'pr' || $ont eq 'chebi' || $ont eq 'ncbitaxon') {
                     push(@skips, '--skip-format json');
                 }

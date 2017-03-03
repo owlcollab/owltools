@@ -71,13 +71,19 @@ public class EquivalenceSetMergeUtil {
 	}
 
 	/**
+	 * @throws IncoherentOntologyException 
 	 * 
 	 */
-	public void merge() {
+	public void merge() throws IncoherentOntologyException {
 
 		Set<Node<? extends OWLEntity>> nodes = new HashSet<Node<? extends OWLEntity>>();
 		Map<OWLEntity, Node<? extends OWLEntity>> nodeByRep = 
 				new HashMap<OWLEntity, Node<? extends OWLEntity>>();
+		
+		Set<OWLClass> unsats = reasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
+		if (unsats.size() > 0) {
+		    throw new IncoherentOntologyException(unsats);
+		}
 		for (OWLClass c : ont.getClassesInSignature()) {
 			Node<OWLClass> n = reasoner.getEquivalentClasses(c);
 			if (n.getSize() > 1) {
