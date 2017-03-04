@@ -84,17 +84,18 @@
 				<groupId>org.skife.maven</groupId>
 				<artifactId>really-executable-jar-maven-plugin</artifactId>
 				<version>1.4.1</version>
-				<configuration>
-                    <programFile>owltools</programFile>
-                    <flags>Xms2048M</flags>
-                    <scriptFile>${project.basedir}/owltools_combined</scriptFile>
-                </configuration>
                 <executions>
                     <execution>
+                        <id>owltools</id>
                         <phase>package</phase>
                         <goals>
                             <goal>really-executable-jar</goal>
                         </goals>
+                        <configuration>
+                            <programFile>owltools</programFile>
+                            <flags>Xms2048M</flags>
+                            <scriptFile>${project.basedir}/owltools_combined</scriptFile>
+                        </configuration>
                     </execution>
                 </executions>
 			</plugin>
