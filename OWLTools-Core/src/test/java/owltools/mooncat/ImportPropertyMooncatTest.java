@@ -11,6 +11,7 @@ import org.obolibrary.oboformat.model.Clause;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.OWLToolsTestBasics;
@@ -92,7 +93,7 @@ public class ImportPropertyMooncatTest extends OWLToolsTestBasics {
 		OWLOntology sourceOntology = g.getSourceOntology();
 		OboInOwlCardinalityTools.checkAnnotationCardinality(sourceOntology);
 		
-		OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+		OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager());
 		OBODoc oboDoc = owl2Obo.convert(sourceOntology);
 		if (RENDER_ONTOLOGY_FLAG) {
 			renderOBO(oboDoc);
