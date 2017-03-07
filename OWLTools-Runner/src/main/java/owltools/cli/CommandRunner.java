@@ -5663,7 +5663,7 @@ public class CommandRunner extends CommandRunnerBase {
         }
         // obo
         if (outputFileObo != null) {
-            OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+            OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
             OBODoc doc = owl2Obo.convert(work);
 
             OBOFormatWriter writer = new OBOFormatWriter();
@@ -5805,7 +5805,7 @@ public class CommandRunner extends CommandRunnerBase {
         }
         // obo
         if (outputFileObo != null) {
-            OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+            OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
             OBODoc doc = owl2Obo.convert(filtered);
 
             OBOFormatWriter writer = new OBOFormatWriter();
@@ -5984,7 +5984,7 @@ public class CommandRunner extends CommandRunnerBase {
             slim.getOWLOntologyManager().saveOntology(slim, IRI.create(outFile));
         }
         if (outputObo != null) {
-            OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+            OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
             OBODoc oboDoc = owl2Obo.convert(slim);
             OBOFormatWriter w = new OBOFormatWriter();
             w.write(oboDoc, outputObo);

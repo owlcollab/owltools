@@ -45,7 +45,7 @@ public class RemoveDirectivesTest extends OWLToolsTestBasics {
 
 		System.out.println(merged.getAxioms(AxiomType.EQUIVALENT_CLASSES));
 
-		OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+		OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 		OBODoc mergedObo = owl2Obo.convert(merged);
 		
 		if (USE_SYSTEM_OUT) {

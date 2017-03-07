@@ -29,7 +29,7 @@ public class OWLGraphFlexTest {
 //		String fstr = getResourceString("trivial.obo");
 //		OBOFormatParser p = new OBOFormatParser();
 //		OBODoc obodoc = p.parse(fstr);
-//		OWLAPIObo2Owl bridge = new OWLAPIObo2Owl();
+//		OWLAPIObo2Owl bridge = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 //		OWLOntology ont = bridge.convert(obodoc);
 //		OWLGraphWrapper g = new OWLGraphWrapper(ont);
 //
@@ -88,7 +88,7 @@ public class OWLGraphFlexTest {
 		String fstr = getResourceString("trivial.obo");
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(fstr);
-		OWLAPIObo2Owl bridge = new OWLAPIObo2Owl();
+		OWLAPIObo2Owl bridge = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 		OWLOntology ont = bridge.convert(obodoc);
 		OWLGraphWrapper g = new OWLGraphWrapper(ont);
 		

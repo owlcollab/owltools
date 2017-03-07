@@ -32,9 +32,9 @@ public class AxiomAnnotationToolsTest extends OWLToolsTestBasics {
 		
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc inputOboDoc = p.parse(inputFile);
-		OWLAPIObo2Owl obo2Owl = new OWLAPIObo2Owl();
+		OWLAPIObo2Owl obo2Owl = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 		OWLOntology owlOntology = obo2Owl.convert(inputOboDoc);
-		OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+		OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 		
 		// check round-trip first before removing
 		equals(inputFile, owl2Obo.convert(owlOntology));

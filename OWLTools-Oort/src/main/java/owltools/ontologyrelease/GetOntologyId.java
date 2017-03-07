@@ -38,7 +38,7 @@ public class GetOntologyId extends Task {
 	
 		addProperty("oborelease.isobo", "true");
 		
-		OWLAPIObo2Owl obo2owl = new OWLAPIObo2Owl();
+		OWLAPIObo2Owl obo2owl = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 		
 		return obo2owl.convert(ontologyLocation);
 	}

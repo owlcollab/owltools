@@ -329,7 +329,7 @@ public class AssertInferenceTool {
 		if ("obo".equals(outputFileFormat)) {
 			BufferedWriter bufferedWriter = null;
 			try {
-				OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+				OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 				OBODoc oboDoc = owl2Obo.convert(ontology);
 				OBOFormatWriter oboWriter = new OBOFormatWriter();
 				bufferedWriter = new BufferedWriter(new FileWriter(outputFile));

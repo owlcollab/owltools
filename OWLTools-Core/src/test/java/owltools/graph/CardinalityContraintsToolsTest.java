@@ -27,7 +27,7 @@ public class CardinalityContraintsToolsTest extends OWLToolsTestBasics {
 		OWLOntology owlOntology = graph.getSourceOntology();
 		CardinalityContraintsTools.removeCardinalityConstraints(owlOntology);
 		
-		OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+		OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 		OBODoc obo = owl2Obo.convert(owlOntology);
 		
 		assertNoQualifiers("TEST:1000", obo);

@@ -47,7 +47,7 @@ public class SubsetDefMooncatTest extends OWLToolsTestBasics {
 		OWLOntology sourceOntology = g.getSourceOntology();
 		OboInOwlCardinalityTools.checkAnnotationCardinality(sourceOntology);
 		
-		OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+		OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 		OBODoc oboDoc = owl2Obo.convert(sourceOntology);
 		if (RENDER_ONTOLOGY_FLAG) {
 			renderOBO(oboDoc);

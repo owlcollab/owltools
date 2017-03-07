@@ -730,7 +730,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
 						String tOntId = tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY).getValue().toString();
 						logInfo("Generating bridge ontology:"+tOntId);
-						OWLAPIObo2Owl obo2owl = new OWLAPIObo2Owl();
+						OWLAPIObo2Owl obo2owl = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 						OWLOntology tOnt = obo2owl.convert(tdoc);
 						saveOntologyInAllFormats(ontologyId, tOntId, version, tOnt, null, true);
 					}
@@ -1712,7 +1712,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		if (!oortConfig.isSkipFormat("obo")) {
 
-			OWLAPIOwl2Obo owl2obo = new OWLAPIOwl2Obo();
+			OWLAPIOwl2Obo owl2obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 			OBODoc doc = owl2obo.convert(ontologyToSave);
 
 			OBOFormatWriter writer = new OBOFormatWriter();

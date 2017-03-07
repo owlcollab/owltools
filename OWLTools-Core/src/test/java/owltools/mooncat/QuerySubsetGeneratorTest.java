@@ -60,7 +60,7 @@ public class QuerySubsetGeneratorTest extends OWLToolsTestBasics {
 		Set<OWLOntology> toMerge = sourceGraph.getAllOntologies();
 		generator.createSubOntologyFromDLQuery(dlQueryString, sourceGraph, targetGraph, reasonerFactory, toMerge);
 
-		OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+		OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 		OBODoc oboDoc = owl2Obo.convert(targetGraph.getSourceOntology());
 		if (renderObo) {
 			renderOBO(oboDoc);

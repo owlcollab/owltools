@@ -53,7 +53,7 @@ public class OortReasonerTest extends OWLToolsTestBasics {
 			for(OWLAxiom ax : b.getRedundantAxioms()) {
 				graph.getManager().applyChange(new RemoveAxiom(owlOntology, ax));					
 			}
-			OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
+			OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 			OBODoc oboDoc = owl2Obo.convert(owlOntology);
 
 			if (renderObo) {

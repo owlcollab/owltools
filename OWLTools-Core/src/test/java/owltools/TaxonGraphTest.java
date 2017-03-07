@@ -33,7 +33,7 @@ public class TaxonGraphTest extends OWLToolsTestBasics {
 		files.add(getResource("taxon_union_terms.obo").getAbsolutePath());
 
 		OBOFormatParser p = new OBOFormatParser();
-		OWLAPIObo2Owl obo2Owl = new OWLAPIObo2Owl();
+		OWLAPIObo2Owl obo2Owl = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 		OBODoc merged = null;
 		for(String file : files) {
 			OBODoc oboDoc = p.parse(file);

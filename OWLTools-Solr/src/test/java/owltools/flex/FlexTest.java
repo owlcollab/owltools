@@ -39,7 +39,7 @@ public class FlexTest {
 
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(fstr);
-		OWLAPIObo2Owl bridge = new OWLAPIObo2Owl();
+		OWLAPIObo2Owl bridge = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 		OWLOntology ont = bridge.convert(obodoc);
 		OWLGraphWrapper g = new OWLGraphWrapper(ont);
 		

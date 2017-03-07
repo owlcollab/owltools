@@ -55,7 +55,7 @@ public class RetrieveRelationByLabelTest extends OWLToolsTestBasics {
 	private OWLGraphWrapper getOBO2OWLOntologyWrapper(String file) throws Exception{
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(new BufferedReader(new FileReader(getResource(file))));
-		OWLAPIObo2Owl bridge = new OWLAPIObo2Owl();
+		OWLAPIObo2Owl bridge = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 		OWLOntology ontology = bridge.convert(obodoc);
 		OWLGraphWrapper wrapper = new OWLGraphWrapper(ontology);
 		return wrapper;
