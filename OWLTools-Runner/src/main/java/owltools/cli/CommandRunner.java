@@ -51,7 +51,7 @@ import org.obolibrary.macro.ManchesterSyntaxTool;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
@@ -1652,7 +1652,7 @@ public class CommandRunner extends CommandRunnerBase {
                     }
                     if (addXref) {
                         // xref to OBO style ID
-                        String pid = Owl2Obo.getIdentifier(prop.getIRI());
+                        String pid = OWLAPIOwl2Obo.getIdentifier(prop.getIRI());
                         OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(
                                 xrefProperty,
                                 prop.getIRI(), 
@@ -4471,8 +4471,8 @@ public class CommandRunner extends CommandRunnerBase {
         // setup date string and ontology version strings
         StringBuilder header = new StringBuilder();
         OWLOntology ont = g.getSourceOntology();
-        String ontologyId = Owl2Obo.getOntologyId(ont);
-        String dataVersion = Owl2Obo.getDataVersion(ont);
+        String ontologyId = OWLAPIOwl2Obo.getOntologyId(ont);
+        String dataVersion = OWLAPIOwl2Obo.getDataVersion(ont);
         header.append(commentPrefix);
         header.append(" Generated on ");
         TimeZone tz = TimeZone.getTimeZone("UTC");
@@ -5086,7 +5086,7 @@ public class CommandRunner extends CommandRunnerBase {
 
                 @Override
                 public void visit(OWLClass cls) {
-                    String id = Owl2Obo.getIdentifier(cls.getIRI());
+                    String id = OWLAPIOwl2Obo.getIdentifier(cls.getIRI());
                     if (id.startsWith(matchPrefix) && !matchExceptions.contains(id)) {
                         upperLevelIRIs.add(cls.getIRI());
                     }
@@ -5094,7 +5094,7 @@ public class CommandRunner extends CommandRunnerBase {
 
                 @Override
                 public void visit(OWLObjectProperty property) {
-                    String id = Owl2Obo.getIdentifier(property.getIRI());
+                    String id = OWLAPIOwl2Obo.getIdentifier(property.getIRI());
                     if (id.startsWith(matchPrefix) && !matchExceptions.contains(id)) {
                         upperLevelIRIs.add(property.getIRI());
                     }
@@ -5663,7 +5663,7 @@ public class CommandRunner extends CommandRunnerBase {
         }
         // obo
         if (outputFileObo != null) {
-            Owl2Obo owl2Obo = new Owl2Obo();
+            OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
             OBODoc doc = owl2Obo.convert(work);
 
             OBOFormatWriter writer = new OBOFormatWriter();
@@ -5805,7 +5805,7 @@ public class CommandRunner extends CommandRunnerBase {
         }
         // obo
         if (outputFileObo != null) {
-            Owl2Obo owl2Obo = new Owl2Obo();
+            OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
             OBODoc doc = owl2Obo.convert(filtered);
 
             OBOFormatWriter writer = new OBOFormatWriter();
@@ -5984,7 +5984,7 @@ public class CommandRunner extends CommandRunnerBase {
             slim.getOWLOntologyManager().saveOntology(slim, IRI.create(outFile));
         }
         if (outputObo != null) {
-            Owl2Obo owl2Obo = new Owl2Obo();
+            OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
             OBODoc oboDoc = owl2Obo.convert(slim);
             OBOFormatWriter w = new OBOFormatWriter();
             w.write(oboDoc, outputObo);

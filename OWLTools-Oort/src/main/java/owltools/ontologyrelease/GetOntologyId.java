@@ -6,7 +6,7 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.PropertyHelper;
 import org.apache.tools.ant.Task;
 import org.obolibrary.obo2owl.Obo2Owl;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -58,7 +58,7 @@ public class GetOntologyId extends Task {
 		try{
 			OWLOntology ontology = getOntology();
 			
-			String ontologyId = Owl2Obo.getOntologyId(ontology);
+			String ontologyId = OWLAPIOwl2Obo.getOntologyId(ontology);
 			
 	        /*PropertyHelper propertyHelper
 	        = (PropertyHelper) PropertyHelper.getPropertyHelper(getProject());

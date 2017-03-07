@@ -7,7 +7,7 @@ import java.util.Set;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -60,7 +60,7 @@ public class QuerySubsetGeneratorTest extends OWLToolsTestBasics {
 		Set<OWLOntology> toMerge = sourceGraph.getAllOntologies();
 		generator.createSubOntologyFromDLQuery(dlQueryString, sourceGraph, targetGraph, reasonerFactory, toMerge);
 
-		Owl2Obo owl2Obo = new Owl2Obo();
+		OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo();
 		OBODoc oboDoc = owl2Obo.convert(targetGraph.getSourceOntology());
 		if (renderObo) {
 			renderOBO(oboDoc);

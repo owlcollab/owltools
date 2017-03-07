@@ -19,7 +19,7 @@ import org.geneontology.obographs.io.OgJsonGenerator;
 import org.geneontology.obographs.io.OgYamlGenerator;
 import org.geneontology.obographs.model.GraphDocument;
 import org.geneontology.obographs.owlapi.FromOwl;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
@@ -228,7 +228,7 @@ public class ParserWrapper {
             // special work-around for skipping the OBO validation before write
             // see also OWL-API issue: https://github.com/owlcs/owlapi/issues/290
             // see also saveOWL(OWLOntology, OWLOntologyFormat, String) for redundant code
-            Owl2Obo bridge = new Owl2Obo();
+            OWLAPIOwl2Obo bridge = new OWLAPIOwl2Obo();
             OBODoc doc;
             BufferedWriter bw = null;
             try {
