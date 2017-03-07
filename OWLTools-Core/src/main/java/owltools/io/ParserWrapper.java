@@ -228,7 +228,7 @@ public class ParserWrapper {
             // special work-around for skipping the OBO validation before write
             // see also OWL-API issue: https://github.com/owlcs/owlapi/issues/290
             // see also saveOWL(OWLOntology, OWLOntologyFormat, String) for redundant code
-            OWLAPIOwl2Obo bridge = new OWLAPIOwl2Obo();
+            OWLAPIOwl2Obo bridge = new OWLAPIOwl2Obo(manager);
             OBODoc doc;
             BufferedWriter bw = null;
             try {
