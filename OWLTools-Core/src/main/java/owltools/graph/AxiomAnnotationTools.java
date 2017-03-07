@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -307,9 +307,9 @@ public class AxiomAnnotationTools {
 				IRI iri = p.getIRI();
 				/*
 				 * if the property IRI is not in a predefined annotation property in 
-				 * Obo2Owl assume that it's not OBO-Basic
+				 * OWLAPIObo2Owl assume that it's not OBO-Basic
 				 */
-				if (Obo2Owl.ANNOTATIONPROPERTYMAP.containsValue(iri) == false) {
+				if (OWLAPIObo2Owl.ANNOTATIONPROPERTYMAP.containsValue(iri) == false) {
 					// remove axiom annotation
 					changed = true;
 				}

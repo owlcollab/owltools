@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
-import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
@@ -161,7 +161,7 @@ public class OWLGraphWrapperTest extends OWLToolsTestBasics {
 	private OWLGraphWrapper getOBO2OWLOntologyWrapper(String file) throws Exception{
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(new BufferedReader(new FileReader(getResource(file))));
-		Obo2Owl bridge = new Obo2Owl();
+		OWLAPIObo2Owl bridge = new OWLAPIObo2Owl();
 		OWLOntology ontology = bridge.convert(obodoc);
 		OWLGraphWrapper wrapper = new OWLGraphWrapper(ontology);
 		return wrapper;

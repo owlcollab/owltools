@@ -22,7 +22,7 @@ import org.obolibrary.macro.MacroExpansionGCIVisitor;
 import org.obolibrary.macro.MacroExpansionVisitor;
 import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools.AnnotationCardinalityException;
 import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
@@ -730,7 +730,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
 						String tOntId = tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY).getValue().toString();
 						logInfo("Generating bridge ontology:"+tOntId);
-						Obo2Owl obo2owl = new Obo2Owl();
+						OWLAPIObo2Owl obo2owl = new OWLAPIObo2Owl();
 						OWLOntology tOnt = obo2owl.convert(tdoc);
 						saveOntologyInAllFormats(ontologyId, tOntId, version, tOnt, null, true);
 					}

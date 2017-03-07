@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
-import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
@@ -39,7 +39,7 @@ public class FlexTest {
 
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(fstr);
-		Obo2Owl bridge = new Obo2Owl();
+		OWLAPIObo2Owl bridge = new OWLAPIObo2Owl();
 		OWLOntology ont = bridge.convert(obodoc);
 		OWLGraphWrapper g = new OWLGraphWrapper(ont);
 		
