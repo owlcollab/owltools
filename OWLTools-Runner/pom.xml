@@ -93,8 +93,7 @@
                         </goals>
                         <configuration>
                             <programFile>owltools</programFile>
-                            <flags>Xms2048M</flags>
-                            <scriptFile>${project.basedir}/owltools_combined</scriptFile>
+                            <scriptFile>${project.basedir}/bin/owltools.script</scriptFile>
                         </configuration>
                     </execution>
                 </executions>
