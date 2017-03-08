@@ -1,0 +1,34 @@
+#!/bin/bash
+# Path to this script/jar
+PATH_TO_SELF=`which $0`
+MY_NAME=`basename $0`
+MY_DIR=`dirname $0`
+
+# Add possibly existing java args from $MY_NAME.vmoptions file or env var
+if [ -e "$PATH_TO_SELF.vmoptions" ]
+then
+    JVM_OPTIONS=`cat $PATH_TO_SELF.vmoptions`
+else
+    if [ $OWLTOOLS_MEMORY ]
+    then
+        JVM_OPTIONS="-Xmx$OWLTOOLS_MEMORY"
+    else
+        JVM_OPTIONS="-Xmx6G"
+    fi
+fi
+
+# Get java path
+JAVA=`which java`
+
+# full command
+CMD="$JAVA -Xms2G $JVM_OPTIONS -DentityExmpansionLimit=4086000 -Djava.awt.headless=true -classpath $PATH_TO_SELF owltools.cli.CommandLineInterface"
+
+if [ $DEBUG ]
+then
+    echo $CMD "$@"
+fi
+
+# Run
+exec $CMD "$@"
+
+exit 1

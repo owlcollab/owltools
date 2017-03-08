@@ -50,7 +50,6 @@
 							<goal>shade</goal>
 						</goals>
 						<configuration>
-							<outputFile>bin/owltools-runner-all.jar</outputFile>
 							<createDependencyReducedPom>false</createDependencyReducedPom>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
@@ -80,6 +79,24 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.skife.maven</groupId>
+				<artifactId>really-executable-jar-maven-plugin</artifactId>
+				<version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <id>owltools</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>really-executable-jar</goal>
+                        </goals>
+                        <configuration>
+                            <programFile>owltools</programFile>
+                            <scriptFile>${project.basedir}/bin/owltools.script</scriptFile>
+                        </configuration>
+                    </execution>
+                </executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -23,4 +23,10 @@ tramp
 
 **/.DS_Store
 **/*.iml
+.idea/
 
+## No target dir or out dir
+target/
+out/
+
+OWLTools-Runner/bin/owltools-runner-all.jar
