@@ -24,6 +24,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.io.ParserWrapper;
@@ -1154,5 +1155,29 @@ public class OWLGraphWrapperEdgesExtendedTest
                 wrapper.hasFirstEdgeMoreGeneralGCIParams(edge1, edge2));
         assertTrue("GCI parameter inclusion error", 
                 wrapper.hasFirstEdgeMoreGeneralGCIParams(edge2, edge1));
+    }
+    
+    /**
+     * See https://github.com/geneontology/amigo/issues/290#issuecomment-243309763
+     * 
+     * @throws OWLOntologyCreationException
+     * @throws OBOFormatParserException
+     * @throws IOException
+     */
+    @Test
+    public void testOboGraphJSON() throws OWLOntologyCreationException, 
+        OBOFormatParserException, IOException {
+        ParserWrapper parserWrapper = new ParserWrapper();
+        OWLOntology ont = parserWrapper.parse(this.getClass().getResource(
+                "/graph/nucleus.obo").getFile());
+        OWLGraphWrapper wrapper = new OWLGraphWrapper(ont);
+        OWLClass obj = wrapper.getOWLClassByIdentifier("GO:0005575");
+                
+        String json = wrapper.getOboGraphJSONString(obj);
+        assertTrue(json.contains("\"xrefs\" : [ \"NIF_Subcellular:nlx_subcell_100315\" ]"));
+        json = wrapper.getOboGraphJSONString(wrapper.getOWLClassByIdentifier("GO:0044464"));
+        System.out.println(json);
+        assertTrue(json.contains("\"obj\" : \"http://purl.obolibrary.org/obo/GO_0005575\""));
+     
     }
 }

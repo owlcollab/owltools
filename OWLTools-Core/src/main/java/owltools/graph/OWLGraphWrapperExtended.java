@@ -1522,6 +1522,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
             for (OWLEntity e : ont.getSignature()) {
                 axioms.addAll(sourceOntology.getAnnotationAssertionAxioms(e.getIRI()));
             }
+            axioms.addAll(sourceOntology.getAnnotationAssertionAxioms(nobj.getIRI()));
             m.addAxioms(ont, axioms);
             
             GraphDocument gd = fromOwl.generateGraphDocument(ont);
