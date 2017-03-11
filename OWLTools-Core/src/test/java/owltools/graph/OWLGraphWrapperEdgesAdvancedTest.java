@@ -135,5 +135,20 @@ public class OWLGraphWrapperEdgesAdvancedTest extends OWLToolsTestBasics {
 		assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1904238", "CL:0000669", "results_in_acquisition_of_features_of")));
 		assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1904238", "GO:0030154", "is_a")));
 	}
+	
+	// see https://github.com/owlcollab/owltools/pull/177
+	@Test
+	public void testPull177() throws Exception {
+	    OWLGraphWrapper graph = getGraph("graph/detection-of-stimulus.obo");
+
+	    OWLClass cls = graph.getOWLClassByIdentifier("GO:1902401");
+	    assertNotNull(cls);
+	    OWLShuntGraph neighbors = graph.getNeighbors(cls);
+	    assertEquals(3, neighbors.nodes.size());
+	    assertEquals(2, neighbors.edges.size());
+	    assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1902401", "GO:0044773", "part_of")));
+        assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1902401", "GO:0072400", "is_a")));
+        assertFalse(neighbors.hasEdge(new OWLShuntEdge("GO:1902401", "GO:0051606", "is_a")));
+	}
 
 }

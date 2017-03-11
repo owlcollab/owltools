@@ -1,0 +1,19 @@
+ontology: test
+
+[Term]
+id: GO:1902401
+name: detection of stimulus involved in mitotic DNA damage checkpoint
+namespace: biological_process
+def: "Any detection of stimulus that is involved in mitotic DNA damage checkpoint." [GOC:mtg_cell_cycle, GOC:TermGenie]
+synonym: "perception of stimulus involved in mitotic DNA damage checkpoint" RELATED [GOC:TermGenie]
+synonym: "stimulus detection involved in mitotic DNA damage checkpoint" EXACT [GOC:TermGenie]
+synonym: "stimulus sensing involved in mitotic DNA damage checkpoint" RELATED [GOC:TermGenie]
+is_a: GO:0072400 ! detection of stimulus involved in mitotic DNA integrity checkpoint
+intersection_of: GO:0051606 ! detection of stimulus
+intersection_of: part_of GO:0044773 ! mitotic DNA damage checkpoint
+created_by: jl
+creation_date: 2013-09-12T12:07:12Z
+
+[Typedef]
+id: part_of
+xref: BFO:0000050
