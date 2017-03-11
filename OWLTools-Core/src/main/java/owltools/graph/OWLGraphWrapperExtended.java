@@ -11,6 +11,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
+import org.geneontology.obographs.io.OgJsonGenerator;
+import org.geneontology.obographs.model.GraphDocument;
+import org.geneontology.obographs.owlapi.FromOwl;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.Owl2Obo;
@@ -23,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
@@ -37,15 +41,19 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLPropertyDomainAxiom;
 import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.util.OWLObjectVisitorExAdapter;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Optional;
 
+import owltools.io.OWLOboGraphsFormat;
 import owltools.util.OwlHelper;
 
 /**
@@ -1479,6 +1487,50 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 */
 	public String getIdSpace(OWLObject obj, List<String> sargs) {
 		return getIdSpace(obj);
+	}
+	
+	/**
+	 * Generate a OboGraphs JSON ontology blob for the local axioms for an object.
+	 * 
+	 * This will include
+	 * 
+	 *  - all logical axioms about the object
+	 *  - all annotations for all entities in the signature
+	 *  
+	 * In other words, direct parents plus labels and other metadata on all entities
+	 * 
+	 * @param obj
+	 * @return JSON string
+	 * @throws JsonProcessingException
+	 * @throws OWLOntologyCreationException
+	 */
+	public String getOboGraphJSONString(OWLObject obj) throws JsonProcessingException, OWLOntologyCreationException {
+        FromOwl fromOwl = new FromOwl();
+        OWLOntologyManager m = sourceOntology.getOWLOntologyManager();
+        if (obj instanceof OWLNamedObject) {
+            OWLNamedObject nobj = (OWLNamedObject)obj;
+            OWLOntology ont = m.createOntology(nobj.getIRI());
+            Set<OWLAxiom> axioms = new HashSet<>();
+            if (nobj instanceof OWLClass) {
+                axioms.addAll(sourceOntology.getAxioms((OWLClass)nobj, Imports.INCLUDED));
+            }
+            else if (nobj instanceof OWLObjectProperty) {
+                axioms.addAll(sourceOntology.getAxioms((OWLObjectProperty)nobj, Imports.INCLUDED));
+            }
+            m.addAxioms(ont, axioms);
+            axioms = new HashSet<>();
+            for (OWLEntity e : ont.getSignature()) {
+                axioms.addAll(sourceOntology.getAnnotationAssertionAxioms(e.getIRI()));
+            }
+            m.addAxioms(ont, axioms);
+            
+            GraphDocument gd = fromOwl.generateGraphDocument(ont);
+            return OgJsonGenerator.render(gd);
+        }
+        else {
+            return "{}";
+        }
+        
 	}
 }
 
