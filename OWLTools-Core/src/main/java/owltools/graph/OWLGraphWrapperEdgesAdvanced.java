@@ -1202,6 +1202,17 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	/**
 	 * Retrieve direct neighbors of x in a shunt graph.
 	 * 
+	 * This includes:
+	 * 
+	 *  1. X SubClassOf Y ==> X is_a Y
+	 *  2. X SubClassOf R some Y ==> X R Y
+	 *  3. X EquivalentTo G and R1 some Y1 and ... => X R1 Y1
+	 *  
+	 *  Note that 3 will generally be unnecessary as most ontologies include the robot
+	 *  relax and reason step (or their equivalent), guaranteeing the basic graph to be complete.
+	 *  We leave this in for now, because not all ontologies will include this step.
+	 *  We don't expect redundancies, as we omit the genus G
+	 * 
 	 * @param x
 	 * @return shunt graph
 	 */
@@ -1244,10 +1255,17 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 					else if (ce instanceof OWLObjectIntersectionOf) {
 						OWLObjectIntersectionOf intersection = (OWLObjectIntersectionOf) ce;
 						for(OWLClassExpression op :  intersection.getOperands()) {
-							addShuntNodeAndEdge(cls, op, shunt, nodes);
-							if (edgeLimit > 0 && shunt.edges.size() >= edgeLimit) {
-								return shunt;
-							}
+						    
+						    // only include anonymoys operands. For example, if we have
+						    // `X EquivalentTo G and R1 some Y1 and ... Rn some Yn`, then
+						    // we want to ignore the G as it will be redundant, assuming
+						    // reasoning has been performed over the ontology
+						    if (op.isAnonymous()) {
+						        addShuntNodeAndEdge(cls, op, shunt, nodes);
+						        if (edgeLimit > 0 && shunt.edges.size() >= edgeLimit) {
+						            return shunt;
+						        }
+						    }
 						}
 					}
 				}
