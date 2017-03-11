@@ -1,0 +1,596 @@
+format-version: 1.2
+ontology: foo
+property_value: http://purl.org/dc/elements/1.1/source http://purl.obolibrary.org/obo/go/extensions/go-lego.owl
+owl-axioms: Prefix(owl:=<http://www.w3.org/2002/07/owl#>)\nPrefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)\nPrefix(xml:=<http://www.w3.org/XML/1998/namespace>)\nPrefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)\nPrefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)\n\n\nOntology(\nDisjointUnion(Annotation(rdfs:comment \"Every biological process is either a single-organism process or a multi-organism, but never both (GOC:mtg_obo_owl_Jan2013)\") <http://purl.obolibrary.org/obo/GO_0008150> <http://purl.obolibrary.org/obo/GO_0051704> <http://purl.obolibrary.org/obo/GO_0044699>)\nEquivalentClasses(<http://purl.obolibrary.org/obo/UPHENO_0001001> ObjectSomeValuesFrom(<http://purl.obolibrary.org/obo/UPHENO_0000001> owl:Thing))\n)
+
+[Term]
+id: BFO:0000002
+name: continuant
+def: "An entity that exists in full at any time in which it exists at all, persists through time while maintaining its identity and has no temporal parts." []
+
+[Term]
+id: BFO:0000003
+name: occurrent
+def: "An entity that has temporal parts and that happens, unfolds or develops through time." []
+
+[Term]
+id: BFO:0000015
+name: process
+def: "An occurrent that has temporal proper parts and for some time t, p s-depends_on some material entity at t." []
+is_a: BFO:0000003 ! occurrent
+
+[Term]
+id: BFO:0000020
+name: specifically dependent continuant
+def: "A continuant that inheres in or is borne by other entities. Every instance of A requires some specific instance of B which must always be the same." []
+is_a: BFO:0000002 ! continuant
+
+[Term]
+id: GO:0008150
+name: biological_process
+namespace: biological_process
+alt_id: GO:0000004
+alt_id: GO:0007582
+def: "Any process specifically pertinent to the functioning of integrated living units: cells, tissues, organs, and organisms. A process is a collection of molecular events with a defined beginning and end." [GOC:go_curators, GOC:isa_complete]
+comment: Note that, in addition to forming the root of the biological process ontology, this term is recommended for use for the annotation of gene products whose biological process is unknown. Note that when this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code ND, no data, is used to indicate this.
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_chembl
+subset: goslim_generic
+subset: goslim_metagenomics
+subset: goslim_pir
+subset: goslim_plant
+subset: goslim_pombe
+subset: goslim_yeast
+subset: gosubset_prok
+synonym: "biological process" EXACT []
+synonym: "physiological process" EXACT []
+xref: Wikipedia:Biological_process
+is_a: BFO:0000015 ! process
+
+[Term]
+id: GO:0009987
+name: cellular process
+namespace: biological_process
+alt_id: GO:0008151
+alt_id: GO:0050875
+def: "Any process that is carried out at the cellular level, but not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators, GOC:isa_complete]
+subset: goslim_pir
+subset: goslim_plant
+subset: gosubset_prok
+synonym: "cell growth and/or maintenance" NARROW []
+synonym: "cell physiology" EXACT []
+synonym: "cellular physiological process" EXACT []
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0022613
+name: ribonucleoprotein complex biogenesis
+namespace: biological_process
+def: "A cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a complex containing RNA and proteins. Includes the biosynthesis of the constituent RNA and protein molecules, and those macromolecular modifications that are involved in synthesis or assembly of the ribonucleoprotein complex." [GOC:isa_complete, GOC:mah]
+subset: gosubset_prok
+synonym: "ribonucleoprotein complex biogenesis and assembly" EXACT [GOC:mah]
+synonym: "RNA-protein complex biogenesis" EXACT [GOC:mah]
+is_a: GO:0044085 ! cellular component biogenesis
+
+[Term]
+id: GO:0042254
+name: ribosome biogenesis
+namespace: biological_process
+alt_id: GO:0007046
+def: "A cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits; includes transport to the sites of protein synthesis." [GOC:ma]
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: goslim_chembl
+subset: goslim_generic
+subset: goslim_pir
+subset: goslim_pombe
+subset: gosubset_prok
+synonym: "ribosomal chaperone activity" RELATED []
+synonym: "ribosome biogenesis and assembly" EXACT []
+xref: Wikipedia:Ribosome_biogenesis
+is_a: GO:0022613 ! ribonucleoprotein complex biogenesis
+
+[Term]
+id: GO:0043900
+name: regulation of multi-organism process
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of a multi-organism process, a process in which an organism has an effect on another organism of the same or different species." [GOC:jl]
+subset: gosubset_prok
+is_a: GO:0050789 {is_inferred="true"} ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0051704 ! multi-organism process
+relationship: regulates GO:0051704 ! multi-organism process
+
+[Term]
+id: GO:0043901
+name: negative regulation of multi-organism process
+namespace: biological_process
+def: "Any process that stops, prevents, or reduces the frequency, rate or extent of a multi-organism process, a process in which an organism has an effect on another organism of the same or different species." [GOC:jl]
+is_a: GO:0043900 {is_inferred="true"} ! regulation of multi-organism process
+is_a: GO:0048519 {is_inferred="true"} ! negative regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0051704 ! multi-organism process
+relationship: negatively_regulates GO:0051704 ! multi-organism process
+
+[Term]
+id: GO:0043902
+name: positive regulation of multi-organism process
+namespace: biological_process
+def: "Any process that activates or increases the frequency, rate or extent of a multi-organism process, a process in which an organism has an effect on another organism of the same or different species." [GOC:jl]
+is_a: GO:0043900 {is_inferred="true"} ! regulation of multi-organism process
+is_a: GO:0048518 {is_inferred="true"} ! positive regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: positively_regulates GO:0051704 ! multi-organism process
+relationship: positively_regulates GO:0051704 ! multi-organism process
+
+[Term]
+id: GO:0044085
+name: cellular component biogenesis
+namespace: biological_process
+alt_id: GO:0071843
+def: "A process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a cellular component. Includes biosynthesis of constituent macromolecules, and those macromolecular modifications that are involved in synthesis or assembly of the cellular component." [GOC:jl, GOC:mah]
+subset: gosubset_prok
+synonym: "cellular component biogenesis at cellular level" EXACT []
+is_a: GO:0071840 ! cellular component organization or biogenesis
+
+[Term]
+id: GO:0044087
+name: regulation of cellular component biogenesis
+namespace: biological_process
+def: "Any process that modulates the frequency, rate or extent of cellular component biogenesis, a process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a cellular component." [GOC:jl]
+is_a: GO:0050789 ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0044085 ! cellular component biogenesis
+relationship: regulates GO:0044085 ! cellular component biogenesis
+
+[Term]
+id: GO:0044089
+name: positive regulation of cellular component biogenesis
+namespace: biological_process
+def: "Any process that activates or increases the frequency, rate or extent of cellular component biogenesis, a process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of a cellular component." [GOC:jl]
+is_a: GO:0044087 {is_inferred="true"} ! regulation of cellular component biogenesis
+is_a: GO:0048518 {is_inferred="true"} ! positive regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: positively_regulates GO:0044085 ! cellular component biogenesis
+relationship: positively_regulates GO:0044085 ! cellular component biogenesis
+
+[Term]
+id: GO:0044699
+name: single-organism process
+namespace: biological_process
+def: "A biological process that involves only one organism." [GOC:jl]
+synonym: "single organism process" EXACT []
+is_a: GO:0008150 ! biological_process
+intersection_of: GO:0008150 ! biological_process
+intersection_of: bearer_of PATO:0002487 ! single organismal process quality
+disjoint_from: GO:0051704 ! multi-organism process
+relationship: bearer_of PATO:0002487 {is_inferred="true"} ! single organismal process quality
+created_by: janelomax
+creation_date: 2012-09-19T15:05:24Z
+
+[Term]
+id: GO:0044763
+name: single-organism cellular process
+namespace: biological_process
+def: "Any process that is carried out at the cellular level, occurring within a single organism." [GOC:jl]
+is_a: GO:0009987 ! cellular process
+is_a: GO:0044699 ! single-organism process
+intersection_of: GO:0009987 ! cellular process
+intersection_of: bearer_of PATO:0002487 ! single organismal process quality
+relationship: bearer_of PATO:0002487 {is_inferred="true"} ! single organismal process quality
+created_by: janelomax
+creation_date: 2012-12-11T16:56:55Z
+
+[Term]
+id: GO:0044764
+name: multi-organism cellular process
+namespace: biological_process
+def: "Any process that is carried out at the cellular level which involves another organism of the same or different species." [GOC:jl]
+is_a: GO:0009987 ! cellular process
+is_a: GO:0051704 {is_inferred="true"} ! multi-organism process
+intersection_of: GO:0009987 ! cellular process
+intersection_of: bearer_of PATO:0002486 ! multi-organismal process quality
+relationship: bearer_of PATO:0002486 {is_inferred="true"} ! multi-organismal process quality
+created_by: janelomax
+creation_date: 2012-12-11T17:00:50Z
+
+[Term]
+id: GO:0048518
+name: positive regulation of biological process
+namespace: biological_process
+alt_id: GO:0043119
+def: "Any process that activates or increases the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule." [GOC:jid]
+subset: gosubset_prok
+synonym: "activation of biological process" NARROW []
+synonym: "positive regulation of physiological process" EXACT []
+synonym: "stimulation of biological process" NARROW []
+synonym: "up regulation of biological process" EXACT []
+synonym: "up-regulation of biological process" EXACT []
+synonym: "upregulation of biological process" EXACT []
+is_a: GO:0050789 {is_inferred="true"} ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: positively_regulates GO:0008150 ! biological_process
+relationship: positively_regulates GO:0008150 ! biological_process
+
+[Term]
+id: GO:0048519
+name: negative regulation of biological process
+namespace: biological_process
+alt_id: GO:0043118
+def: "Any process that stops, prevents, or reduces the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule." [GOC:jid]
+subset: gosubset_prok
+synonym: "down regulation of biological process" EXACT []
+synonym: "down-regulation of biological process" EXACT []
+synonym: "downregulation of biological process" EXACT []
+synonym: "inhibition of biological process" NARROW []
+synonym: "negative regulation of physiological process" EXACT []
+is_a: GO:0050789 {is_inferred="true"} ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0008150 ! biological_process
+relationship: negatively_regulates GO:0008150 ! biological_process
+
+[Term]
+id: GO:0048522
+name: positive regulation of cellular process
+namespace: biological_process
+alt_id: GO:0051242
+def: "Any process that activates or increases the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:jid]
+subset: gosubset_prok
+synonym: "activation of cellular process" NARROW []
+synonym: "positive regulation of cellular physiological process" EXACT []
+synonym: "stimulation of cellular process" NARROW []
+synonym: "up regulation of cellular process" EXACT []
+synonym: "up-regulation of cellular process" EXACT []
+synonym: "upregulation of cellular process" EXACT []
+is_a: GO:0048518 {is_inferred="true"} ! positive regulation of biological process
+is_a: GO:0050794 {is_inferred="true"} ! regulation of cellular process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: positively_regulates GO:0009987 ! cellular process
+relationship: positively_regulates GO:0009987 ! cellular process
+
+[Term]
+id: GO:0048523
+name: negative regulation of cellular process
+namespace: biological_process
+alt_id: GO:0051243
+def: "Any process that stops, prevents, or reduces the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:jid]
+subset: gosubset_prok
+synonym: "down regulation of cellular process" EXACT []
+synonym: "down-regulation of cellular process" EXACT []
+synonym: "downregulation of cellular process" EXACT []
+synonym: "inhibition of cellular process" NARROW []
+synonym: "negative regulation of cellular physiological process" EXACT []
+is_a: GO:0048519 {is_inferred="true"} ! negative regulation of biological process
+is_a: GO:0050794 {is_inferred="true"} ! regulation of cellular process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0009987 ! cellular process
+relationship: negatively_regulates GO:0009987 ! cellular process
+
+[Term]
+id: GO:0050789
+name: regulation of biological process
+namespace: biological_process
+alt_id: GO:0050791
+def: "Any process that modulates the frequency, rate or extent of a biological process. Biological processes are regulated by many means; examples include the control of gene expression, protein modification or interaction with a protein or substrate molecule." [GOC:ai, GOC:go_curators]
+subset: goslim_aspergillus
+subset: goslim_candida
+subset: gosubset_prok
+synonym: "regulation of physiological process" EXACT []
+is_a: GO:0065007 {is_inferred="true"} ! biological regulation
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0008150 ! biological_process
+relationship: regulates GO:0008150 ! biological_process
+
+[Term]
+id: GO:0050794
+name: regulation of cellular process
+namespace: biological_process
+alt_id: GO:0051244
+def: "Any process that modulates the frequency, rate or extent of a cellular process, any of those that are carried out at the cellular level, but are not necessarily restricted to a single cell. For example, cell communication occurs among more than one cell, but occurs at the cellular level." [GOC:go_curators]
+subset: gosubset_prok
+synonym: "regulation of cellular physiological process" EXACT []
+is_a: GO:0050789 {is_inferred="true"} ! regulation of biological process
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0009987 ! cellular process
+relationship: regulates GO:0009987 ! cellular process
+
+[Term]
+id: GO:0051704
+name: multi-organism process
+namespace: biological_process
+alt_id: GO:0051706
+def: "A biological process which involves another organism of the same or different species." [GOC:jl]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "interaction between organisms" EXACT []
+synonym: "physiological interaction between organisms" EXACT []
+synonym: "physiological interaction with other organism" EXACT []
+is_a: GO:0008150 ! biological_process
+intersection_of: GO:0008150 ! biological_process
+intersection_of: bearer_of PATO:0002486 ! multi-organismal process quality
+relationship: bearer_of PATO:0002486 {is_inferred="true"} ! multi-organismal process quality
+
+[Term]
+id: GO:0065007
+name: biological regulation
+namespace: biological_process
+def: "Any process that modulates a measurable attribute of any biological process, quality or function." [GOC:dph, GOC:isa_complete, GOC:mah, GOC:pr, GOC:vw]
+subset: goslim_pir
+subset: gosubset_prok
+synonym: "regulation" BROAD []
+is_a: GO:0008150 ! biological_process
+
+[Term]
+id: GO:0071840
+name: cellular component organization or biogenesis
+namespace: biological_process
+alt_id: GO:0071841
+def: "A process that results in the biosynthesis of constituent macromolecules, assembly, arrangement of constituent parts, or disassembly of a cellular component." [GOC:mah]
+synonym: "cellular component organisation or biogenesis" EXACT [GOC:mah]
+synonym: "cellular component organisation or biogenesis at cellular level" EXACT [GOC:mah]
+synonym: "cellular component organization or biogenesis at cellular level" EXACT []
+is_a: GO:0008150 ! biological_process
+created_by: midori
+creation_date: 2010-09-10T01:39:16Z
+
+[Term]
+id: GO:0090069
+name: regulation of ribosome biogenesis
+namespace: biological_process
+def: "Any process that modulates the rate, frequency or extent of ribosome biogenesis. Ribosome biogenesis is the cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits." [GOC:dph, GOC:tb]
+is_a: GO:0044087 {is_inferred="true"} ! regulation of cellular component biogenesis
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: regulates GO:0042254 ! ribosome biogenesis
+relationship: regulates GO:0042254 ! ribosome biogenesis
+created_by: tanyaberardini
+creation_date: 2009-09-11T10:32:17Z
+
+[Term]
+id: GO:0090070
+name: positive regulation of ribosome biogenesis
+namespace: biological_process
+def: "Any process that increases the rate, frequency or extent of ribosome biogenesis. Ribosome biogenesis is the cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits." [GOC:dph, GOC:tb]
+is_a: GO:0044089 {is_inferred="true"} ! positive regulation of cellular component biogenesis
+is_a: GO:0090069 {is_inferred="true"} ! regulation of ribosome biogenesis
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: positively_regulates GO:0042254 ! ribosome biogenesis
+relationship: positively_regulates GO:0042254 ! ribosome biogenesis
+created_by: tanyaberardini
+creation_date: 2009-09-11T10:32:17Z
+
+[Term]
+id: GO:0090071
+name: negative regulation of ribosome biogenesis
+namespace: biological_process
+def: "Any process that decreases the rate, frequency or extent of ribosome biogenesis. Ribosome biogenesis is the cellular process that results in the biosynthesis of constituent macromolecules, assembly, and arrangement of constituent parts of ribosome subunits." [GOC:dph, GOC:tb]
+is_a: GO:0048523 ! negative regulation of cellular process
+is_a: GO:0090069 {is_inferred="true"} ! regulation of ribosome biogenesis
+intersection_of: GO:0065007 ! biological regulation
+intersection_of: negatively_regulates GO:0042254 ! ribosome biogenesis
+relationship: negatively_regulates GO:0042254 ! ribosome biogenesis
+created_by: tanyaberardini
+creation_date: 2009-09-11T10:32:17Z
+
+[Term]
+id: PATO:0000001
+name: quality
+is_a: BFO:0000020 ! specifically dependent continuant
+property_value: IAO:0000589 "quality (PATO)" xsd:string
+
+[Term]
+id: PATO:0001236
+name: process quality
+is_a: PATO:0000001 ! quality
+
+[Term]
+id: PATO:0002486
+name: multi-organismal process quality
+is_a: PATO:0001236 ! process quality
+
+[Term]
+id: PATO:0002487
+name: single organismal process quality
+is_a: PATO:0001236 ! process quality
+
+[Term]
+id: UPHENO:0001001
+name: Phenotype
+
+[Typedef]
+id: UPHENO:0000001
+name: has phenotype affecting
+
+[Typedef]
+id: bearer_of
+name: bearer of
+namespace: external
+def: "a relation between an independent continuant (the bearer) and a specifically dependent continuant (the dependent), in which the dependent specifically depends on the bearer for its existence" []
+xref: RO:0000053
+property_value: IAO:0000111 "bearer of" xsd:string
+property_value: IAO:0000112 "this apple is bearer of this red color" xsd:string
+property_value: IAO:0000112 "this vase is bearer of this fragility" xsd:string
+property_value: IAO:0000116 "A bearer can have many dependents, and its dependents can exist for different periods of time, but none of its dependents can exist when the bearer does not exist." xsd:string
+property_value: IAO:0000118 "bearer_of" xsd:string
+property_value: IAO:0000118 "is bearer of" xsd:string
+property_value: RO:0001900 RO:0001901
+range: BFO:0000020 ! specifically dependent continuant
+inverse_of: inheres_in ! inheres in
+
+[Typedef]
+id: causal_relation_between_processes
+name: causal relation between processes
+namespace: external
+def: "p is causally related to q if and only if p or any part of p and q or any part of q are linked by a chain of events where each event pair is one of direct activation or direct inhibition. p may be upstream, downstream, part of or a container of q." []
+xref: RO:0002501
+property_value: IAO:0000117 "Chris Mungall" xsd:string
+property_value: IAO:0000119 https://docs.google.com/document/d/1WxocTXZaGVhEV1n7NB86pCF3SUcBJh8bq4vQrVCkjSU/edit# xsd:string
+property_value: IAO:0000232 "Do not use this relation directly. It is intended as a grouping for a diverse set of relations, all involving cause and effect." xsd:string
+domain: BFO:0000003 ! occurrent
+range: BFO:0000003 ! occurrent
+is_a: causally_related_to ! causally related to
+
+[Typedef]
+id: causally_downstream_of_or_within
+name: causally downstream of or within
+namespace: external
+xref: RO:0002427
+property_value: IAO:0000117 "Chris Mungall" xsd:string
+is_transitive: true
+is_a: causal_relation_between_processes ! causal relation between processes
+is_a: causally_related_to ! causally related to
+inverse_of: causally_upstream_of_or_within ! causally upstream of or within
+
+[Typedef]
+id: causally_related_to
+name: causally related to
+namespace: external
+def: "p is causally related to q if and only if p or any part of p and q or any part of q are linked by a chain of events where each event pair is one of direct activation or direct inhibition. p may be upstream, downstream, part of or a container of q." []
+def: "This relation groups causal relations between material entities and causal relations between processes" []
+xref: RO:0002410
+property_value: IAO:0000114 IAO:0000428
+property_value: IAO:0000116 "This branch of the ontology deals with causal relations between entities. It is divided into two branches: causal relations between occurrents/processes, and causal relations between material entities. We take an 'activity flow-centric approach', with the former as primary, and define causal relations between material entities in terms of causal relations between occurrents.\n\nTo define causal relations in an activity-flow type network, we make use of 3 primitives:\n\n * Temporal: how do the intervals of the two occurrents relate? \n * Is the causal relation regulatory?\n * Is the influence positive or negative\n\nThe first of these can be formalized in terms of the Allen Interval Algebra. Informally, the 3 bins we care about are 'direct', 'indirect' or overlapping. Note that all causal relations should be classified under a RO temporal relation (see the branch under 'temporally related to'). Note that all causal relations are temporal, but not all temporal relations are causal. Two occurrents can be related in time without being causally connected. We take causal influence to be primitive, elucidated as being such that has the upstream changed, some qualities of the donwstream would necessarily be modified.\n\nFor the second, we consider a relationship to be regulatory if the system in which the activities occur is capable of altering the relationship to achieve some objective. This could include changing the rate of production of a molecule.\n\nFor the third, we consider the effect of the upstream process on the output(s) of the downstream process. If the level of output is increased, or the rate of production of the output is increased, then the direction is increased. Direction can be positive, negative or neutral or capable of either direction. Two positives in succession yield a positive, two negatives in succession yield a positive, otherwise the default assumption is that the net effect is canceled and the influence is neutral.\n\nEach of these 3 primitives can be composed to yield a cross-product of different relation types." xsd:string
+property_value: IAO:0000117 "Chris Mungall" xsd:string
+property_value: IAO:0000232 "Do not use this relation directly. It is ended as a grouping for a diverse set of relations, all involving cause and effect." xsd:string
+property_value: IAO:0000232 "Do not use this relation directly. It is intended as a grouping for a diverse set of relations, all involving cause and effect." xsd:string
+domain: BFO:0000015 ! process
+range: BFO:0000015 ! process
+is_a: related_via_dependence_to ! related via dependence to
+
+[Typedef]
+id: causally_upstream_of_or_within
+name: causally upstream of or within
+namespace: external
+def: "p 'causally upstream or within' q iff (1) the end of p is before the end of q and (2) the execution of p exerts some causal influence over the outputs of q; i.e. if p was abolished or the outputs of p were to be modified, this would necessarily affect q." []
+xref: RO:0002418
+property_value: IAO:0000116 "We would like to make this disjoint with 'preceded by', but this is prohibited in OWL2" xsd:string
+property_value: IAO:0000117 "Chris Mungall" xsd:string
+property_value: IAO:0000118 "influences (processual)" xsd:string
+is_transitive: true
+is_a: causal_relation_between_processes ! causal relation between processes
+is_a: causally_related_to ! causally related to
+
+[Typedef]
+id: depends_on
+name: depends on
+name: depends_on
+namespace: external
+xref: RO:0002502
+property_value: IAO:0000117 "Chris Mungall" xsd:string
+property_value: seeAlso BFO:0000169
+is_a: UPHENO:0000001 ! has phenotype affecting
+
+[Typedef]
+id: functionally_related_to
+name: functionally related to
+namespace: external
+xref: RO:0002328
+property_value: IAO:0000117 "Chris Mungall" xsd:string
+property_value: IAO:0000232 "This is a grouping relation that collects relations used for the purpose of connecting structure and function" xsd:string
+
+[Typedef]
+id: inheres_in
+name: inheres in
+namespace: external
+def: "a relation between a specifically dependent continuant (the dependent) and an independent continuant (the bearer), in which the dependent specifically depends on the bearer for its existence" []
+xref: RO:0000052
+property_value: IAO:0000111 "inheres in" xsd:string
+property_value: IAO:0000112 "this fragility inheres in this vase" xsd:string
+property_value: IAO:0000112 "this red color inheres in this apple" xsd:string
+property_value: IAO:0000116 "A dependent inheres in its bearer at all times for which the dependent exists." xsd:string
+property_value: IAO:0000118 "inheres_in" xsd:string
+property_value: RO:0001900 RO:0001901
+is_a: depends_on ! depends on
+is_a: inheres_in_part_of ! inheres in part of
+is_a: UPHENO:0000001 ! has phenotype affecting
+
+[Typedef]
+id: inheres_in_part_of
+name: inheres in part of
+namespace: external
+def: "q inheres in part of w if and only if there exists some p such that q inheres in p and p part of w." []
+xref: RO:0002314
+property_value: IAO:0000116 "Because part_of is transitive, inheres in is a sub-relation of inheres in part of" xsd:string
+property_value: IAO:0000117 "Chris Mungall" xsd:string
+property_value: IAO:0000119 http://www.ncbi.nlm.nih.gov/pubmed/20064205
+property_value: RO:0001900 RO:0001901
+is_a: depends_on ! depends on
+is_a: UPHENO:0000001 ! has phenotype affecting
+
+[Typedef]
+id: negatively_regulated_by
+name: negatively regulated by
+namespace: external
+xref: RO:0002335
+is_a: regulated_by ! regulated by
+inverse_of: negatively_regulates ! negatively_regulates
+
+[Typedef]
+id: negatively_regulates
+name: negatively regulates
+name: negatively_regulates
+namespace: external
+def: "x negatively regulates y if and only if the progression of x reduces the frequency, rate or extent of y" []
+xref: RO:0002212
+property_value: IAO:0000114 IAO:0000125
+property_value: IAO:0000589 "negatively regulates (process to process)" xsd:string
+is_a: regulates ! regulates
+
+[Typedef]
+id: positively_regulated_by
+name: positively regulated by
+namespace: external
+xref: RO:0002336
+is_a: regulated_by ! regulated by
+inverse_of: positively_regulates ! positively regulates
+
+[Typedef]
+id: positively_regulates
+name: positively regulates
+name: positively_regulates
+namespace: external
+def: "x positively regulates y if and only if the progression of x increases the frequency, rate or extent of y" []
+xref: RO:0002213
+property_value: IAO:0000114 IAO:0000125
+property_value: IAO:0000589 "positively regulates (process to process)" xsd:string
+is_a: regulates ! regulates
+
+[Typedef]
+id: regulated_by
+name: regulated by
+namespace: external
+def: "inverse of regulates" []
+xref: RO:0002334
+property_value: IAO:0000589 "regulated by (biological process to biological process)" xsd:string
+domain: BFO:0000015 ! process
+range: BFO:0000015 ! process
+is_a: causally_downstream_of_or_within ! causally downstream of or within
+is_a: causally_related_to ! causally related to
+is_a: functionally_related_to ! functionally related to
+inverse_of: regulates ! regulates
+
+[Typedef]
+id: regulates
+name: regulates
+namespace: external
+def: "x regulates y if and only if the x is the realization of a function to exert an effect on the frequency, rate or extent of y" []
+xref: RO:0002211
+property_value: IAO:0000114 IAO:0000125
+property_value: IAO:0000117 "Chris Mungall" xsd:string
+property_value: IAO:0000117 "David Hill" xsd:string
+property_value: IAO:0000117 "Tanya Berardini" xsd:string
+property_value: IAO:0000119 "GO" xsd:string
+property_value: IAO:0000589 "regulates (biological process to biological process)" xsd:string
+domain: BFO:0000015 ! process
+range: BFO:0000015 ! process
+is_a: causally_related_to ! causally related to
+is_a: causally_upstream_of_or_within ! causally upstream of or within
+is_a: functionally_related_to ! functionally related to
+
+[Typedef]
+id: related_via_dependence_to
+name: related via dependence to
+namespace: external
+def: "A relationship that holds between two entities, where the relationship holds based on the presence or absence of statistical dependence relationship. The entities may be statistical variables, or they may be other kinds of entities such as diseases, chemical entities or processes." []
+xref: RO:0002609
+
