@@ -98,6 +98,34 @@
                     </execution>
                 </executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+						<id>copy-owltools</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<resources>
+								<resource>
+									<directory>${build.directory}</directory>
+									<includes>
+										<include>owltools</include>
+									</includes>
+									<excludes>
+										<exclude>**/.jar</exclude>
+									</excludes>
+								</resource>
+							</resources>
+							<outputDirectory>${project.basedir}/bin</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
