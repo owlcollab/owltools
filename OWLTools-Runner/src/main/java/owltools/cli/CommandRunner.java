@@ -136,6 +136,7 @@ import owltools.graph.AxiomAnnotationTools;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLGraphWrapper.ISynonym;
+import owltools.graph.OWLGraphWrapperBasic.LabelPolicy;
 import owltools.graph.OWLQuantifiedProperty;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.idmap.IDMapPairWriter;
@@ -633,9 +634,18 @@ public class CommandRunner extends CommandRunnerBase {
                 g.mergeImportClosure(isRmImports);
             }
             else if (opts.nextEq("--merge-support-ontologies")) {
-                opts.info("", "This will merge the support ontologies from the OWLGraphWrapper into the main ontology. This is usually required while working with a reasoner.");
+                opts.info("[-l]", "This will merge the support ontologies from the OWLGraphWrapper into the main ontology. This is usually required while working with a reasoner.");
+                LabelPolicy lp = LabelPolicy.ALLOW_DUPLICATES;
+                while (opts.hasArgs()) {
+                    if (opts.nextEq("-l|--labels")) {
+                        opts.info("", "preserve source labels");
+                        lp = LabelPolicy.PRESERVE_SOURCE;
+                    }
+                    else
+                        break;
+                }
                 for (OWLOntology ont : g.getSupportOntologySet())
-                    g.mergeOntology(ont);
+                    g.mergeOntology(ont, lp);
                 g.setSupportOntologySet(new HashSet<OWLOntology>());
             }
             else if (opts.nextEq("--add-support-from-imports")) {
@@ -4220,6 +4230,7 @@ public class CommandRunner extends CommandRunnerBase {
                 else {
                     System.out.println("adding support ont "+ont);
                     g.addSupportOntology(ont);
+                    System.out.println("Added support ont");
                 }
             }
             else if (opts.nextEq("--load-ontologies-as-imports")) {
