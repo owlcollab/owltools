@@ -12,7 +12,10 @@ import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationSubject;
+import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -82,15 +85,50 @@ public class OWLGraphWrapperBasic {
 		}
 	}
 
+	public enum LabelPolicy {
+	    ALLOW_DUPLICATES,
+	    PRESERVE_SOURCE,
+	    PRESERVE_EXT
+	}
 	/**
 	 * Adds all axioms from extOnt into source ontology
 	 * 
 	 * @param extOnt
 	 * @throws OWLOntologyCreationException
 	 */
-	public void mergeOntology(OWLOntology extOnt) throws OWLOntologyCreationException {
+    public void mergeOntology(OWLOntology extOnt) throws OWLOntologyCreationException {
+        mergeOntology(extOnt, LabelPolicy.ALLOW_DUPLICATES);
+    }
+	public void mergeOntology(OWLOntology extOnt, LabelPolicy labelPolicy) throws OWLOntologyCreationException {
 		OWLOntologyManager manager = getManager();
+		LOG.info("Merging "+extOnt+" policy: "+labelPolicy);
 		for (OWLAxiom axiom : extOnt.getAxioms()) {
+		    if (labelPolicy != LabelPolicy.ALLOW_DUPLICATES) {
+		        if (axiom instanceof OWLAnnotationAssertionAxiom) {
+		            OWLAnnotationAssertionAxiom aa = (OWLAnnotationAssertionAxiom)axiom;
+		            if (aa.getProperty().isLabel()) {
+		                OWLAnnotationSubject subj = aa.getSubject();
+		                if (subj instanceof IRI) {
+		                    Optional<OWLLiteral> label = null;
+		                    for (OWLAnnotationAssertionAxiom a1 : sourceOntology.getAnnotationAssertionAxioms(subj)) {
+		                        if (a1.getProperty().isLabel()) {
+		                            label = a1.getValue().asLiteral();
+		                        }
+		                    }
+		                    if (label != null && label.isPresent()) {
+                                if (labelPolicy == LabelPolicy.PRESERVE_SOURCE) {
+                                    LOG.info("Preserving existing label:" +subj+" "+label+" // ditching: "+axiom);
+                                    continue;
+                                }
+                                if (labelPolicy == LabelPolicy.PRESERVE_EXT) {
+                                    LOG.info("Replacing:" +subj+" "+label+" with: "+axiom);
+                                    LOG.error("NOT IMPLEMENTED");
+                                }
+		                    }
+		                }
+		            }
+		        }
+		    }
 			manager.applyChange(new AddAxiom(sourceOntology, axiom));
 		}
 		for (OWLImportsDeclaration oid: extOnt.getImportsDeclarations()) {
@@ -99,18 +137,6 @@ public class OWLGraphWrapperBasic {
 		addCommentToOntology(sourceOntology, "Includes "+summarizeOntology(extOnt));
 	}
 
-	static CharSequence summarizeOntology(OWLOntology ontology) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("Ontology(");
-		sb.append(ontology.getOntologyID());
-		sb.append(") [Axioms: ");
-		int axiomCount = ontology.getAxiomCount();
-		sb.append(axiomCount);
-		sb.append(" Logical Axioms: ");
-		sb.append(ontology.getLogicalAxiomCount());
-		sb.append("]");
-		return sb;
-	}
 
 	public void mergeOntology(OWLOntology extOnt, boolean isRemoveFromSupportList) throws OWLOntologyCreationException {
 		mergeOntology(extOnt);
@@ -118,6 +144,20 @@ public class OWLGraphWrapperBasic {
 			this.supportOntologySet.remove(extOnt);
 		}
 	}
+	
+	static CharSequence summarizeOntology(OWLOntology ontology) {
+	    StringBuilder sb = new StringBuilder();
+	    sb.append("Ontology(");
+	    sb.append(ontology.getOntologyID());
+	    sb.append(") [Axioms: ");
+	    int axiomCount = ontology.getAxiomCount();
+	    sb.append(axiomCount);
+	    sb.append(" Logical Axioms: ");
+	    sb.append(ontology.getLogicalAxiomCount());
+	    sb.append("]");
+	    return sb;
+	}
+
 
 	/**
 	 * @deprecated use {@link #mergeSupportOntology(IRI, boolean)} instead
