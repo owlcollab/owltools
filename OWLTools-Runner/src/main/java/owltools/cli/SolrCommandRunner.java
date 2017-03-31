@@ -98,7 +98,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-config")
 	public void configRead(Opts opts) {
-		
+		opts.info("CONFFILES", "Loads YAML config files");
 		LOG.info("Grab configuration files.");
 
 		// Try and munge all of the configs together.
@@ -126,6 +126,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-schema-dump")
 	public void solrSchemaDump(Opts opts) {
+        opts.info("", "Dumps schema on stdout");
 		
 		LOG.info("Dump Solr schema.");
 
@@ -166,6 +167,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-url")
 	public void setSolrUrl(Opts opts) {
+        opts.info("URL", "Sets the SOLR URL");
 		globalSolrURL = opts.nextOpt(); // shift it off of null
 		LOG.info("Globally use GOlr server at: " + globalSolrURL);
 	}
@@ -254,6 +256,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-load-ontology")
 	public void flexLoadOntologySolr(Opts opts) throws Exception {
+	    opts.info("", "loads the in-memory ontology into solr");
 		// pre-check ontology
 		int code = preCheckOntology("Can't process an inconsistent ontology for solr", 
 				"Can't process an ontology with unsatisfiable classes for solr", null);
@@ -339,6 +342,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-load-ontology-general")
 	public void generalLoadOntologySolr(Opts opts) throws Exception {
+        opts.info("", "loads the in-memory ontology into solr, using general schema");
 
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);				
@@ -786,6 +790,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	@CLIMethod("--solr-load-gafs")
 	public void loadGAFsSolr(Opts opts) throws Exception {
 		ParserListener lineCountReporter = null;
+		opts.info("[--report-line-count] GAFS", "loads list of GAFs into Solr");
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--report-line-count")) {
 				lineCountReporter = new ParserListener() {
@@ -886,6 +891,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-load-panther")
 	public void loadPANTHERSolr(Opts opts) throws Exception {
+	    opts.info("", "loads in-memory panther data to the family-config.yaml schema");
 		// Double check we're not going to do something silly, like try and
 		// use a null variable...
 		if( pSet == null ){
@@ -914,6 +920,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-load-panther-general")
 	public void loadPANTHERGeneralSolr(Opts opts) throws Exception {
+        opts.info("", "loads in-memory panther data to the general-config.yaml schema");
 		// Double check we're not going to do something silly, like try and
 		// use a null variable...
 		if( pSet == null ){
@@ -940,6 +947,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-load-gpads")
 	public void loadGPADsSolr(Opts opts) throws Exception {
+	    opts.info("GPADFILES", "loads all gpads");
 		// Check to see if the global url has been set.
 		//String url = sortOutSolrURL(globalSolrURL);
 
