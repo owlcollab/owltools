@@ -12,7 +12,7 @@ public class MockGafSolrDocumentLoader extends GafSolrDocumentLoader implements 
     
     final MockSolrDocumentCollection documentCollection = new MockSolrDocumentCollection();
     @Override
-    protected void add(SolrInputDocument doc) {
+    public void add(SolrInputDocument doc) {
         documentCollection.add(doc);
     }
     
