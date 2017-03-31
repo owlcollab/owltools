@@ -43,6 +43,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import com.google.common.base.Optional;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import owltools.cli.tools.CLIMethod;
 import owltools.flex.FlexCollection;
@@ -67,6 +68,7 @@ import owltools.solrj.OntologyGeneralSolrDocumentLoader;
 import owltools.solrj.OptimizeSolrDocumentLoader;
 import owltools.solrj.PANTHERGeneralSolrDocumentLoader;
 import owltools.solrj.PANTHERSolrDocumentLoader;
+import owltools.solrj.loader.MockGafSolrDocumentLoader;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
 
@@ -1149,7 +1151,15 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		}
 		
 		// Doc load.
-		GafSolrDocumentLoader loader = new GafSolrDocumentLoader(url);
+		boolean isMock = false;
+		GafSolrDocumentLoader loader;
+		if (url.equals("mock")) {
+		    loader = new MockGafSolrDocumentLoader();
+		    isMock = true;
+		}
+		else {
+		    loader = new GafSolrDocumentLoader(url);
+		}
 		loader.setEcoTools(eco);
 		loader.setTaxonTools(taxo);
 		loader.setPANTHERSet(pset);
@@ -1170,6 +1180,11 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		} catch (SolrServerException e) {
 			LOG.warn("Something has gone south with Solr: " + url);
 			e.printStackTrace();
+		}
+		if (isMock) {
+		    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		    String json = gson.toJson(((MockGafSolrDocumentLoader) loader).getDocumentCollection());
+            System.out.println(json);
 		}
 	}
 }
