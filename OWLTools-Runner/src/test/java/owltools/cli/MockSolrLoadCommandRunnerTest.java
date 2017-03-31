@@ -18,9 +18,22 @@ public class MockSolrLoadCommandRunnerTest extends AbstractCommandRunnerTest {
 	protected void init() {
 		runner = new SolrCommandRunner();
 	}
-
+	
+//    @Test
+//    public void testMockOntologyLoad() throws Exception {
+//        
+//        PrintStream out = System.out;
+//        System.setOut(new PrintStream(new BufferedOutputStream(new FileOutputStream("target/ontflex.json"))));
+//        
+//        init();
+//        load("go_sample_mf_subset.obo");
+//        run("--reasoner elk");
+//        run("--solr-url mock");
+//        run("--solr-load-ontology");
+//        System.setOut(out);
+//    }
 	@Test
-	public void testRunner() throws Exception {
+	public void testMockGafLoad() throws Exception {
 	    
 	    PrintStream out = System.out;
 	    System.setOut(new PrintStream(new BufferedOutputStream(new FileOutputStream("target/gafdocs.json"))));

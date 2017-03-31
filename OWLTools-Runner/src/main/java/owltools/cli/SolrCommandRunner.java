@@ -68,6 +68,7 @@ import owltools.solrj.OntologyGeneralSolrDocumentLoader;
 import owltools.solrj.OptimizeSolrDocumentLoader;
 import owltools.solrj.PANTHERGeneralSolrDocumentLoader;
 import owltools.solrj.PANTHERSolrDocumentLoader;
+import owltools.solrj.loader.MockFlexDocumentLoader;
 import owltools.solrj.loader.MockGafSolrDocumentLoader;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
@@ -274,9 +275,23 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		
 		// Actual ontology class loading.
 		try {
-			FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, flex);
+		    boolean isMock = false;
+			FlexSolrDocumentLoader loader;
+			if (url.equals("mock")) {
+			    isMock = true;
+			    loader = new MockFlexDocumentLoader(flex);
+			}
+			else {
+			    loader = new FlexSolrDocumentLoader(url, flex);
+			}
 			LOG.info("Trying ontology flex load.");
 			loader.load();
+			
+	        if (isMock) {
+	            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	            String json = gson.toJson(((MockFlexDocumentLoader) loader).getDocumentCollection());
+	            System.out.println(json);
+	        }
 			
 			// Load likely successful--log it.
 			//optionallyLogLoad("ontology", ???);
