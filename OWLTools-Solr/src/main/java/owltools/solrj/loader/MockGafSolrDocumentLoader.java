@@ -1,31 +1,27 @@
 package owltools.solrj.loader;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.common.SolrInputDocument;
 
 import owltools.solrj.GafSolrDocumentLoader;
 
-public class MockGafSolrDocumentLoader extends GafSolrDocumentLoader {
+public class MockGafSolrDocumentLoader extends GafSolrDocumentLoader implements MockSolrDocumentLoader {
     
     public MockGafSolrDocumentLoader() {
         super(null, 100);
     }
     
-    final List<SolrInputDocument> documents = new ArrayList<SolrInputDocument>();
+    final MockSolrDocumentCollection documentCollection = new MockSolrDocumentCollection();
     @Override
     protected void add(SolrInputDocument doc) {
-        documents.add(doc);
+        documentCollection.add(doc);
     }
     
     /**
      * @return the result
      */
-    public List<SolrInputDocument> getDocuments() {
-        return documents;
+    public MockSolrDocumentCollection getDocumentCollection() {
+        return documentCollection;
     }
     
-    
+   
 }
