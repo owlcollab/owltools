@@ -3398,6 +3398,22 @@ public class CommandRunner extends CommandRunnerBase {
                 Mooncat m = new Mooncat(g);
                 m.removeSubsetClasses(cset, isRemoveDangling);
             }
+            else if (opts.nextEq("--remove-axioms-about")) {
+                opts.info("[-d] IDSPACES", "Removes axioms that are about the specified ID space");
+                boolean isRemoveDangling = true;
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("-d|--keep-dangling")) {
+                        opts.info("",
+                                "if specified, dangling axioms (ie pointing to removed classes) are preserved");
+                        isRemoveDangling = false;
+                    }
+                    else
+                        break;
+                }
+                String idspace = opts.nextOpt();
+                Mooncat m = new Mooncat(g);
+                m.removeAxiomsAboutIdSpace(idspace, isRemoveDangling);
+            }
             else if (opts.nextEq("--remove-classes-in-idspace")) {
                 opts.info("[-d] [-s IDSPACE]", "Removes classes in an ID space from ontology");
                 String idspace = null;

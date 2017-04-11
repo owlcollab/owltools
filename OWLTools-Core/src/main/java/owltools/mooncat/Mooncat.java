@@ -718,20 +718,44 @@ public class Mooncat {
 		}
 	}
 	
-	public void removeClassesNotInIDSpace(String idspace, boolean removeDangling) {
-		Set<OWLClass> coreSubset = new HashSet<OWLClass>();
-		LOG.info("Removing classes not in: "+idspace);
-		idspace = idspace.toLowerCase()+":";
-		for (OWLClass c : graph.getSourceOntology().getClassesInSignature()) {
-			String id = graph.getIdentifier(c).toLowerCase();
-			if (id.startsWith(idspace)) {
-				coreSubset.add(c);
-			}
-		}
-		LOG.info("Core size:"+coreSubset.size());
-		removeSubsetComplementClasses(coreSubset, removeDangling);
-	}
-	
+    public void removeClassesNotInIDSpace(String idspace, boolean removeDangling) {
+        Set<OWLClass> coreSubset = new HashSet<OWLClass>();
+        LOG.info("Removing classes not in: "+idspace);
+        idspace = idspace.toLowerCase()+":";
+        for (OWLClass c : graph.getSourceOntology().getClassesInSignature()) {
+            String id = graph.getIdentifier(c).toLowerCase();
+            if (id.startsWith(idspace)) {
+                coreSubset.add(c);
+            }
+        }
+        LOG.info("Core size:"+coreSubset.size());
+        removeSubsetComplementClasses(coreSubset, removeDangling);
+    }
+
+    public void removeAxiomsAboutIdSpace(String idspace, boolean removeDangling) {
+        removeAxiomsAboutIdSpace(idspace, removeDangling, true);
+    }
+    public void removeAxiomsAboutIdSpace(String idspace, boolean removeDangling, boolean removeAnnotations) {
+        LOG.info("Removing classes not in: "+idspace);
+        idspace = idspace.toLowerCase()+":";
+        Set<OWLAxiom> rmAxioms = new HashSet<>();
+        int n=0;
+        for (OWLClass c : graph.getSourceOntology().getClassesInSignature()) {
+            String id = graph.getIdentifier(c).toLowerCase();
+            if (id.startsWith(idspace)) {
+                n++;
+                rmAxioms.addAll(graph.getSourceOntology().getAxioms(c));
+                if (removeAnnotations) {
+                    rmAxioms.addAll(graph.getSourceOntology().getAnnotationAssertionAxioms(c.getIRI()));
+                }
+                rmAxioms.add(graph.getDataFactory().getOWLDeclarationAxiom(c));
+            }
+        }
+        LOG.info("Num classes in idpsace:"+n+" "+idspace);
+        LOG.info("Removing: "+rmAxioms.size()+" axioms");
+        graph.getManager().removeAxioms(graph.getSourceOntology(), rmAxioms);
+    }
+
 	/**
 	 * Remove a set of classes from the ontology
 	 * 
