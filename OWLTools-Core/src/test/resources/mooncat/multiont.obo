@@ -1,0 +1,31 @@
+ontology: multiont
+
+[Term]
+id: X:1
+relationship: part_of Y:1
+
+[Term]
+id: X:2
+is_a: X:1
+relationship: part_of Y:2
+
+[Term]
+id: X:3
+is_a: X:2
+relationship: part_of Y:3
+
+[Term]
+id: Z:1
+relationship: part_of Y:1
+
+[Term]
+id: Z:2
+is_a: Z:1
+relationship: part_of Y:2
+
+[Term]
+id: Z:3
+is_a: Z:2
+relationship: part_of Y:3
+
+
