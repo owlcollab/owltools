@@ -65,6 +65,7 @@ import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.OBODocumentFormat;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
+import org.semanticweb.owlapi.formats.TrigDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.AddImport;
@@ -3218,6 +3219,9 @@ public class CommandRunner extends CommandRunnerBase {
                         }
                         else if (ofmtname.equals("turtle") || ofmtname.equals("ttl")) {
                             ofmt = new TurtleDocumentFormat();
+                        }
+                        else if (ofmtname.equals("trig")) {
+                            ofmt = new TrigDocumentFormat();
                         }
                         else if (ofmtname.equals("xml") || ofmtname.equals("owx")) {
                             ofmt = new OWLXMLDocumentFormat();

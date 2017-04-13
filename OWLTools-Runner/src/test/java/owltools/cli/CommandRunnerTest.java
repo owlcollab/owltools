@@ -45,4 +45,20 @@ public class CommandRunnerTest extends AbstractCommandRunnerTest {
         run("-o target/ceph-no-dupe.owl");
     }
 
+    @Test
+    public void testTrig() throws Exception {
+        load("ceph.obo");
+        load("caro.obo");
+        run("--add-imports-from-supports");
+        run("-o -f trig target/ceph.trig");
+    }
+
+    @Test
+    public void testOboJson() throws Exception {
+        load("ceph.obo");
+        load("caro.obo");
+        run("--add-imports-from-supports");
+        run("-o -f json target/ceph.json");
+    }
+
 }
