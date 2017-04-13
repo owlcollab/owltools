@@ -79,6 +79,44 @@ public class OWLGraphWrapperEdgeTest extends OWLToolsTestBasics {
 		
 	}
 	
+	   @Test
+	    public void testEdgesNR() throws Exception {
+	        OWLGraphWrapper wrapper = getGraph("graph/lf-apoptosis.obo");
+	        
+	        OWLObject x1 = wrapper.getOWLClassByIdentifier("GO:1990086");
+	        
+	        // we expect this to be true by default
+	        assertTrue(wrapper.config.isGraphReasonedAndRelaxed);
+	        
+	        int n=0;
+	        for (OWLGraphEdge e : wrapper.getOutgoingEdges(x1)) {
+	            n++;
+	            OWLObject t = e.getTarget();
+
+	            if (t instanceof OWLNamedObject){        
+	                
+
+	                // Figure out object the bits.
+	                String objectID = wrapper.getIdentifier(t);
+	                String elabel = wrapper.getEdgeLabel(e);
+	                
+	                if( objectID.equals("GO:1904019") ){
+	                    assertEquals("expected direct superclass found", elabel, "is_a");                  
+                    } else if( objectID.equals("CL:0011004") ){
+                        assertEquals("expected occurs_in link found", elabel, "occurs in");
+                    } else if( objectID.equals("GO:0006915") ){
+                        fail("indirect superclasses not expcted with graph is reasoned and reduced");
+	                }else{
+	                    fail("I didn't expect this: " + objectID);
+	                }
+	            }
+	        }
+	        assertEquals("I expected to get 2 links", 2, n);
+
+	        
+	    }
+	    
+	
 	@Test
 	public void testEdgeCache() throws Exception {
 		OWLGraphWrapper g = getGraph("graph/cache-test.obo");

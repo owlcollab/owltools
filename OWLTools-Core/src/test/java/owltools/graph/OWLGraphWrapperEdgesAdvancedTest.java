@@ -2,6 +2,7 @@ package owltools.graph;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -11,14 +12,71 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.OWLToolsTestBasics;
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
+import owltools.io.ParserWrapper;
 
 public class OWLGraphWrapperEdgesAdvancedTest extends OWLToolsTestBasics {
 
+    @Test
+    public void testGetSegmentShuntGraph() throws Exception {
+        
+        String id = "GO:1990086"; // lens fiber cell apoptotic process
+        
+        OWLGraphWrapper graph = getGraph("graph/lf-apoptosis.obo");
+        //ParserWrapper pw = new ParserWrapper();
+        //OWLOntology obodoc = pw.parse("/Users/cjm/repos/go/ontology/extensions/go-gaf.owl");
+        //OWLGraphWrapper graph = new OWLGraphWrapper(obodoc);
+
+        OWLObject x = graph.getOWLObjectByIdentifier(id);
+        
+        List<String> rel_ids = new ArrayList<String>();
+        rel_ids.add("BFO:0000050");
+        rel_ids.add("BFO:0000066");
+        rel_ids.add("RO:0002211");
+        rel_ids.add("RO:0002212");
+        rel_ids.add("RO:0002213");
+        rel_ids.add("RO:0002215");
+        rel_ids.add("RO:0002216");
+        // Add this node, our seed.
+        //String topicID = graph.getIdentifier(x);
+        System.out.println("Getting segment shunt graph for "+x);
+        OWLShuntGraph shug = graph.getSegmentShuntGraph(x, rel_ids);
+        
+        // note: shuntgraph calls parents children and parents children
+        Set<String> parents = shug.getParents(id);
+        for (String p : parents) {
+            System.out.println(" actual child: "+p);
+        }
+        //System.out.println(parents);
+        
+        Set<String> children = shug.getChildren(id);
+        int nOk = 0;
+        for (String c : children) {
+            System.out.println(" actual parent: "+c);
+            if (c.equals("GO:1904019")) {
+                nOk++;
+            }
+            else if (c.equals("CL:0011004")) {
+                nOk++;
+            }
+            else {
+                fail("Did not expect "+c+" as an actual parent");
+            }
+        }
+        System.out.println(children);
+        
+        assertEquals(2, children.size());
+        
+
+
+    }
+    
 	@Test
 	public void testGetOnlyInTaxon() throws Exception {
 		OWLGraphWrapper graph = getGraph("graph/explainConstraints.owl");
