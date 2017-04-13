@@ -37,6 +37,7 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
@@ -254,12 +255,50 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-load-ontology")
 	public void flexLoadOntologySolr(Opts opts) throws Exception {
+	    opts.info("[--min-classes MIN] [--allow-null]", "Loads current in-memory graph as ontology documents using flex");
 		// pre-check ontology
 		int code = preCheckOntology("Can't process an inconsistent ontology for solr", 
 				"Can't process an ontology with unsatisfiable classes for solr", null);
 		if (code != 0) {
 			exit(code);
 			return;
+		}
+		
+		boolean allowNullOntologies = false;
+		int minClasses = 100;
+		while (opts.hasOpts()) {
+            if (opts.nextEq("--min-classes")) {
+                opts.info("NUM", "exit with non-zero if fewer classes encountered");
+                minClasses = Integer.valueOf(opts.nextOpt());
+            }
+            else if (opts.nextEq("--allow-null")) {
+                opts.info("", "if set, empty ontologies (0 axioms, no IRI) will be ignored rather than failing");
+                allowNullOntologies = true;
+            }
+		    else {
+		        break;
+		    }
+		}
+		
+		int numClasses = g.getAllOWLClasses().size();
+		if (numClasses < minClasses) {
+		    LOG.error("Fewer classes than expected: "+numClasses+" < "+minClasses);
+		    exit(1);
+		}
+		
+		for (OWLOntology o : g.getAllOntologies()) {
+		    OWLOntologyID oid = o.getOntologyID();
+		    if (oid == null || !oid.getOntologyIRI().isPresent()) {
+		        if (o.getAxiomCount() == 0) {
+		            if (!allowNullOntologies) {
+		                LOG.error("Encountered null ontology: "+o);
+		                LOG.error("perhaps an ontology IRI is misconfigured?");
+		                LOG.error("run with --allow-null to ignore this");
+		                exit(1);
+		                
+		            }
+		        }
+		    }
 		}
 
 		// Check to see if the global url has been set.
@@ -269,11 +308,19 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		LOG.info("Assembling FlexCollection...");
 		FlexCollection flex = new FlexCollection(aconf, g);
 		
+		int nClasses = 0;
 		// Actual ontology class loading.
 		try {
 			FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, flex);
 			LOG.info("Trying ontology flex load.");
 			loader.load();
+			
+			// number of docs loaded MUST be equal to or higher than minClasses
+			// (docs also comprises non-class documents, e.g. ObjectProperties)
+			if (loader.getCurrentDocNumber() < minClasses) {
+	            LOG.error("Fewer documents loaded than expected: "+loader.getCurrentDocNumber()+" < "+minClasses);
+	            exit(1);			    
+			}
 			
 			// Load likely successful--log it.
 			//optionallyLogLoad("ontology", ???);

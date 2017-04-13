@@ -20,7 +20,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 
 	private static Logger LOG = Logger.getLogger(FlexSolrDocumentLoader.class);
 	private FlexCollection collection = null;
-	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
+	private int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
 	int current_doc_number;
 
 	public FlexSolrDocumentLoader(String url, FlexCollection c) throws MalformedURLException {
@@ -76,4 +76,14 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		
 		return cls_doc;
 	}
+
+    /**
+     * @return the current_doc_number
+     */
+    public int getCurrentDocNumber() {
+        return current_doc_number;
+    }
+
+  	
+	
 }
