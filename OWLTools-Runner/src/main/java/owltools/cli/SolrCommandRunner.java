@@ -167,6 +167,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@CLIMethod("--solr-url")
 	public void setSolrUrl(Opts opts) {
+	    opts.info("URL", "Note: pass 'mock' to create a mock loader (writes json docs to stdout");
 		globalSolrURL = opts.nextOpt(); // shift it off of null
 		LOG.info("Globally use GOlr server at: " + globalSolrURL);
 	}
