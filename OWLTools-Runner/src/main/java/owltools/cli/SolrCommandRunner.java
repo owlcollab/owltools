@@ -69,6 +69,7 @@ import owltools.solrj.OntologyGeneralSolrDocumentLoader;
 import owltools.solrj.OptimizeSolrDocumentLoader;
 import owltools.solrj.PANTHERGeneralSolrDocumentLoader;
 import owltools.solrj.PANTHERSolrDocumentLoader;
+import owltools.solrj.loader.MockFlexSolrDocumentLoader;
 import owltools.solrj.loader.MockGafSolrDocumentLoader;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
@@ -309,10 +310,19 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		LOG.info("Assembling FlexCollection...");
 		FlexCollection flex = new FlexCollection(aconf, g);
 		
+        boolean isMock = false;
 		int nClasses = 0;
 		// Actual ontology class loading.
 		try {
-			FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader(url, flex);
+		    FlexSolrDocumentLoader loader;
+	        if (url.equals("mock")) {
+	            loader = new MockFlexSolrDocumentLoader(flex);
+	            isMock = true;
+	        }
+	        else {
+	            loader = new FlexSolrDocumentLoader(url, flex);
+	        }
+		    
 			LOG.info("Trying ontology flex load.");
 			loader.load();
 			
@@ -370,6 +380,13 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					LOG.info("Failed to get match for version of: " + ont_id + "!");
 				}
 				optionallyLogLoad("ontology", ont_id, ont_version);
+				
+		        if (isMock) {
+		            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		            String json = gson.toJson(((MockFlexSolrDocumentLoader) loader).getDocumentCollection());
+		            System.out.println(json);
+		        }
+
 			}
 		} catch (SolrServerException e) {
 			LOG.info("Ontology load at: " + url + " failed!");

@@ -396,6 +396,8 @@ public class OWLGraphWrapperBasic {
 			obs.addAll(o.getIndividualsInSignature());
 			obs.addAll(o.getObjectPropertiesInSignature());
 		}
+        obs.remove(getDataFactory().getOWLThing());
+        obs.remove(getDataFactory().getOWLNothing());
 		return obs;
 	}
 
