@@ -1,0 +1,19 @@
+Prefix: GO: <http://purl.obolibrary.org/obo/GO_>
+Ontology: <http://purl.obolibrary.org/obo/go/nothing-test>
+
+##
+
+Class: owl:Thing
+
+Class: GO:0000001
+  SubClassOf: owl:Thing
+  Annotations: rdfs:label "t1"
+
+Class: GO:0000002
+  SubClassOf: owl:Thing
+  Annotations: rdfs:label "t1"
+  SubClassOf: GO:0000001
+
+Class: owl:Nothing
+  SubClassOf: GO:0000001
+  SubClassOf: GO:0000002

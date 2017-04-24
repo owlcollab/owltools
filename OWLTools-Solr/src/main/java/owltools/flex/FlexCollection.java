@@ -3,10 +3,12 @@ package owltools.flex;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -222,7 +224,11 @@ public class FlexCollection implements Iterable<FlexDocument> {
 	@Override
 	public Iterator<FlexDocument> iterator() {
 		final StopWatch timer = new StopWatch();
-		Set<OWLObject> allOWLObjects = graph.getAllOWLObjects();
+		Set<OWLObject> blacklist = new HashSet<>();
+        blacklist.add(graph.getDataFactory().getOWLThing());
+        blacklist.add(graph.getDataFactory().getOWLNothing());
+		Set<OWLObject> allOWLObjects = 
+		        graph.getAllOWLObjects().stream().filter(x -> !blacklist.contains(x)).collect(Collectors.toSet());
 		final int totalCount = allOWLObjects.size();
 		timer.start();
 		final Iterator<OWLObject> objectIterator = allOWLObjects.iterator();
