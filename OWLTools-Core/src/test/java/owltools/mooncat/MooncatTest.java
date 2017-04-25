@@ -85,6 +85,7 @@ public class MooncatTest extends OWLToolsTestBasics {
         OWLClass x1 = g.getOWLClassByIdentifier("X:1");
         OWLClass x2 = g.getOWLClassByIdentifier("X:2");
         OWLClass x3 = g.getOWLClassByIdentifier("X:3");
+        OWLClass x4 = g.getOWLClassByIdentifier("X:4");
                
         int n = 0;
         for ( OWLGraphEdge e : g.getOutgoingEdges(x1)) {
@@ -111,6 +112,22 @@ public class MooncatTest extends OWLToolsTestBasics {
             
         }
         assertEquals(1, n);
+        
+        n = 0;
+        for ( OWLGraphEdge e : g.getOutgoingEdges(x3)) {
+            System.out.println(e);
+            if (e.getSingleQuantifiedProperty().getProperty().equals(r1) && e.getTarget().equals(x4)) {
+                n++;
+            }
+            else {
+                n = -99;
+            }
+            
+        }
+        assertEquals(1, n);
+        
+        assertEquals(1, g.getSourceOntology().getObjectPropertiesInSignature().size());
+
     }
 
 }
