@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
@@ -43,6 +45,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -1202,34 +1205,55 @@ public class Mooncat {
 				//  A = X SubClassOf p' some Y, where p' SubPropertyOf p
 				// rewrite as weaker axioms.
 				// TOOD - Elk does not support superobjectprops - do in wrapper for now?
-				if (reasoner != null) {
-					if (ax instanceof OWLSubClassOfAxiom) {
-						OWLSubClassOfAxiom sca = (OWLSubClassOfAxiom)ax;
-						if (!sca.getSubClass().isAnonymous()) {
-							if (sca.getSuperClass() instanceof OWLObjectSomeValuesFrom) {
-								OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom) sca.getSuperClass();
-								OWLObjectPropertyExpression p = svf.getProperty();
-								Set<OWLObjectPropertyExpression> sps = reasoner.getSuperObjectProperties(p, false).getFlattened();
-								sps.retainAll(filterProps);
-								for (OWLObjectPropertyExpression sp : sps) {
-									OWLObjectSomeValuesFrom newSvf = df.getOWLObjectSomeValuesFrom(sp, svf.getFiller());
-									OWLSubClassOfAxiom newSca = df.getOWLSubClassOfAxiom(sca.getSubClass(), newSvf);
-									LOG.info("REWRITE: "+sca+" --> "+newSca);
-									newAxioms.add(newSca);
-								}
-							}
-						}
-					}
-					//else if (ax instanceof OWLEquivalentClassesAxiom) {
-					//	((OWLEquivalentClassesAxiom)ax).getClassExpressions();
-					//}
+				if (ax instanceof OWLSubClassOfAxiom) {
+				    OWLSubClassOfAxiom sca = (OWLSubClassOfAxiom)ax;
+				    if (!sca.getSubClass().isAnonymous()) {
+				        if (sca.getSuperClass() instanceof OWLObjectSomeValuesFrom) {
+				            OWLObjectSomeValuesFrom svf = (OWLObjectSomeValuesFrom) sca.getSuperClass();
+				            OWLObjectPropertyExpression p = svf.getProperty();
+				            Set<OWLObjectPropertyExpression> sps = 
+				                    getSuperObjectProperties(p, reasoner, ont);
+				            sps.retainAll(filterProps);
+				            for (OWLObjectPropertyExpression sp : sps) {
+				                OWLObjectSomeValuesFrom newSvf = df.getOWLObjectSomeValuesFrom(sp, svf.getFiller());
+				                OWLSubClassOfAxiom newSca = df.getOWLSubClassOfAxiom(sca.getSubClass(), newSvf);
+				                LOG.info("REWRITE: "+sca+" --> "+newSca);
+				                newAxioms.add(newSca);
+				            }
+				        }
+				    }
 				}
+				//else if (ax instanceof OWLEquivalentClassesAxiom) {
+				//	((OWLEquivalentClassesAxiom)ax).getClassExpressions();
+				//}
+				
 			}
 		}
 		LOG.info("Removing "+rmAxioms.size()+" axioms");
 		ont.getOWLOntologyManager().removeAxioms(ont, rmAxioms);
 		LOG.info("Adding "+newAxioms.size()+" axioms");
 		ont.getOWLOntologyManager().addAxioms(ont, newAxioms);
+	}
+	
+	private static Set<OWLObjectPropertyExpression> getSuperObjectProperties(OWLObjectPropertyExpression p, OWLReasoner reasoner, OWLOntology ont) {
+	    if (reasoner != null) {
+	        return reasoner.getSuperObjectProperties(p, false).getFlattened();
+	    }
+	    // Elk does not support this (sigh), so we do it ourselves
+        Set<OWLObjectPropertyExpression> sups = new HashSet<>();
+        Stack<OWLObjectPropertyExpression> seeds = new Stack<>();
+        seeds.add(p);
+	    while (seeds.size() > 0) {
+	        OWLObjectPropertyExpression nextp = seeds.pop();
+	        Set<OWLObjectPropertyExpression> xset = 
+	                ont.getObjectSubPropertyAxiomsForSubProperty(nextp).stream().
+	                map(a -> a.getSuperProperty()).collect(Collectors.toSet());
+	        
+	        seeds.addAll(xset);
+	        seeds.removeAll(sups);
+	        sups.addAll(xset);       
+	    }
+	    return sups;
 	}
 
 	public Map<OWLObject,Set<OWLObject>> createSubsetMap(String ss) {
