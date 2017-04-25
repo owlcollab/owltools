@@ -53,7 +53,7 @@ public class MockFlexSolrDocumentLoaderTest {
     public void testMini() throws Exception {
         
         List<Map<String, Object>> docs = mockLoad("src/test/resources/not_bioentity_closure/mini-test.obo");
-        assertEquals(10, docs.size());
+        assertEquals(5, docs.size());
         for (Map<String, Object> doc : docs) {
             assertTrue(checkDocForFilteredClasses(doc));
         }
