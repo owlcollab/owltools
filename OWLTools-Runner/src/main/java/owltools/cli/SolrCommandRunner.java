@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,8 +70,10 @@ import owltools.solrj.OntologyGeneralSolrDocumentLoader;
 import owltools.solrj.OptimizeSolrDocumentLoader;
 import owltools.solrj.PANTHERGeneralSolrDocumentLoader;
 import owltools.solrj.PANTHERSolrDocumentLoader;
+import owltools.solrj.loader.MockSolrDocumentLoader;
 import owltools.solrj.loader.MockFlexSolrDocumentLoader;
 import owltools.solrj.loader.MockGafSolrDocumentLoader;
+import owltools.solrj.loader.MockSolrDocumentCollection;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
 
@@ -382,9 +385,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 				optionallyLogLoad("ontology", ont_id, ont_version);
 				
 		        if (isMock) {
-		            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		            String json = gson.toJson(((MockFlexSolrDocumentLoader) loader).getDocumentCollection());
-		            System.out.println(json);
+		            showMockDocs((MockSolrDocumentLoader) loader);
 		        }
 
 			}
@@ -394,7 +395,9 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		}
 	}
 	
-	/**
+
+
+    /**
 	 * Trivial hard-wired (and optional) method for loading collected
 	 * ontology information into the "general" schema (general-config.yaml) for GO.
 	 * This is a very dumb, but easy to understand, loader.
@@ -1246,10 +1249,17 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			LOG.warn("Something has gone south with Solr: " + url);
 			e.printStackTrace();
 		}
-		if (isMock) {
-		    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		    String json = gson.toJson(((MockGafSolrDocumentLoader) loader).getDocumentCollection());
-            System.out.println(json);
-		}
+        if (isMock) {
+            showMockDocs((MockSolrDocumentLoader) loader);
+        }
 	}
+	
+	   // intended for debugging
+    private void showMockDocs(MockSolrDocumentLoader loader) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        for (Map<String, Object> d : loader.getDocumentCollection().getDocuments()) {
+            String json = gson.toJson(d);
+            System.out.println(json);                  
+        }
+    }
 }
