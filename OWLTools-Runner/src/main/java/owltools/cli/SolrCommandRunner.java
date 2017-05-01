@@ -22,9 +22,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.common.SolrException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
@@ -207,7 +207,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		String url = sortOutSolrURL(globalSolrURL);				
 
 		// Wipe out the solr index at url.
-		SolrServer server = new CommonsHttpSolrServer(url);
+		SolrClient server = new HttpSolrClient(url);
 		try {
 			server.deleteByQuery("*:*");
 			server.commit();
