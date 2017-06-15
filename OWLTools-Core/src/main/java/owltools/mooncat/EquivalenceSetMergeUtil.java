@@ -17,6 +17,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
+import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyChange;
@@ -29,6 +30,7 @@ import org.semanticweb.owlapi.util.OWLEntityRenamer;
 import owltools.graph.OWLGraphWrapper;
 
 /**
+ * Utility for merging cliques of classes inferred to be equivalent
  * 
  * @author cjm
  * 
@@ -45,7 +47,8 @@ public class EquivalenceSetMergeUtil {
 	Map<String,Double> prefixScoreMap = new HashMap<String,Double>();
 	Map<OWLAnnotationProperty,Map<String,Double>> propertyPrefixScoreMap = 
 			new HashMap<OWLAnnotationProperty,Map<String,Double>>();
-	boolean isAddEquivalenceAxioms = true;
+    boolean isAddEquivalenceAxioms = true;
+    boolean isRemoveAxiomatizedXRefs = false;
 
 
 	public EquivalenceSetMergeUtil(OWLGraphWrapper g, OWLReasoner r) {
@@ -69,8 +72,28 @@ public class EquivalenceSetMergeUtil {
 			Double score) {
 		prefixScoreMap.put(prefix, score);		
 	}
+	
+	
+	
 
 	/**
+     * @param isRemoveAxiomatizedXRefs the isRemoveAxiomatizedXRefs to set
+     */
+    public void setRemoveAxiomatizedXRefs(boolean isRemoveAxiomatizedXRefs) {
+        this.isRemoveAxiomatizedXRefs = isRemoveAxiomatizedXRefs;
+    }
+
+    /**
+     * @param isAddEquivalenceAxioms the isAddEquivalenceAxioms to set
+     */
+    public void setAddEquivalenceAxioms(boolean isAddEquivalenceAxioms) {
+        this.isAddEquivalenceAxioms = isAddEquivalenceAxioms;
+    }
+
+    /**
+	 * Merges cliques of classes inferred to be equivalent
+	 * 
+	 * 
 	 * @throws IncoherentOntologyException 
 	 * 
 	 */
@@ -103,11 +126,17 @@ public class EquivalenceSetMergeUtil {
 		}
 		LOG.info("TOTAL SETS-OF-SETS (redundant): "+nodeByRep.keySet().size());
 
+        OWLAnnotationProperty xrefProperty = graph.getAnnotationProperty(OboFormatTag.TAG_XREF.getTag());
 		Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
 
 		Set<OWLEntity> seenClasses = new HashSet<OWLEntity>();
-		Set <OWLAxiom> newAxioms = new HashSet<OWLAxiom>();
-
+		
+		// new axioms to be added; POST-renaming.
+		// Note these axioms may contain the IRIs of rewritten axioms (e.g. equivalence)
+		// We keep these unaltered
+		Set <OWLAxiom> newAxiomsNoRewrite = new HashSet<OWLAxiom>();
+		
+		// iterate through each clique
 		for (Node<? extends OWLEntity> n : nodes) {
 			boolean isSeen = false;
 			for (OWLEntity c : n.getEntities()) {
@@ -120,75 +149,98 @@ public class EquivalenceSetMergeUtil {
 			if (isSeen) {
 				continue;
 			}
+			
 			if (true) {
-				OWLEntity rep = null;
+			    
+			    // get clique leader
+				OWLEntity cliqueLeader = null;
 				Double best = null;
 				for (OWLEntity c : n.getEntities()) {
 					Double score = getScore(c, prefixScoreMap);
 					LOG.info(c +" SC: "+score);
 					if (best == null || (score != null && score > best)) {
-						rep = c;
+						cliqueLeader = c;
 						best = score;
 					}
 				}
-				LOG.info("BEST: "+best+" FOR: "+n.getEntities());
+				LOG.info("Clique leader; BEST: "+best+" FOR: "+n.getEntities());
+				
 				for (OWLEntity c : n.getEntities()) {
-					if (c.equals(rep))
+					if (c.equals(cliqueLeader))
 						continue;
-					LOG.info(c + " --> "+rep);
-					e2iri.put(c, rep.getIRI());
+					LOG.info(c + " --> "+cliqueLeader);
+					e2iri.put(c, cliqueLeader.getIRI());
+					
+					// add xrefs
 					if (isAddEquivalenceAxioms) {
 						// if A is equivalent to B we may wish to retain a historical
 						// record of this equivalance - after A is merged into B
 						// (assuming B is the representative), all axioms referencing A
 						// will be gone, so we re-add the original equivalence,
 						// possibly translating to an obo-style xref
-						OWLAxiom eca;
+						OWLAxiom eca = null;
 
-						if (true) {
-							// TODO - allow other options - for now make an xref
-							OWLAnnotationProperty lap = graph.getAnnotationProperty(OboFormatTag.TAG_XREF.getTag());
-							OWLAnnotationValue value = 
-									graph.getDataFactory().getOWLLiteral(graph.getIdentifier(c));
-							eca =
-									graph.getDataFactory().getOWLAnnotationAssertionAxiom(lap, rep.getIRI(), value);
-						}
-						else {
-							if (c instanceof OWLClass) {
-								graph.getDataFactory().getOWLEquivalentClassesAxiom((OWLClass)c, (OWLClass)rep);
-							}
-							else {
-								graph.getDataFactory().getOWLSameIndividualAxiom((OWLNamedIndividual)c, (OWLNamedIndividual)rep);
-							}
-							// note: this creates a dangler
-							// note: if  |equivalence set| = n>2, creates n-1 axioms 
+						// TODO - allow other options - for now make an xref
+						OWLAnnotationValue value = 
+						        graph.getDataFactory().getOWLLiteral(graph.getIdentifier(c));
 
-						}
+						eca =
+						        graph.getDataFactory().getOWLAnnotationAssertionAxiom(xrefProperty, cliqueLeader.getIRI(), value);
 						LOG.info("Preserving ECA to represetative: "+eca);
-						newAxioms.add(eca);
+						newAxiomsNoRewrite.add(eca);
 					}
 				}
+			}
+			
+			// remove any xref between non-dangling classes;
+			// assumption is that logical axioms connecting classes are complete;
+			// and also that equivalence xref axioms are added back
+			if (isRemoveAxiomatizedXRefs) {
+			    Set<OWLAxiom> rmXrefAxioms = new HashSet<OWLAxiom>();
+			    for (OWLEntity c : n.getEntities()) {
+			        for (OWLAnnotationAssertionAxiom a : graph.getSourceOntology().getAnnotationAssertionAxioms(c.getIRI())) {
+			            if (a.getProperty().equals(xrefProperty)) {
+			                OWLClass d = null;
+			                if (a.getValue() instanceof OWLLiteral) {
+			                    d = graph.getOWLClassByIdentifier(((OWLLiteral)(a.getValue())).getLiteral());
+			                }
+			                else if (a.getValue() instanceof IRI) {
+			                    d = graph.getOWLClass( (IRI)(a.getValue()));
+			                }
+			                else {
+			                    LOG.error("Can't convert: "+a);
+			                }
+
+			                if (d != null && 
+			                        !graph.getSourceOntology().getAnnotationAssertionAxioms(d.getIRI()).isEmpty()) {
+			                    LOG.info("removing xref between two non-dangling classes, "+c+" -> "+d);
+			                    rmXrefAxioms.add(a);
+			                }
+			            }
+			        }
+			    }
+			    graph.getManager().removeAxioms(ont, rmXrefAxioms);
 			}
 
 			// Merge all properties together
 			// some properties may be desired to have cardinality = 1
 			for (OWLAnnotationProperty p : propertyPrefixScoreMap.keySet()) {
 				Map<String, Double> pmap = propertyPrefixScoreMap.get(p);
-				OWLEntity rep = null;
-				Double best = null;
+				OWLEntity representativeForProp = null;
+				Double bestForProp = null;
 				for (OWLEntity c : n.getEntities()) {
 					String v = graph.getAnnotationValue(c, p);
 					if (v == null || v.equals(""))
 						continue;
 					LOG.info(c + " . "+p+" = "+v);
 					Double score = getScore(c, pmap);
-					if (best == null || (score != null && score > best)) {
-						rep = c;
-						best = score;
+					if (bestForProp == null || (score != null && score > bestForProp)) {
+						representativeForProp = c;
+						bestForProp = score;
 					}
 				}
 				for (OWLEntity c : n.getEntities()) {
-					if (c.equals(rep))
+					if (c.equals(representativeForProp))
 						continue;
 					Set<OWLAxiom> rmAxioms = new HashSet<OWLAxiom>();
 					for (OWLAnnotationAssertionAxiom ax : ont.getAnnotationAssertionAxioms(c.getIRI())) {
@@ -208,7 +260,7 @@ public class EquivalenceSetMergeUtil {
 		graph.getManager().applyChanges(changes);
 		LOG.info("Mapped "+e2iri.size()+" entities!");
 
-		graph.getManager().addAxioms(ont, newAxioms);
+		graph.getManager().addAxioms(ont, newAxiomsNoRewrite);
 
 		// remove any reflexive assertions remaining
 		// note: this is incomplete. Need a policy for what to do with equivalence axioms etc.
@@ -225,8 +277,13 @@ public class EquivalenceSetMergeUtil {
 				rmAxioms.add(a);
 			}
 		}
+		for (OWLAnnotationAssertionAxiom a : ont.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
+		    if (a.getProperty().getIRI().equals(IRI.create("http://www.geneontology.org/formats/oboInOwl#id"))) {
+		        rmAxioms.add(a);
+		    }
+		}
 		if (rmAxioms.size() > 0) {
-			LOG.info("REMOVING REFLEXIVE AXIOMS: "+rmAxioms.size());
+			LOG.info("REMOVING AXIOMS: "+rmAxioms.size());
 			graph.getManager().removeAxioms(ont, rmAxioms);
 		}
 
