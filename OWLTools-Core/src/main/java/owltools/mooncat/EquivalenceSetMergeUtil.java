@@ -177,13 +177,14 @@ public class EquivalenceSetMergeUtil {
 						// record of this equivalance - after A is merged into B
 						// (assuming B is the representative), all axioms referencing A
 						// will be gone, so we re-add the original equivalence,
-						// possibly translating to an obo-style xref
+						// translating to an obo-style xref
 						OWLAxiom eca = null;
 
 						// TODO - allow other options - for now make an xref
 						OWLAnnotationValue value = 
 						        graph.getDataFactory().getOWLLiteral(graph.getIdentifier(c));
 
+						// We always add to the clique leader
 						eca =
 						        graph.getDataFactory().getOWLAnnotationAssertionAxiom(xrefProperty, cliqueLeader.getIRI(), value);
 						LOG.info("Preserving ECA to represetative: "+eca);
