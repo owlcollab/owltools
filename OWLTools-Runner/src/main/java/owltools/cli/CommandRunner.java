@@ -860,39 +860,58 @@ public class CommandRunner extends CommandRunnerBase {
                 }
                 OWLPrettyPrinter owlpp = getPrettyPrinter();
 
-                Set<OWLClass> cs = g.getSourceOntology().getClassesInSignature(Imports.EXCLUDED);
-                reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+                Set<OWLClass> sourceOntologyClasses = g.getSourceOntology().getClassesInSignature(Imports.EXCLUDED);
+                LOG.info("SOURCE ONTOLOGY CLASSES:" +sourceOntologyClasses.size());
 
+                // create ancestor lookup, pre-spiking
+                reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
                 Map<OWLClass, Set<OWLClass>> assertedParentMap = new HashMap<>();
-                for (OWLClass c : cs) {
+                for (OWLClass c : sourceOntologyClasses) {
                     assertedParentMap.put(c, reasoner.getSuperClasses(c, false).getFlattened());
                 }
                 reasoner.dispose();
-                LOG.info("CLASSES PRIOR:" +cs.size());
-
-                // spike
+                
+                // spike in support ontologies
                 for (OWLOntology ont : g.getSupportOntologySet()) {
                     LOG.info("MERGING:" +ont);
                     g.mergeOntology(ont);
                 }
                 g.setSupportOntologySet(new HashSet<OWLOntology>());
 
-                // test
+                // perform inference on spiked ontology, determine difference
                 reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
                 int n = 0;
-                LOG.info("TESTING:" +cs.size());
-                for (OWLClass c : cs) {
+                LOG.info("TESTING:" +sourceOntologyClasses.size());
+                for (OWLClass c : sourceOntologyClasses) {
+                    
+                    // all ancestors in spiked ontology
                     Set<OWLClass> infParents = 
                             new HashSet<>(reasoner.getSuperClasses(c, false).getFlattened());
                     Set<OWLClass> infParentsDirect = 
                             new HashSet<>(reasoner.getSuperClasses(c, true).getFlattened());
+                    // get those unique to spiked ontology
                     infParents.removeAll(assertedParentMap.get(c));
+ 
+                    
                     for (OWLClass p : infParents) {
-                        if (cs.contains(p)) {
-                            String isDirect = infParentsDirect.contains(p) ? "PARENT" : "ANCESTOR";
-                            System.out.println("NEW_INFERRED: "+owlpp.render(c)+
-                                    " " + isDirect + " " + owlpp.render(p));
-                            n++;
+                        
+                        // only report new inferences within source
+                        if (sourceOntologyClasses.contains(p)) {
+                            Set<OWLClass> pSubs = reasoner.getSubClasses(p, true).getFlattened();    
+                            boolean isRedundant = false;
+                            for (OWLClass p2 : pSubs) {
+                                if (sourceOntologyClasses.contains(p2) && infParents.contains(p2)) {
+                                    isRedundant = true;
+                                    break;
+                                }
+                            }
+                            
+                            if (!isRedundant) {
+                                String isDirect = infParentsDirect.contains(p) ? "PARENT" : "ANCESTOR";
+                                System.out.println(owlpp.render(c)+
+                                        "\t" + isDirect + "\t" + owlpp.render(p));
+                                n++;
+                            }
                         }
                     }
                 }
