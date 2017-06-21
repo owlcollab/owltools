@@ -1,0 +1,59 @@
+ontology: merge-test
+
+[Term]
+id: A:1
+name: a1
+equivalent_to: B:1
+def: "a1 def" []
+xref: B:1
+xref: B:2
+xref: EXTERNAL:1
+
+[Term]
+id: B:1
+name: b1
+equivalent_to: C:1
+def: "b1 def" []
+xref: C:1
+
+[Term]
+id: C:1
+name: c1
+def: "c1 def" []
+
+[Term]
+id: A:2
+name: a2
+equivalent_to: B:2
+def: "a2 def" []
+
+[Term]
+id: B:2
+name: b2
+equivalent_to: C:2
+def: "b2 def" []
+
+[Term]
+id: C:2
+name: c2
+def: "c2 def" []
+
+[Term]
+id: B:3
+name: b3
+equivalent_to: C:3
+def: "b3 def" []
+
+[Term]
+id: C:3
+name: c3
+def: "c3 def" []
+xref: C:3
+xref: EXTERNAL:3
+
+[Term]
+id: D:3
+name: d3
+def: "d3 def" []
+xref: C:3
+xref: EXTERNAL:3

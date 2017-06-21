@@ -1308,7 +1308,7 @@ public class CommandRunner extends CommandRunnerBase {
                 g.getManager().applyChanges(changes);
             }
             else if (opts.nextEq("--merge-equivalence-sets")) {
-                opts.info("[-s PREFIX SCORE]* [-l PREFIX SCORE]* [-c PREFIX SCORE]* [-d PREFIX SCORE]*", "merges sets of equivalent classes. Prefix-based priorities used to determine representative member");
+                opts.info("[-s PREFIX SCORE]* [-l PREFIX SCORE]* [-c PREFIX SCORE]* [-d PREFIX SCORE]* [-x]", "merges sets of equivalent classes. Prefix-based priorities used to determine representative member");
                 EquivalenceSetMergeUtil esmu = new EquivalenceSetMergeUtil(g, reasoner);
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-s")) {
@@ -1330,6 +1330,10 @@ public class CommandRunner extends CommandRunnerBase {
 
                         OWLAnnotationProperty p = g.getDataFactory().getOWLAnnotationProperty( Obo2OWLVocabulary.IRI_IAO_0000115.getIRI() );
                         esmu.setPropertyPrefixScore( p, opts.nextOpt(), Double.parseDouble(opts.nextOpt()) );
+                    }
+                    else if (opts.nextEq("-x")) {
+                        opts.info("", "Removes xrefs between named classes");
+                        esmu.setRemoveAxiomatizedXRefs(true);
                     }
                     else {
                         break;
