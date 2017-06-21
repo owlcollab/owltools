@@ -28,7 +28,7 @@ During the build process, we extract the git version and branch information. The
 
 2a) Run command: `mvn clean install`: This will trigger a complete build of all OWLTools projects and generate the required jars for execution. Remark: As part of the build the tests are executed. Any failed test will stop the build.
 
-2b) Build without test execution (Not Recommended): Run command: mvn clean install -Dmaven.test.skip.exec=true
+2b) Build without test execution (Not Recommended): Run command: mvn clean install -DskipTests
   
 #### Option 2: Eclipse
 
@@ -43,6 +43,7 @@ Use the provided Eclipse launch configurations to trigger the build. The configu
 
 Running OWLTools requires a successful build, as described in the previous section.
  
-+ OWLTools Command-Line Tools: The executables and the generated jar are both located in `OWLTools-Runner/bin`
++ OWLTools Command-Line Tools: The build produces a combined executable bash script and jar, to be found in `OWLTools-Runner/bin`
+or in the `OWLTools-Runner/target` directory
 
 + OORT: The executables and the generated jar are both located in `OWLTools-Oort/bin`
