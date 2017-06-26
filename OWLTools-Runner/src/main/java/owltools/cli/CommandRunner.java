@@ -1489,10 +1489,17 @@ public class CommandRunner extends CommandRunnerBase {
                 LOG.info("Mapped "+e2iri.size()+" entities!");
             }
             else if (opts.nextEq("--rename-entities-via-equivalent-classes")) {
+                opts.info("[-p PREFIX]", "renames entities in source ontology, using equiv axioms from all");
                 String prefix = null;
+                String prefixTo = null;
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-p|--prefix")) {
+                        opts.info("", "prefix to map from (FULL URI)");
                         prefix = opts.nextOpt();
+                    }
+                    else if (opts.nextEq("-q|--prefix-to")) {
+                        opts.info("", "prefix to map to (FULL URI)");
+                        prefixTo = opts.nextOpt();
                     }
                     else
                         break;
@@ -1523,6 +1530,9 @@ public class CommandRunner extends CommandRunnerBase {
                         }
                         for (OWLClassExpression d : OwlHelper.getEquivalentClasses(c, ont)) {
                             if (d instanceof OWLClass) {
+                                if (prefixTo != null && !d.asOWLClass().getIRI().toString().startsWith(prefixTo)) {
+                                    continue;
+                                }
                                 e2iri.put(c, d.asOWLClass().getIRI());
                                 LOG.info("  "+c+" ==> "+d );
                             }
