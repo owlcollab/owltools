@@ -301,6 +301,9 @@ public class CommandRunner extends CommandRunnerBase {
             else if (opts.nextEq("--log-info")) {
                 Logger.getRootLogger().setLevel(Level.INFO);
             }
+            else if (opts.nextEq("--log-warning")) {
+                Logger.getRootLogger().setLevel(Level.WARN);
+            }
             else if (opts.nextEq("--log-debug")) {
                 Logger.getRootLogger().setLevel(Level.DEBUG);	
             }
