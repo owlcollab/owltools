@@ -73,6 +73,7 @@ import owltools.solrj.PANTHERSolrDocumentLoader;
 import owltools.solrj.loader.MockSolrDocumentLoader;
 import owltools.solrj.loader.MockFlexSolrDocumentLoader;
 import owltools.solrj.loader.MockGafSolrDocumentLoader;
+import owltools.solrj.loader.MockModelAnnotationSolrDocumentLoader;
 import owltools.solrj.loader.MockSolrDocumentCollection;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
@@ -617,10 +618,23 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					ModelAnnotationSolrDocumentLoader loader = null;
 					try {
 						LOG.info("Trying complex annotation load of: " + fname);
+						boolean isMock = false;
 						String modelUrl = legoModelPrefix + fname;
-						loader = new ModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl, 
-								modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+						if (url.equals("mock")) {
+						    loader = new MockModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl, 
+						            modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+						    isMock = true;
+						}
+						else {
+						    loader = new ModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl, 
+						            modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+						}
+
 						loader.load();
+				        if (isMock) {
+				            showMockDocs((MockModelAnnotationSolrDocumentLoader) loader);
+				        }
+
 					} catch (SolrServerException e) {
 						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
 						e.printStackTrace();
