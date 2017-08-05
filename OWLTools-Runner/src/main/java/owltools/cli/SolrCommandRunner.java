@@ -521,7 +521,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		Set<String> modelStateFilter = null;
 		boolean removeDeprecatedModels = false;
 		boolean removeTemplateModels = false;
-		boolean removeUnsatisfiableModels = false;
+        boolean removeUnsatisfiableModels = false;
+        boolean exitIfUnsatisfiable = true;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--defaultModelStateFilter|--productionModelStateFilter")) {
 				if(modelStateFilter != null) { 
@@ -553,6 +554,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			}
 			else if (opts.nextEq("--includeUnsatisfiableModels|--includeUnsatisfiable")) {
 				removeUnsatisfiableModels = false;
+				exitIfUnsatisfiable = false;
 			}
 			else
 				break;
@@ -610,10 +612,14 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 						continue;
 					}
 					Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
-					if (removeUnsatisfiableModels && unsatisfiable.isEmpty() == false) {
-						LOG.warn("Skip since unsatisfiable: " + fname);
-						continue;
-					}
+                    if (exitIfUnsatisfiable && unsatisfiable.isEmpty() == false) {
+                        LOG.error("Unsatisfiable: " + fname+" == "+unsatisfiable);
+                        System.exit(1);
+                    }
+                    if (removeUnsatisfiableModels && unsatisfiable.isEmpty() == false) {
+                        LOG.warn("Skip since unsatisfiable: " + fname);
+                        continue;
+                    }
 					
 					ModelAnnotationSolrDocumentLoader loader = null;
 					try {
