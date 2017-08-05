@@ -73,6 +73,7 @@ import owltools.solrj.PANTHERSolrDocumentLoader;
 import owltools.solrj.loader.MockSolrDocumentLoader;
 import owltools.solrj.loader.MockFlexSolrDocumentLoader;
 import owltools.solrj.loader.MockGafSolrDocumentLoader;
+import owltools.solrj.loader.MockModelAnnotationSolrDocumentLoader;
 import owltools.solrj.loader.MockSolrDocumentCollection;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
@@ -520,7 +521,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		Set<String> modelStateFilter = null;
 		boolean removeDeprecatedModels = false;
 		boolean removeTemplateModels = false;
-		boolean removeUnsatisfiableModels = false;
+        boolean removeUnsatisfiableModels = false;
+        boolean exitIfUnsatisfiable = true;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--defaultModelStateFilter|--productionModelStateFilter")) {
 				if(modelStateFilter != null) { 
@@ -552,6 +554,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			}
 			else if (opts.nextEq("--includeUnsatisfiableModels|--includeUnsatisfiable")) {
 				removeUnsatisfiableModels = false;
+				exitIfUnsatisfiable = false;
 			}
 			else
 				break;
@@ -609,18 +612,35 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 						continue;
 					}
 					Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
-					if (removeUnsatisfiableModels && unsatisfiable.isEmpty() == false) {
-						LOG.warn("Skip since unsatisfiable: " + fname);
-						continue;
-					}
+                    if (exitIfUnsatisfiable && unsatisfiable.isEmpty() == false) {
+                        LOG.error("Unsatisfiable: " + fname+" == "+unsatisfiable);
+                        System.exit(1);
+                    }
+                    if (removeUnsatisfiableModels && unsatisfiable.isEmpty() == false) {
+                        LOG.warn("Skip since unsatisfiable: " + fname);
+                        continue;
+                    }
 					
 					ModelAnnotationSolrDocumentLoader loader = null;
 					try {
 						LOG.info("Trying complex annotation load of: " + fname);
+						boolean isMock = false;
 						String modelUrl = legoModelPrefix + fname;
-						loader = new ModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl, 
-								modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+						if (url.equals("mock")) {
+						    loader = new MockModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl, 
+						            modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+						    isMock = true;
+						}
+						else {
+						    loader = new ModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl, 
+						            modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+						}
+
 						loader.load();
+				        if (isMock) {
+				            showMockDocs((MockModelAnnotationSolrDocumentLoader) loader);
+				        }
+
 					} catch (SolrServerException e) {
 						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
 						e.printStackTrace();
