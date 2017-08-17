@@ -1329,6 +1329,11 @@ public class CommandRunner extends CommandRunnerBase {
                 List<OWLOntologyChange> changes = oer.changeIRI(IRI.create(opts.nextOpt()),IRI.create(opts.nextOpt()));
                 g.getManager().applyChanges(changes);
             }
+            else if (opts.nextEq("--assign-ids")) {
+                opts.info("", "assigns IDs based on equivalence sets. Requires support ontology");
+                OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
+                // TODO
+            }
             else if (opts.nextEq("--merge-equivalence-sets")) {
                 opts.info("[-s PREFIX SCORE]* [-l PREFIX SCORE]* [-c PREFIX SCORE]* [-d PREFIX SCORE]* [-x]", "merges sets of equivalent classes. Prefix-based priorities used to determine representative member");
                 EquivalenceSetMergeUtil esmu = new EquivalenceSetMergeUtil(g, reasoner);
