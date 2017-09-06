@@ -873,7 +873,7 @@ public class CommandRunner extends CommandRunnerBase {
                     assertedParentMap.put(c, reasoner.getSuperClasses(c, false).getFlattened());
                 }
                 reasoner.dispose();
-                
+
                 // spike in support ontologies
                 for (OWLOntology ont : g.getSupportOntologySet()) {
                     LOG.info("MERGING:" +ont);
@@ -886,7 +886,7 @@ public class CommandRunner extends CommandRunnerBase {
                 int n = 0;
                 LOG.info("TESTING:" +sourceOntologyClasses.size());
                 for (OWLClass c : sourceOntologyClasses) {
-                    
+
                     // all ancestors in spiked ontology
                     Set<OWLClass> infParents = 
                             new HashSet<>(reasoner.getSuperClasses(c, false).getFlattened());
@@ -894,10 +894,10 @@ public class CommandRunner extends CommandRunnerBase {
                             new HashSet<>(reasoner.getSuperClasses(c, true).getFlattened());
                     // get those unique to spiked ontology
                     infParents.removeAll(assertedParentMap.get(c));
- 
-                    
+
+
                     for (OWLClass p : infParents) {
-                        
+
                         // only report new inferences within source
                         if (sourceOntologyClasses.contains(p)) {
                             Set<OWLClass> pSubs = reasoner.getSubClasses(p, true).getFlattened();    
@@ -908,7 +908,7 @@ public class CommandRunner extends CommandRunnerBase {
                                     break;
                                 }
                             }
-                            
+
                             if (!isRedundant) {
                                 String isDirect = infParentsDirect.contains(p) ? "PARENT" : "ANCESTOR";
                                 System.out.println(owlpp.render(c)+
@@ -2631,6 +2631,45 @@ public class CommandRunner extends CommandRunnerBase {
                 pr.reason();		
                 if (outputOntology != null) {
                     g.setSourceOntology(outputOntology);
+                }
+            }
+            else if (opts.nextEq("--reason-subontologies")) {
+                opts.info("", "checks all ontologies in direct imports for incoherency");
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("-r")) {
+                        opts.info("REASONERNAME", "selects the reasoner to use");
+                        reasonerName = opts.nextOpt();
+                    }
+                    else {
+                        break;
+                    }
+                }
+                OWLOntology ont = g.getSourceOntology();
+                Set<OWLImportsDeclaration> badImports = new HashSet<>();
+                for (OWLOntology o : ont.getDirectImports()) {
+                    boolean isIncoherent = false;
+                    OWLReasoner r = createReasoner(o, reasonerName, g.getManager());
+                    if (!r.isConsistent()) {
+                        LOG.error("INCONSISTENT: "+o);
+                        isIncoherent = true;
+                    }
+                    else {
+                        for (OWLClass c : r.getUnsatisfiableClasses()) {
+                            if (c.isBuiltIn())
+                                continue;
+                            LOG.error("UNSAT: "+o+" has "+c);
+                            isIncoherent = true;
+                        }
+                    }
+                    if (isIncoherent) {
+                        badImports.add(g.getDataFactory().getOWLImportsDeclaration(o.getOntologyID().getOntologyIRI().get()));
+                    }
+                }
+                OWLImportsDeclaration importDeclaration;
+                for (OWLImportsDeclaration i : badImports) {
+                    LOG.info("REMOVING: "+i);
+                    RemoveImport x = new RemoveImport(ont, i);
+                    g.getManager().applyChange(x);
                 }
             }
             else if (opts.nextEq("--run-reasoner")) {
