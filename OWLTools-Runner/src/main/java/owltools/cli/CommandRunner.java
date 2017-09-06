@@ -3526,12 +3526,22 @@ public class CommandRunner extends CommandRunnerBase {
                 m.removeSubsetClasses(cset, isRemoveDangling);
             }
             else if (opts.nextEq("--extract-subset")) {
-                opts.info("SUBSET", "Extract a subset (aka slim) from an ontology, storing subset in place of existing ontology");
+                opts.info("[-x] SUBSET", "Extract a subset (aka slim) from an ontology, storing subset in place of existing ontology");
+                boolean isRemoveDangling = false;
+                while (opts.hasOpts()) {
+                   if (opts.nextEq("-x|--remove-dangling")) {
+                        opts.info("",
+                                "if specified, dangling axioms (ie pointing to removed classes) are removed");
+                        isRemoveDangling = true;
+                    }
+                    else
+                        break;
+                }
                 String subset = opts.nextOpt();
                 Set<OWLClass> cset = g.getOWLClassesInSubset(subset);
                 LOG.info("Removing "+cset.size()+" classes");
                 Mooncat m = new Mooncat(g);
-                m.removeSubsetComplementClasses(cset, false);
+                m.removeSubsetComplementClasses(cset, isRemoveDangling);
             }
             else if (opts.nextEq("--translate-undeclared-to-classes")) {
                 for (OWLAnnotationAssertionAxiom a : g.getSourceOntology().getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
