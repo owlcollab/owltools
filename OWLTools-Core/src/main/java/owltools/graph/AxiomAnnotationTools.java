@@ -238,6 +238,45 @@ public class AxiomAnnotationTools {
 		return result;
 	}
 	
+	/**
+	 * Append annotations to an existing axiom
+	 * 
+	 * @param axiom
+	 * @param annotations
+	 * @param ontology
+	 * @return
+	 */
+	public static OWLAxiom appendAxiomAnnotations(OWLAxiom axiom, Set<OWLAnnotation> annotations, OWLOntology ontology) {
+        // filter existing
+        Set<OWLAnnotation> newAnnotations = new HashSet<OWLAnnotation>(axiom.getAnnotations());
+        newAnnotations.addAll(annotations);
+        final OWLAxiom newAxiom = changeAxiomAnnotations(axiom, newAnnotations, ontology);
+        return newAxiom;
+    }
+	
+	/**
+	 * Append xref annotations onto an existing axiom
+	 * 
+	 * @param axiom
+	 * @param xrefs
+	 * @param ontology
+	 * @return
+	 */
+	public static OWLAxiom appendXrefAnnotations(OWLAxiom axiom, Set<String> xrefs, OWLOntology ontology) {
+	    // filter existing
+	    Set<OWLAnnotation> newAnnotations = new HashSet<OWLAnnotation>(axiom.getAnnotations());
+        final OWLOntologyManager manager = ontology.getOWLOntologyManager();
+	    final OWLDataFactory factory = manager.getOWLDataFactory();
+
+	    for (String x : xrefs) {
+	        OWLAnnotationProperty p = factory.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasDbXref"));
+	        OWLLiteral v = factory.getOWLLiteral(x);
+	        newAnnotations.add(factory.getOWLAnnotation(p, v));
+	    }
+	    final OWLAxiom newAxiom = changeAxiomAnnotations(axiom, newAnnotations, ontology);
+	    return newAxiom;
+	}
+
 	
 	/**
 	 * Update the given axiom to a new set of axiom annotation.<br>

@@ -46,4 +46,18 @@ public class CommandRunnerMergeEquivSetTest extends AbstractCommandRunnerTest {
 
 	}
 	
+	   @Test
+	    public void testMergeEquivalentPreserveProvenance() throws Exception {
+	        load("merge-equiv-test.obo");
+	        
+	        run("--add-xref-axiom-annotations -l");
+	        run("--reasoner elk");
+	        // note: ID space is actually "U" in file
+	        run("--merge-equivalence-sets -s MA 1 -s FMA 2 -s U 3 -s HP 1 -s MP 2");
+	        run("--merge-axiom-annotations");
+	        run("-o -f obo --no-check target/equiv-set-merged-xrefs.obo");
+
+	    }
+
+	
 }

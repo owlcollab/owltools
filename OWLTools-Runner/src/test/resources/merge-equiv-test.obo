@@ -5,6 +5,7 @@ def: "test mp1" []
 synonym: "mp syn1" EXACT []
 synonym: "mp syn2" EXACT [MP:MP]
 comment: comment mp1
+is_a: MP:2
 intersection_of: PATO:1
 intersection_of: r MA:1
 
@@ -14,6 +15,7 @@ name: hp1
 def: "test hp1" []
 synonym: "hp syn2" EXACT [HP:HP]
 comment: comment hp1
+is_a: HP:2
 intersection_of: PATO:1
 intersection_of: r FMA:1
 
@@ -23,6 +25,7 @@ name: ma1
 comment: ma1 comment
 synonym: "ma1 syn1" EXACT []
 synonym: "ma1 syn2" EXACT []
+is_a: MA:0
 
 [Term]
 id: FMA:1
@@ -31,6 +34,7 @@ comment: fma1 comment
 def: "fma1 def" [FMA:FMA]
 synonym: "fma1 syn1" EXACT []
 synonym: "fma1 syn2" EXACT []
+is_a: FMA:0
 
 [Term]
 id: U:1
@@ -38,6 +42,29 @@ name: u1
 def: "u1 def" [U:U]
 equivalent_to: FMA:1
 equivalent_to: MA:1
+is_a: U:0
+
+[Term]
+id: MA:0
+name: ma0
+comment: ma0 comment
+synonym: "ma0 syn1" EXACT []
+synonym: "ma0 syn2" EXACT []
+
+[Term]
+id: FMA:0
+name: fma0
+comment: fma0 comment
+def: "fma0 def" [FMA:FMA]
+synonym: "fma0 syn1" EXACT []
+synonym: "fma0 syn2" EXACT []
+
+[Term]
+id: U:0
+name: u0
+def: "u0 def" [U:U]
+equivalent_to: MA:0
+equivalent_to: FMA:0
 
 
 
