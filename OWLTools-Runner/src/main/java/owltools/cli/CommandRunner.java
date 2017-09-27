@@ -1350,12 +1350,12 @@ public class CommandRunner extends CommandRunnerBase {
                 g.getManager().addAxioms(ontology, newAxioms);             
             }
             else if (opts.nextEq("--interpret-xrefs")) {
-                opts.info("", "interprets xrefs using logical axioms");
-                boolean includeLogical = false;
+                opts.info("", "interprets xrefs using logical axioms, adds as annotations on xrefs");
+                boolean showOther = false;
                 while (opts.hasOpts()) {
-                    if (opts.nextEq("-l|--logical")) {
-                        opts.info("", "include logical axioms (excluded by default");
-                        includeLogical = true;
+                    if (opts.nextEq("--show-others")) {
+                        opts.info("", "if set, who relationship type 'other'");
+                        showOther = true;
                     }
                     else
                         break;
@@ -1372,7 +1372,7 @@ public class CommandRunner extends CommandRunnerBase {
                             System.err.println("NO CLASS: "+xc);
                             continue;
                         }
-                        String rel = "other";
+                        String rel = null;
                         if (reasoner.getSuperClasses(c, false).containsEntity(xc)) {
                             rel = "subClassOf";
                         }
@@ -1382,6 +1382,12 @@ public class CommandRunner extends CommandRunnerBase {
                         else if (reasoner.getEquivalentClasses(c).contains(xc)) {
                             rel = "equivalentTo";
                         }
+                        else {
+                            if (!showOther)
+                                continue;
+                            rel = "other";
+                        }
+
                         if (!hasWrittenTerm) {
                             System.out.println("[Term]");
                             System.out.println("id: " + g.getIdSpace(c)+" ! "+g.getLabel(c));
