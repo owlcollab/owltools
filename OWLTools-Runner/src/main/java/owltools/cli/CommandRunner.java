@@ -72,6 +72,7 @@ import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.HasIRI;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -1348,6 +1349,50 @@ public class CommandRunner extends CommandRunnerBase {
                 g.getManager().removeAxioms(ontology, axioms);
                 g.getManager().addAxioms(ontology, newAxioms);             
             }
+            else if (opts.nextEq("--interpret-xrefs")) {
+                opts.info("", "interprets xrefs using logical axioms");
+                boolean includeLogical = false;
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("-l|--logical")) {
+                        opts.info("", "include logical axioms (excluded by default");
+                        includeLogical = true;
+                    }
+                    else
+                        break;
+                }
+                OWLOntology ont = g.getSourceOntology();
+                for (OWLClass c : g.getAllOWLClasses()) {
+                    List<String> xrefs = g.getXref(c);
+                    boolean hasWrittenTerm = false;
+                    for (String x : xrefs) {
+                        IRI xiri = g.getIRIByIdentifier(x);
+                        OWLClass xc = g.getDataFactory().getOWLClass(xiri);
+                        
+                        if (xc == null) {
+                            System.err.println("NO CLASS: "+xc);
+                            continue;
+                        }
+                        String rel = "other";
+                        if (reasoner.getSuperClasses(c, false).containsEntity(xc)) {
+                            rel = "subClassOf";
+                        }
+                        else if (reasoner.getSuperClasses(xc, false).containsEntity(c)) {
+                            rel = "superClassOf";
+                        }
+                        else if (reasoner.getEquivalentClasses(c).contains(xc)) {
+                            rel = "equivalentTo";
+                        }
+                        if (!hasWrittenTerm) {
+                            System.out.println("[Term]");
+                            System.out.println("id: " + g.getIdSpace(c)+" ! "+g.getLabel(c));
+                            hasWrittenTerm = true;
+                        }
+                        System.out.println("xref: " + x+" {xref=\"MONDO:"+rel+"\"}");
+                    }
+                    System.out.println();
+                }
+            }
+
             else if (opts.nextEq("--add-xref-axiom-annotations")) {
                 opts.info("-l", "adds xref/provenance annotations to all axioms, excluding labels");
                 boolean includeLogical = false;
@@ -3214,6 +3259,48 @@ public class CommandRunner extends CommandRunnerBase {
                 g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);
 
                 System.err.println("TODO");
+            }
+            else if (opts.nextEq("--obsolete-replace")) {
+                opts.info("ID REPLACEMENT-ID", "Add a deprecation axiom");
+                OWLObject obj = resolveEntity( opts);
+                OWLObject repl = resolveEntity( opts);
+                OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
+                Set<OWLAxiom> rmAxioms = new HashSet<>();
+                OWLOntology ont = g.getSourceOntology();
+                IRI objIRI = ((HasIRI) obj).getIRI();
+                String label = "obsolete "+g.getLabel(obj);
+                for (OWLAnnotationAssertionAxiom a : ont.getAnnotationAssertionAxioms(objIRI)) {
+                   if (a.getProperty().isLabel()) {
+                       rmAxioms.add(a);
+                   }
+                   if (a.getProperty().isComment()) {
+                       rmAxioms.add(a);                       
+                   }
+                   if (a.getProperty().getIRI().equals(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI())) {
+                       //if (g.getDef(((HasIRI) repl).getIRI()) != null) {
+                           rmAxioms.add(a);               
+                       //}
+                   }
+                }
+                LOG.info("REMOVING: "+rmAxioms);
+                g.getManager().removeAxioms(ont, rmAxioms);
+                
+                Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
+                e2iri.put((OWLEntity) obj, ((HasIRI) repl).getIRI());
+                List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
+                g.getManager().applyChanges(changes);
+                OWLDataFactory df = g.getDataFactory();
+                Set<OWLAxiom> newAxioms = new HashSet<>();
+                newAxioms.add(df.getOWLDeclarationAxiom((OWLClass)obj));
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getOWLDeprecated(), objIRI, df.getOWLLiteral(true)));
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getRDFSLabel(), objIRI, df.getOWLLiteral(label)));
+                
+                OWLAnnotationProperty rp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0100001.getIRI());
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(rp, objIRI,
+                        df.getOWLLiteral(g.getIdentifier(repl))));
+  
+                g.getManager().addAxioms(ont, newAxioms);
+
             }
             else if (opts.nextEq("-d") || opts.nextEq("--draw")) {
                 opts.info("[-o FILENAME] [-f FMT] LABEL/ID", "generates a file tmp.png made using QuickGO code");
