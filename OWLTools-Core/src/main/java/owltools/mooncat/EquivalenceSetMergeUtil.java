@@ -223,10 +223,13 @@ public class EquivalenceSetMergeUtil {
 			    graph.getManager().removeAxioms(ont, rmXrefAxioms);
 			}
 
-			// Merge all properties together
-			// some properties may be desired to have cardinality = 1
+			// Remove annotation assertions for cardinality=1 properties
+			// unless it is on the clique leader for that property
+			// (note this may be different than the overall clique leader)
 			for (OWLAnnotationProperty p : propertyPrefixScoreMap.keySet()) {
 				Map<String, Double> pmap = propertyPrefixScoreMap.get(p);
+				
+				// find the clique leader for property p
 				OWLEntity representativeForProp = null;
 				Double bestForProp = null;
 				for (OWLEntity c : n.getEntities()) {
@@ -272,12 +275,16 @@ public class EquivalenceSetMergeUtil {
 				rmAxioms.add(a);
 			}
 		}
+		
+		// sometimes we end up with A=A post-merge; remove these
 		for (OWLEquivalentClassesAxiom a : ont.getAxioms(AxiomType.EQUIVALENT_CLASSES)) {
 			if (a.getClassExpressions().size() < 2) {
 				LOG.info("UNARY: "+a);
 				rmAxioms.add(a);
 			}
 		}
+		
+		// not interested in this property
 		for (OWLAnnotationAssertionAxiom a : ont.getAxioms(AxiomType.ANNOTATION_ASSERTION)) {
 		    if (a.getProperty().getIRI().equals(IRI.create("http://www.geneontology.org/formats/oboInOwl#id"))) {
 		        rmAxioms.add(a);
