@@ -1390,7 +1390,7 @@ public class CommandRunner extends CommandRunnerBase {
 
                         if (!hasWrittenTerm) {
                             System.out.println("[Term]");
-                            System.out.println("id: " + g.getIdSpace(c)+" ! "+g.getLabel(c));
+                            System.out.println("id: " + g.getIdentifier(c)+" ! "+g.getLabel(c));
                             hasWrittenTerm = true;
                         }
                         System.out.println("xref: " + x+" {xref=\"MONDO:"+rel+"\"}");
