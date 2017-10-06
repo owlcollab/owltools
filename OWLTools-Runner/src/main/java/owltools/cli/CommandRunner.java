@@ -1463,6 +1463,11 @@ public class CommandRunner extends CommandRunnerBase {
                 }
                 esmu.merge();
             }
+            else if (opts.nextEq("--replace-annotations")) {
+                opts.info("[-p PROP]", "Replace annotation assertions of type PROP for equivalent classes");
+                // TODO
+
+            }
             else if (opts.nextEq("--merge-equivalent-classes")) {
                 opts.info("[-f FROM-URI-PREFIX]* [-t TO-URI-PREFIX] [-a] [-sa]", "merges equivalent classes, from source(s) to target ontology");
                 List<String> prefixFroms = new Vector<String>();
@@ -1504,7 +1509,9 @@ public class CommandRunner extends CommandRunnerBase {
                 // we use equivalence axioms from the full complement of ontologies
                 // TODO - allow arbitrary entities
                 Map<Integer,Integer> binSizeMap = new HashMap<Integer,Integer>();
-                for (OWLClass e : g.getSourceOntology().getClassesInSignature()) {
+                int nMatches = 0;
+                
+                for (OWLClass e : g.getAllOWLClasses()) {
                     //LOG.info("  testing "+c+" ECAs: "+g.getSourceOntology().getEquivalentClassesAxioms(c));
                     // TODO - may be more efficient to invert order of testing
                     String iriStr = e.getIRI().toString();
@@ -1518,6 +1525,7 @@ public class CommandRunner extends CommandRunnerBase {
                     if (prefixFroms.size()==0)
                         isMatch = true;
                     if (isMatch) {
+                        nMatches ++;
                         Set<OWLClass> ecs = new HashSet<OWLClass>();
                         if (reasoner != null) {
                             ecs = reasoner.getEquivalentClasses(e).getEntities();
@@ -1534,6 +1542,7 @@ public class CommandRunner extends CommandRunnerBase {
                             }
                         }
                         int size = ecs.size();
+                        LOG.debug("Equiv mappings for : "+e+" = "+ecs);
                         if (binSizeMap.containsKey(size)) {
                             binSizeMap.put(size, binSizeMap.get(size) +1);
                         }
@@ -1547,6 +1556,7 @@ public class CommandRunner extends CommandRunnerBase {
 
                                 // add to mapping. Renaming will happen later
                                 e2iri.put(e, d.getIRI()); // TODO one-to-many
+                                LOG.debug("mapping "+e+" -> "+d);
 
                                 // annotation collapsing. In OBO, max cardinality of label, comment and definition is 1
                                 // note that this not guaranteed to work if multiple terms are being merged in
@@ -1581,12 +1591,12 @@ public class CommandRunner extends CommandRunnerBase {
                         }
                     }
                 }
+                LOG.info("Num matches = "+nMatches);
                 for (Integer k : binSizeMap.keySet()) {
                     LOG.info(" | Bin( "+k+" classes ) | = "+binSizeMap.get(k));
                 }
                 g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);
                 LOG.info("Mapping "+e2iri.size()+" entities");
-                // TODO - this is slow
                 List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
                 g.getManager().applyChanges(changes);
                 LOG.info("Mapped "+e2iri.size()+" entities!");
@@ -3268,14 +3278,16 @@ public class CommandRunner extends CommandRunnerBase {
             }
             else if (opts.nextEq("--obsolete-replace")) {
                 opts.info("ID REPLACEMENT-ID", "Add a deprecation axiom");
-                OWLObject obj = resolveEntity( opts);
+                OWLObject obsObj = resolveEntity( opts);
                 OWLObject repl = resolveEntity( opts);
                 OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
                 Set<OWLAxiom> rmAxioms = new HashSet<>();
                 OWLOntology ont = g.getSourceOntology();
-                IRI objIRI = ((HasIRI) obj).getIRI();
-                String label = "obsolete "+g.getLabel(obj);
-                for (OWLAnnotationAssertionAxiom a : ont.getAnnotationAssertionAxioms(objIRI)) {
+                IRI obsObjIRI = ((HasIRI) obsObj).getIRI();
+                IRI replIRI = ((HasIRI) repl).getIRI();
+                String origLabel = g.getLabel(obsObj);
+                String label = "obsolete "+origLabel;
+                for (OWLAnnotationAssertionAxiom a : ont.getAnnotationAssertionAxioms(obsObjIRI)) {
                    if (a.getProperty().isLabel()) {
                        rmAxioms.add(a);
                    }
@@ -3292,23 +3304,77 @@ public class CommandRunner extends CommandRunnerBase {
                 g.getManager().removeAxioms(ont, rmAxioms);
                 
                 Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
-                e2iri.put((OWLEntity) obj, ((HasIRI) repl).getIRI());
+                e2iri.put((OWLEntity) obsObj, replIRI);
                 List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
                 g.getManager().applyChanges(changes);
                 OWLDataFactory df = g.getDataFactory();
                 Set<OWLAxiom> newAxioms = new HashSet<>();
-                newAxioms.add(df.getOWLDeclarationAxiom((OWLClass)obj));
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getOWLDeprecated(), objIRI, df.getOWLLiteral(true)));
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getRDFSLabel(), objIRI, df.getOWLLiteral(label)));
+                OWLAnnotationProperty synp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_hasExactSynonym.getIRI());
+                OWLAnnotationProperty xp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI());
+                OWLAnnotation synAnn = df.getOWLAnnotation(xp, df.getOWLLiteral(g.getIdentifier(obsObjIRI)));
+                Set<OWLAnnotation> synAnns = Collections.singleton(synAnn);
+                newAxioms.add(df.getOWLDeclarationAxiom((OWLClass)obsObj));
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getOWLDeprecated(), obsObjIRI, df.getOWLLiteral(true)));
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getRDFSLabel(), obsObjIRI, df.getOWLLiteral(label)));
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(synp, replIRI, df.getOWLLiteral(origLabel), synAnns));
                 
                 OWLAnnotationProperty rp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0100001.getIRI());
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(rp, objIRI,
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(rp, obsObjIRI,
                         df.getOWLLiteral(g.getIdentifier(repl))));
   
                 g.getManager().addAxioms(ont, newAxioms);
 
             }
-            else if (opts.nextEq("-d") || opts.nextEq("--draw")) {
+            else if (opts.nextEq("--replace-annotations")) {
+                opts.info("[-p PROP]", "Replace annotation assertions of type PROP for equivalent classes");
+                OWLObject obsObj = resolveEntity( opts);
+                OWLObject repl = resolveEntity( opts);
+                OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
+                Set<OWLAxiom> rmAxioms = new HashSet<>();
+                OWLOntology ont = g.getSourceOntology();
+                IRI obsObjIRI = ((HasIRI) obsObj).getIRI();
+                IRI replIRI = ((HasIRI) repl).getIRI();
+                String origLabel = g.getLabel(obsObj);
+                String label = "obsolete "+origLabel;
+                for (OWLAnnotationAssertionAxiom a : ont.getAnnotationAssertionAxioms(obsObjIRI)) {
+                   if (a.getProperty().isLabel()) {
+                       rmAxioms.add(a);
+                   }
+                   if (a.getProperty().isComment()) {
+                       rmAxioms.add(a);                       
+                   }
+                   if (a.getProperty().getIRI().equals(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI())) {
+                       //if (g.getDef(((HasIRI) repl).getIRI()) != null) {
+                           rmAxioms.add(a);               
+                       //}
+                   }
+                }
+                LOG.info("REMOVING: "+rmAxioms);
+                g.getManager().removeAxioms(ont, rmAxioms);
+                
+                Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
+                e2iri.put((OWLEntity) obsObj, replIRI);
+                List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
+                g.getManager().applyChanges(changes);
+                OWLDataFactory df = g.getDataFactory();
+                Set<OWLAxiom> newAxioms = new HashSet<>();
+                OWLAnnotationProperty synp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_hasExactSynonym.getIRI());
+                OWLAnnotationProperty xp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI());
+                OWLAnnotation synAnn = df.getOWLAnnotation(xp, df.getOWLLiteral(g.getIdentifier(obsObjIRI)));
+                Set<OWLAnnotation> synAnns = Collections.singleton(synAnn);
+                newAxioms.add(df.getOWLDeclarationAxiom((OWLClass)obsObj));
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getOWLDeprecated(), obsObjIRI, df.getOWLLiteral(true)));
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getRDFSLabel(), obsObjIRI, df.getOWLLiteral(label)));
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(synp, replIRI, df.getOWLLiteral(origLabel), synAnns));
+                
+                OWLAnnotationProperty rp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0100001.getIRI());
+                newAxioms.add(df.getOWLAnnotationAssertionAxiom(rp, obsObjIRI,
+                        df.getOWLLiteral(g.getIdentifier(repl))));
+  
+                g.getManager().addAxioms(ont, newAxioms);
+
+            }
+           else if (opts.nextEq("-d") || opts.nextEq("--draw")) {
                 opts.info("[-o FILENAME] [-f FMT] LABEL/ID", "generates a file tmp.png made using QuickGO code");
                 String imgf = "tmp.png";
                 String fmt = "png";
