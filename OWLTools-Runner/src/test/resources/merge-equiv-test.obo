@@ -66,6 +66,15 @@ def: "u0 def" [U:U]
 equivalent_to: MA:0
 equivalent_to: FMA:0
 
+[Term]
+id: ZZ:1
+name: zz1
+
+[Term]
+id: ZZ:2
+name: zz2
+equivalent_to: ZZ:1
+
 
 
 

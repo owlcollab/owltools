@@ -1430,7 +1430,8 @@ public class CommandRunner extends CommandRunnerBase {
                 }
             }
             else if (opts.nextEq("--merge-equivalence-sets")) {
-                opts.info("[-s PREFIX SCORE]* [-l PREFIX SCORE]* [-c PREFIX SCORE]* [-d PREFIX SCORE]* [-x]", "merges sets of equivalent classes. Prefix-based priorities used to determine representative member");
+                opts.info("[-s PREFIX SCORE]* [-l PREFIX SCORE]* [-c PREFIX SCORE]* [-d PREFIX SCORE]* [-P PREFIX] [-x]", 
+                        "merges sets of equivalent classes. Prefix-based priorities used to determine representative member");
                 EquivalenceSetMergeUtil esmu = new EquivalenceSetMergeUtil(g, reasoner);
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-s")) {
@@ -1456,6 +1457,10 @@ public class CommandRunner extends CommandRunnerBase {
                     else if (opts.nextEq("-x")) {
                         opts.info("", "Removes xrefs between named classes");
                         esmu.setRemoveAxiomatizedXRefs(true);
+                    }
+                    else if (opts.nextEq("-P|--preserve")) {
+                        opts.info("PREFIX", "Disallows merging of classes with this prefix");
+                        esmu.noMergePrefix(opts.nextOpt());
                     }
                     else {
                         break;
@@ -2818,7 +2823,7 @@ public class CommandRunner extends CommandRunnerBase {
                         isShowUnsatisfiable = true;
                     }
                     else if (opts.nextEq("-m|--unsatisfiable-module")) {
-                        opts.info("", "create a module for the unsatisfiable classes.");
+                        opts.info("FILE", "create a module for the unsatisfiable classes.");
                         unsatisfiableModule = opts.nextOpt();
                     }
                     else if (opts.nextEq("--trace-module-axioms")) {

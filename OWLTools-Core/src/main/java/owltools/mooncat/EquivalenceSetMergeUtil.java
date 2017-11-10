@@ -28,6 +28,7 @@ import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
 import owltools.graph.OWLGraphWrapper;
+import owltools.io.OWLPrettyPrinter;
 
 /**
  * Utility for merging cliques of classes inferred to be equivalent
@@ -49,10 +50,13 @@ public class EquivalenceSetMergeUtil {
 			new HashMap<OWLAnnotationProperty,Map<String,Double>>();
     boolean isAddEquivalenceAxioms = true;
     boolean isRemoveAxiomatizedXRefs = false;
+    Set<String> noMergePrefixes = new HashSet<>();
+    OWLPrettyPrinter owlpp;
 
 
 	public EquivalenceSetMergeUtil(OWLGraphWrapper g, OWLReasoner r) {
 		graph = g;
+		owlpp = new OWLPrettyPrinter(g);
 		ont = graph.getSourceOntology();
 		reasoner = r;
 	}
@@ -73,7 +77,16 @@ public class EquivalenceSetMergeUtil {
 		prefixScoreMap.put(prefix, score);		
 	}
 	
-	
+	/**
+	 * disallow merging of classes from this ontology
+	 * 
+	 * E.g. UBERON, MONDO
+	 * 
+	 * @param p
+	 */
+	public void noMergePrefix(String p) {
+	    noMergePrefixes.add(p);
+	}
 	
 
 	/**
@@ -99,9 +112,12 @@ public class EquivalenceSetMergeUtil {
 	 */
 	public void merge() throws IncoherentOntologyException {
 
+	    
 		Set<Node<? extends OWLEntity>> nodes = new HashSet<Node<? extends OWLEntity>>();
 		Map<OWLEntity, Node<? extends OWLEntity>> nodeByRep = 
 				new HashMap<OWLEntity, Node<? extends OWLEntity>>();
+		
+        Set<OWLClass> badClasses = new HashSet<>();
 		
 		Set<OWLClass> unsats = reasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
 		if (unsats.size() > 0) {
@@ -170,6 +186,14 @@ public class EquivalenceSetMergeUtil {
 						continue;
 					LOG.info(c + " --> "+cliqueLeader);
 					e2iri.put(c, cliqueLeader.getIRI());
+					
+					for (String p : noMergePrefixes) {
+					    if (hasPrefix(c,p) && hasPrefix(cliqueLeader,p)) {
+					        LOG.error("Illegal merge into "+p+" :: "+owlpp.render(c)+" --> "+
+					                owlpp.render(cliqueLeader));
+					        badClasses.add(c.asOWLClass());
+					    }
+					}
 					
 					// add xrefs
 					if (isAddEquivalenceAxioms) {
@@ -256,6 +280,11 @@ public class EquivalenceSetMergeUtil {
 				}
 			}
 		}
+		
+		if (!badClasses.isEmpty()) {
+		    LOG.error("The following classes would be merged: "+badClasses);
+            throw new IncoherentOntologyException(badClasses);
+		}
 
 		OWLEntityRenamer oer = new OWLEntityRenamer(graph.getManager(), graph.getAllOntologies());
 
@@ -316,6 +345,8 @@ public class EquivalenceSetMergeUtil {
 			return true;
 		return false;
 	}
+
+ 
 
 
 
