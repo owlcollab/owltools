@@ -1122,6 +1122,7 @@ public class CommandRunner extends CommandRunnerBase {
                 boolean isPreserveSynonyms = false;
                 boolean isPreserveRelations = false;
                 boolean isPreserveDeprecations = true;
+                boolean isPreserveDeprecationAxioms = true;
                 Set<IRI> preserveAnnotationPropertyIRIs = new HashSet<IRI>();
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-l|--preserve-labels")) {
@@ -1169,6 +1170,12 @@ public class CommandRunner extends CommandRunnerBase {
                         if (isPreserveDeprecations) {
                             if (aaa.getProperty().isDeprecated()) {
                                 keepAxioms.add(aaa);
+                            }
+                            if (isPreserveDeprecationAxioms) {
+                                if (piri.equals(Obo2OWLVocabulary.IRI_OIO_consider.getIRI()) ||
+                                        piri.equals(Obo2OWLVocabulary.IRI_IAO_0100001.getIRI())) {
+                                    keepAxioms.add(aaa);
+                                }
                             }
                         }
                         if (isPreserveDefinitions) {
@@ -2788,7 +2795,7 @@ public class CommandRunner extends CommandRunnerBase {
                 }
             }
             else if (opts.nextEq("--run-reasoner")) {
-                opts.info("[-r reasonername] [--assert-implied] [--indirect] [-u]", "infer new relationships");
+                opts.info("[-r reasonername] [--assert-implied] [--indirect] [-u] [-m UNSATMODFILE]", "infer new relationships");
                 boolean isAssertImplied = false;
                 boolean isDirect = true;
                 boolean isShowUnsatisfiable = false;
@@ -3691,20 +3698,26 @@ public class CommandRunner extends CommandRunnerBase {
                 m.removeSubsetClasses(cset, isRemoveDangling);
             }
             else if (opts.nextEq("--remove-axioms-about")) {
-                opts.info("[-d] IDSPACES", "Removes axioms that are about the specified ID space");
+                opts.info("[-v] [-d] IDSPACES", "Removes axioms that are about the specified ID space");
                 boolean isRemoveDangling = true;
+                boolean isInvert = false;
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-d|--keep-dangling")) {
                         opts.info("",
                                 "if specified, dangling axioms (ie pointing to removed classes) are preserved");
                         isRemoveDangling = false;
                     }
+                    else if (opts.nextEq("-v|--invert")) {
+                        opts.info("",
+                                "invert - remove axioms NOT about");
+                        isInvert = true;
+                    }
                     else
                         break;
                 }
                 String idspace = opts.nextOpt();
                 Mooncat m = new Mooncat(g);
-                m.removeAxiomsAboutIdSpace(idspace, isRemoveDangling);
+                m.removeAxiomsAboutIdSpace(idspace, isRemoveDangling, true, isInvert);
             }
             else if (opts.nextEq("--remove-classes-in-idspace")) {
                 opts.info("[-d] [-s IDSPACE]", "Removes classes in an ID space from ontology");
