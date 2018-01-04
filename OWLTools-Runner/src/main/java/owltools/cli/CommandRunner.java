@@ -36,6 +36,8 @@ import java.util.UUID;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
+import javax.annotation.processing.SupportedOptions;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -165,6 +167,7 @@ import owltools.io.ParserWrapper.OWLGraphWrapperNameProvider;
 import owltools.io.StanzaToOWLConverter;
 import owltools.io.TableRenderer;
 import owltools.io.TableToAxiomConverter;
+import owltools.mooncat.AxiomCopier;
 import owltools.mooncat.BridgeExtractor;
 import owltools.mooncat.Diff;
 import owltools.mooncat.DiffUtil;
@@ -201,6 +204,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Sets.SetView;
 
 import de.derivo.sparqldlapi.Query;
 import de.derivo.sparqldlapi.QueryArgument;
@@ -3031,6 +3035,154 @@ public class CommandRunner extends CommandRunnerBase {
                     }
                 }
             }
+            else if (opts.nextEq("--copy-axioms")) {
+                opts.info("[-m MAPONT] [-s SRCONT] [-n] [-l] [--no-strict]",
+                        "copies axioms from SRC to current (target) ontology");
+                AxiomCopier copier = new AxiomCopier();
+                OWLOntology mapOnt = null;
+                OWLOntology targetOnt = g.getSourceOntology();
+                OWLOntology sourceOnt = null;
+                boolean isCopyDuplicates = false;
+                boolean isTestForCoherency = false;
+                
+                boolean isNew = false;
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("-m|--map-ontology")) {
+                        opts.info("ONTPATH", "REQUIRED");
+                        mapOnt = pw.parse( opts.nextOpt() );
+                    }
+                    else if (opts.nextEq("-s|--source-ontology")) {
+                        opts.info("ONTPATH", "REQUIRED");
+                        sourceOnt = pw.parse( opts.nextOpt() );
+                    }
+                    else if (opts.nextEq("-n|--new")) {
+                        opts.info("", "if true, place copied axioms in a new ontology");
+                        isNew = true;
+                    }
+                    else if (opts.nextEq("-l|--logic")) {
+                        opts.info("", "if true, do logical test for coherency on each logical axiom");
+                        isTestForCoherency = true;
+                    }
+                    else if (opts.nextEq("--no-strict")) {
+                        opts.info(
+                                "", "if set, perform less rigorous filtering. "+
+                                "use greedy approach, incrementally adding axioms. "+
+                                "Implies -l");
+                        isTestForCoherency = true;
+                        copier.isUseConservative = false;
+                    }
+                    else if (opts.nextEq("-d|--copy-duplicates")) {
+                        opts.info("", "if true, copy axioms that already exist");
+                        isCopyDuplicates = true;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                copier.isCopyDuplicates = isCopyDuplicates; 
+                copier.isTestForCoherency = isTestForCoherency;
+                Set<OWLAxiom> axioms = copier.copyAxioms(sourceOnt, targetOnt, mapOnt);
+                System.out.println("COPIED AXIOMS: "+axioms.size());
+                if (isNew) {
+                    g.setSourceOntology(g.getManager().createOntology());
+                }
+                g.getManager().addAxioms(g.getSourceOntology(), axioms);
+            }
+            else if (opts.nextEq("--eval-equiv-axiom")) {
+                opts.info("[-c CLASSLIST]", "tests the classification power of an existing equivalence "+
+                        "axiom on an owlclass. Attempts to recapitulate classification of all subclasses with and without axiom. "+
+                        "measures jaccard similarity of superclass list before and after");
+                List<String> clsIds = new ArrayList<>();
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("-c|--classes")) {
+                        clsIds = opts.nextList();
+                    }
+                    else if (opts.nextEq("-r")) {
+                        opts.info("REASONERNAME", "selects the reasoner to use");
+                        reasonerName = opts.nextOpt();
+                    }
+                    else {
+                        break;
+                    }
+                }            
+                OWLOntologyManager mgr = g.getManager();
+                OWLOntology ont = g.getSourceOntology();
+                OWLPrettyPrinter owlpp = getPrettyPrinter();
+                reasoner = createReasoner(ont, reasonerName, mgr);
+                for (String clsiId :clsIds) {
+                    OWLClass c = g.getOWLClassByIdentifier(clsiId);
+                    System.out.println("EVAL: "+owlpp.render(c));
+                    
+                    // axioms to recapitulate: test set
+                    Set<OWLAxiom> testAxioms = new HashSet<>();
+                    Set<OWLAxiom> eqAxioms = new HashSet<>();
+                    Set<OWLClass> moduleClasses = reasoner.getSubClasses(c, false).getFlattened();
+                    moduleClasses.add(c);
+                    
+                    Map<OWLClass, Set<OWLClass>> testSuperClassMap = new HashMap<>();
+                    for (OWLClass sc : moduleClasses) {
+                        testAxioms.addAll(ont.getSubClassAxiomsForSubClass(sc));
+                        Set<OWLClass> sups = reasoner.getSuperClasses(sc, false).getFlattened();
+                       
+                        //testSuperClassMap.put(sc, Sets.intersection(sups, moduleClasses));
+                        testSuperClassMap.put(sc, sups);
+                    }
+                    eqAxioms.addAll(ont.getEquivalentClassesAxioms(c));
+                    
+                    for (OWLAxiom eqa : eqAxioms) {
+                        System.out.println("  testing power of: "+owlpp.render(eqa));
+                    }
+                    
+                    mgr.removeAxioms(ont, testAxioms);
+                    String[] states = {"withAxiom", "withoutAxiom"};
+                    Map<OWLClass,Map<String,Set<OWLClass>>> reinfMap = new HashMap<>();
+                    for (String state : states) {
+                        reasoner.flush();
+                        int n = 0;
+                        double jsimTotal = 0.0;
+                        for (OWLClass sc : moduleClasses) {
+                            Set<OWLClass> sups = reasoner.getSuperClasses(sc, false).getFlattened();
+                            //sups = Sets.intersection(sups, moduleClasses);
+                            int numI = Sets.intersection(sups, testSuperClassMap.get(sc)).size();
+                            int numU = Sets.union(sups, testSuperClassMap.get(sc)).size();
+                             if (numU>0) {
+                                double jsim = numI / (double)numU;
+                                jsimTotal += jsim;
+                                n++;
+                                //LOG.debug("ANCS);
+                            }
+                            Sets.difference(sups, testSuperClassMap.get(sc));
+                            if (!reinfMap.containsKey(sc)) {
+                                reinfMap.put(sc, new HashMap<>());
+                            }
+                            reinfMap.get(sc).put(state, sups);
+                        }
+                        double jsimAvg = jsimTotal / n;
+                        System.out.println(" score "+state+" jaccard sim average="+jsimAvg+"  n="+n);
+                        mgr.removeAxioms(ont, eqAxioms);
+                    }
+                    for (OWLClass sc : moduleClasses) {
+                        Set<OWLClass> sups1 = reinfMap.get(sc).get(states[0]);
+                        Set<OWLClass> sups2 = reinfMap.get(sc).get(states[1]);
+                        if (!sups1.equals(sups2)) {
+                            System.out.println("DIFF FOR: "+owlpp.render(sc));
+                            Set<OWLClass> diff1 = Sets.difference(sups1, sups2);
+                            Set<OWLClass> diff2 = Sets.difference(sups2, sups1);
+                            for (OWLClass cd : diff1) {
+                                System.out.println("  "+ states[0]+" : "+owlpp.render(cd));
+                            }
+                            for (OWLClass cd : diff2) {
+                                System.out.println("  "+ states[1]+" : "+owlpp.render(cd));
+                            }
+                        }
+                    }
+                    
+                    
+                    // restore
+                    mgr.addAxioms(ont, eqAxioms);
+                    mgr.addAxioms(ont, testAxioms);
+                }
+          }
             else if (opts.nextEq("--stash-subclasses")) {
                 opts.info("[-a][--prefix PREFIX][--ontology RECAP-ONTOLOGY-IRI", 
                         "removes all subclasses in current source ontology; after reasoning, try to re-infer these");
