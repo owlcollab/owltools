@@ -555,13 +555,15 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
 
+		// Ensure that legoCatalogs is defined, even is empty.
+		if( legoCatalogs == null ){
+			legoCatalogs = new ArrayList<File>();
+			LOG.info("Missing lego catalogs...");
+		}
+
 		// Only proceed if our environment was well-defined.
-		if( legoCatalogs == null || legoFiles == null || legoModelPrefix == null ||
-				legoCatalogs.isEmpty() || legoFiles.isEmpty() ){
+		if( legoFiles == null || legoModelPrefix == null || legoFiles.isEmpty() ){
 			String details = "";
-			if (legoCatalogs == null || legoCatalogs.isEmpty()) {
-				details += "Missing catalog";
-			}
 			if (legoFiles == null || legoFiles.isEmpty()) {
 				details += " Missing legoFiles";
 			}
@@ -574,7 +576,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			LOG.info("Start Loading models, count: "+legoFiles.size());
 			// Ready the environment for every pass.
 			ParserWrapper pw = new ParserWrapper();
-			// Add all of the catalogs.
+			// Add all of the catalogs; possibly none.
 			for( File legoCatalog : legoCatalogs ){
 				pw.addIRIMapper(new CatalogXmlIRIMapper(legoCatalog));
 			}
