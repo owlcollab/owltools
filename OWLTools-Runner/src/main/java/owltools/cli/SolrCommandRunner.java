@@ -558,7 +558,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// Ensure that legoCatalogs is defined, even is empty.
 		if( legoCatalogs == null ){
 			legoCatalogs = new ArrayList<File>();
-			LOG.info("Missing lego catalogs...");
+			LOG.warn("Missing lego catalogs...");
 		}
 
 		// Only proceed if our environment was well-defined.
@@ -573,7 +573,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			LOG.error("Lego environment not well defined--skipping: "+details);
 			exit(-1);
 		}else{
-			LOG.info("Start Loading models, count: "+legoFiles.size());
+			LOG.warn("Start Loading models, count: "+legoFiles.size());
 			// Ready the environment for every pass.
 			ParserWrapper pw = new ParserWrapper();
 			// Add all of the catalogs; possibly none.
