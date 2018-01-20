@@ -168,6 +168,7 @@ import owltools.io.StanzaToOWLConverter;
 import owltools.io.TableRenderer;
 import owltools.io.TableToAxiomConverter;
 import owltools.mooncat.AxiomCopier;
+import owltools.mooncat.AxiomCopier.IdAssigner;
 import owltools.mooncat.BridgeExtractor;
 import owltools.mooncat.Diff;
 import owltools.mooncat.DiffUtil;
@@ -1146,7 +1147,7 @@ public class CommandRunner extends CommandRunnerBase {
                         isPreserveDeprecations = true;
                     }
                     else if (opts.nextEq("-r|--preserve-relations")) {
-                        opts.info("", "unless specified, all axioms about properties are removed");
+                        opts.info("", "unless this is specified, all axioms about properties are removed");
                         isPreserveRelations = true;
                     }
                     else if (opts.nextEq("-p|--preserve-property")) {
@@ -2798,6 +2799,44 @@ public class CommandRunner extends CommandRunnerBase {
                     g.getManager().applyChange(x);
                 }
             }
+            else if (opts.nextEq("--export-inferences")) {
+                opts.info("[-r reasonername]", "infer new relationships and generate new ontology");
+
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("-r")) {
+                        opts.info("REASONERNAME", "selects the reasoner to use");
+                        reasonerName = opts.nextOpt();
+                    }
+                    else {
+                        break;
+                    }
+                }
+                if (reasoner == null) {
+                    reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+                }
+                Set<OWLClass> unsats = reasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
+                if (unsats.size() > 0) {
+                    LOG.error("UNSATS: "+ unsats);
+                }
+                OWLOntology ont = g.getManager().createOntology();
+                OWLDataFactory df = g.getDataFactory();
+                for (OWLClass c : g.getAllOWLClasses()) {
+                    Set<OWLClass> directSupers = reasoner.getSuperClasses(c, true).getFlattened();
+                    Set<OWLClass> indirectSupers = reasoner.getSuperClasses(c, false).getFlattened();
+                    for (OWLClass superClass : indirectSupers) {
+                        boolean isDirect = directSupers.contains(superClass);
+                        OWLAnnotationProperty p = 
+                                df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#source"));
+                        OWLAnnotation ann = df.getOWLAnnotation(p, 
+                                df.getOWLLiteral("OWLReasoner"));
+                        Set<OWLAnnotation> anns = Collections.singleton(ann);
+                        OWLSubClassOfAxiom ax = 
+                                df.getOWLSubClassOfAxiom(c, superClass, anns);
+                        g.getManager().addAxiom(ont, ax);
+                    }               
+                }
+                g.setSourceOntology(ont);
+            }
             else if (opts.nextEq("--run-reasoner")) {
                 opts.info("[-r reasonername] [--assert-implied] [--indirect] [-u] [-m UNSATMODFILE]", "infer new relationships");
                 boolean isAssertImplied = false;
@@ -3035,12 +3074,26 @@ public class CommandRunner extends CommandRunnerBase {
                     }
                 }
             }
+            else if (opts.nextEq("--remint-ids")) {
+                opts.info("", "generate new class IRIs for an ontology");
+                AxiomCopier cp = new AxiomCopier();
+                String prefix = null;
+                while (opts.hasOpts()) {
+                    if (opts.nextEq("p|--prefix")) {
+                        opts.info("PREFIX", "prefix for new ids");
+                        prefix =  opts.nextOpt();
+                    }
+                    else {
+                        break;
+                    }
+                }
+                cp.remintOntologyIds(g.getSourceOntology(), prefix, true);
+            }
             else if (opts.nextEq("--copy-axioms")) {
                 opts.info("[-m MAPONT] [-s SRCONT] [-n] [-l] [--no-strict]",
                         "copies axioms from SRC to current (target) ontology");
                 AxiomCopier copier = new AxiomCopier();
                 OWLOntology mapOnt = null;
-                OWLOntology targetOnt = g.getSourceOntology();
                 OWLOntology sourceOnt = null;
                 boolean isCopyDuplicates = false;
                 boolean isTestForCoherency = false;
@@ -3063,6 +3116,10 @@ public class CommandRunner extends CommandRunnerBase {
                         opts.info("", "if true, do logical test for coherency on each logical axiom");
                         isTestForCoherency = true;
                     }
+                    else if (opts.nextEq("-a|--all")) {
+                        opts.info("", "if true, bring all classes from source across, even if unmapped");
+                        copier.isIncludeUnmapped = true;
+                    }
                     else if (opts.nextEq("--no-strict")) {
                         opts.info(
                                 "", "if set, perform less rigorous filtering. "+
@@ -3079,6 +3136,7 @@ public class CommandRunner extends CommandRunnerBase {
                         break;
                     }
                 }
+                OWLOntology targetOnt = g.getSourceOntology();
                 copier.isCopyDuplicates = isCopyDuplicates; 
                 copier.isTestForCoherency = isTestForCoherency;
                 Set<OWLAxiom> axioms = copier.copyAxioms(sourceOnt, targetOnt, mapOnt);
