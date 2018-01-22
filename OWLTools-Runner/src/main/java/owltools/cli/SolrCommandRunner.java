@@ -606,8 +606,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					}
 					Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
                     if (exitIfUnsatisfiable && unsatisfiable.isEmpty() == false) {
-                        LOG.error("Unsatisfiable: " + fname+" == "+unsatisfiable);
-                        System.exit(1);
+                        LOG.warn("Unsatisfiable: " + fname+" == "+unsatisfiable);
+                        continue;
                     }
                     if (removeUnsatisfiableModels && unsatisfiable.isEmpty() == false) {
                         LOG.warn("Skip since unsatisfiable: " + fname);
