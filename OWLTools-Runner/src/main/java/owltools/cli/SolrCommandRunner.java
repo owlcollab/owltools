@@ -596,7 +596,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 						continue;
 					}
 					
-					// Some sanity checks--some of the genereated ones are problematic.
+					// Some sanity checks--some of the generated ones are problematic.
 					currentReasoner = reasonerFactory.createReasoner(model);
 					boolean consistent = currentReasoner.isConsistent();
 					if(consistent == false){
@@ -604,15 +604,6 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 						LOG.warn("Skip since inconsistent: " + fname);
 						continue;
 					}
-					Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
-                    if (exitIfUnsatisfiable && unsatisfiable.isEmpty() == false) {
-                        LOG.error("Unsatisfiable: " + fname+" == "+unsatisfiable);
-                        System.exit(1);
-                    }
-                    if (removeUnsatisfiableModels && unsatisfiable.isEmpty() == false) {
-                        LOG.warn("Skip since unsatisfiable: " + fname);
-                        continue;
-                    }
 					
 					ModelAnnotationSolrDocumentLoader loader = null;
 					try {
