@@ -106,21 +106,6 @@
 
 	<repositories>
 		<repository>
-			<id>BerkeleyBOP</id>
-			<name>Berkeley BOP maven repository</name>
-			<url>http://code.berkeleybop.org/maven/repository/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
-			<id>BerkeleyBOPSnapshot</id>
-			<url>http://code.berkeleybop.org/maven/snapshot-repository/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		<repository>
 			<id>oss-sonatype-snapshot</id>
 			<name>OSS Sonatype Maven Repository - Releases</name>
 			<url>https://oss.sonatype.org/content/groups/public</url>

@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Collection;
 
 import org.junit.Test;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.oboformat.model.Clause;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
@@ -45,7 +45,7 @@ public class RemoveDirectivesTest extends OWLToolsTestBasics {
 
 		System.out.println(merged.getAxioms(AxiomType.EQUIVALENT_CLASSES));
 
-		Owl2Obo owl2Obo = new Owl2Obo();
+		OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 		OBODoc mergedObo = owl2Obo.convert(merged);
 		
 		if (USE_SYSTEM_OUT) {

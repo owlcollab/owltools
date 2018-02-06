@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -29,7 +29,7 @@ public class OWLGraphFlexTest {
 //		String fstr = getResourceString("trivial.obo");
 //		OBOFormatParser p = new OBOFormatParser();
 //		OBODoc obodoc = p.parse(fstr);
-//		Obo2Owl bridge = new Obo2Owl();
+//		OWLAPIObo2Owl bridge = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 //		OWLOntology ont = bridge.convert(obodoc);
 //		OWLGraphWrapper g = new OWLGraphWrapper(ont);
 //
@@ -88,7 +88,7 @@ public class OWLGraphFlexTest {
 		String fstr = getResourceString("trivial.obo");
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(fstr);
-		Obo2Owl bridge = new Obo2Owl();
+		OWLAPIObo2Owl bridge = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 		OWLOntology ont = bridge.convert(obodoc);
 		OWLGraphWrapper g = new OWLGraphWrapper(ont);
 		

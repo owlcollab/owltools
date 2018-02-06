@@ -23,7 +23,7 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
@@ -251,7 +251,7 @@ public class AssertInferenceTool {
 								
 								@Override
 								public boolean useOWLClass(OWLClass cls, OWLOntology ont) {
-									String id = Owl2Obo.getIdentifierFromObject(cls, ont, null);
+									String id = OWLAPIOwl2Obo.getIdentifierFromObject(cls, ont, null);
 									boolean use = id != null && id.startsWith(prefix);
 									return use;
 								}
@@ -329,7 +329,7 @@ public class AssertInferenceTool {
 		if ("obo".equals(outputFileFormat)) {
 			BufferedWriter bufferedWriter = null;
 			try {
-				Owl2Obo owl2Obo = new Owl2Obo();
+				OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 				OBODoc oboDoc = owl2Obo.convert(ontology);
 				OBOFormatWriter oboWriter = new OBOFormatWriter();
 				bufferedWriter = new BufferedWriter(new FileWriter(outputFile));

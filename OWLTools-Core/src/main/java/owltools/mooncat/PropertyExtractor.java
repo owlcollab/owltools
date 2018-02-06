@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -158,7 +158,7 @@ public class PropertyExtractor {
 							df.getOWLLiteral(id));
 					axioms.add(ax);
 					LOG.info(ax);
-					String pid = Owl2Obo.getIdentifier(prop.getIRI());
+					String pid = OWLAPIOwl2Obo.getIdentifier(prop.getIRI());
 					axioms.add(
 							df.getOWLAnnotationAssertionAxiom(
 									df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasDbXref")),

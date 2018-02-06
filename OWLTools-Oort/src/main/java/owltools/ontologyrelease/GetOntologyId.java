@@ -5,8 +5,8 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.PropertyHelper;
 import org.apache.tools.ant.Task;
-import org.obolibrary.obo2owl.Obo2Owl;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -30,7 +30,7 @@ public class GetOntologyId extends Task {
 	
 	private OWLOntology getOntology() throws Exception{
 		if(ontologyLocation.endsWith(".owl")){
-			//oborelease.isObo2Owl			
+			//oborelease.isOWLAPIObo2Owl			
 			addProperty("oborelease.isowl", "true");
 			OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 			return manager.loadOntologyFromOntologyDocument(new File(ontologyLocation));
@@ -38,7 +38,7 @@ public class GetOntologyId extends Task {
 	
 		addProperty("oborelease.isobo", "true");
 		
-		Obo2Owl obo2owl = new Obo2Owl();
+		OWLAPIObo2Owl obo2owl = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 		
 		return obo2owl.convert(ontologyLocation);
 	}
@@ -58,7 +58,7 @@ public class GetOntologyId extends Task {
 		try{
 			OWLOntology ontology = getOntology();
 			
-			String ontologyId = Owl2Obo.getOntologyId(ontology);
+			String ontologyId = OWLAPIOwl2Obo.getOntologyId(ontology);
 			
 	        /*PropertyHelper propertyHelper
 	        = (PropertyHelper) PropertyHelper.getPropertyHelper(getProject());

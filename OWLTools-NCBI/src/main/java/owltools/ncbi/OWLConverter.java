@@ -139,7 +139,7 @@ public class OWLConverter {
 	 *
 	 * @see org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary
 	 * @param ontology the current ontology
-	 * @param term the Obo2Owl term to use
+	 * @param term the OWLAPIObo2Owl term to use
 	 * @return the annotation property
 	 */
 	protected static OWLAnnotationProperty createAnnotationProperty(

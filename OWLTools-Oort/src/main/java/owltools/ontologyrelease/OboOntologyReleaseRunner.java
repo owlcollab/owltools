@@ -22,10 +22,10 @@ import org.obolibrary.macro.MacroExpansionGCIVisitor;
 import org.obolibrary.macro.MacroExpansionVisitor;
 import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools.AnnotationCardinalityException;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.InvalidXrefMapException;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
@@ -730,7 +730,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
 						String tOntId = tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY).getValue().toString();
 						logInfo("Generating bridge ontology:"+tOntId);
-						Obo2Owl obo2owl = new Obo2Owl();
+						OWLAPIObo2Owl obo2owl = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 						OWLOntology tOnt = obo2owl.convert(tdoc);
 						saveOntologyInAllFormats(ontologyId, tOntId, version, tOnt, null, true);
 					}
@@ -1313,7 +1313,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	}
 
 	private String handleOntologyId() {
-		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
+		String ontologyId = OWLAPIOwl2Obo.getOntologyId(mooncat.getOntology());
 		ontologyId = ontologyId.replaceAll(".obo$", ""); // TODO temp workaround
 		return ontologyId;
 	}
@@ -1712,7 +1712,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		if (!oortConfig.isSkipFormat("obo")) {
 
-			Owl2Obo owl2obo = new Owl2Obo();
+			OWLAPIOwl2Obo owl2obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 			OBODoc doc = owl2obo.convert(ontologyToSave);
 
 			OBOFormatWriter writer = new OBOFormatWriter();

@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Collection;
 
 import org.junit.Test;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.oboformat.model.Clause;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
@@ -27,7 +27,7 @@ public class CardinalityContraintsToolsTest extends OWLToolsTestBasics {
 		OWLOntology owlOntology = graph.getSourceOntology();
 		CardinalityContraintsTools.removeCardinalityConstraints(owlOntology);
 		
-		Owl2Obo owl2Obo = new Owl2Obo();
+		OWLAPIOwl2Obo owl2Obo = new  OWLAPIOwl2Obo(OWLManager.createOWLOntologyManager() );
 		OBODoc obo = owl2Obo.convert(owlOntology);
 		
 		assertNoQualifiers("TEST:1000", obo);

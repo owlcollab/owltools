@@ -6,7 +6,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 
 import org.junit.Test;
-import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -55,7 +55,7 @@ public class RetrieveRelationByLabelTest extends OWLToolsTestBasics {
 	private OWLGraphWrapper getOBO2OWLOntologyWrapper(String file) throws Exception{
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(new BufferedReader(new FileReader(getResource(file))));
-		Obo2Owl bridge = new Obo2Owl();
+		OWLAPIObo2Owl bridge = new  OWLAPIObo2Owl(OWLManager.createOWLOntologyManager() );
 		OWLOntology ontology = bridge.convert(obodoc);
 		OWLGraphWrapper wrapper = new OWLGraphWrapper(ontology);
 		return wrapper;

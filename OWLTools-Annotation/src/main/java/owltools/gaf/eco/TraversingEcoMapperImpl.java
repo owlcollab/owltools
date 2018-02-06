@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -109,7 +109,7 @@ public class TraversingEcoMapperImpl extends EcoMapperImpl implements Traversing
 	}
 	
 	private String getId(OWLClass cls) {
-		return Owl2Obo.getIdentifier(cls.getIRI());
+		return OWLAPIOwl2Obo.getIdentifier(cls.getIRI());
 	}
 
 	@Override
