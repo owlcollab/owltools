@@ -50,6 +50,7 @@ import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.util.OWLObjectVisitorExAdapter;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import com.beust.jcommander.internal.Sets;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Optional;
 
@@ -179,7 +180,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 		return getAnnotationValues(c, lap);
 	}
-	
+
 	/**
 	 * gets all values of rdfs:comment for an OWLObject
 	 * <p>
@@ -195,8 +196,8 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 
 		return getAnnotationValues(c, lap);
 	}
-	
-	
+
+
 	/**
 	 * fetches the value of a single-valued annotation property for an OWLObject
 	 * <p>
@@ -552,7 +553,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		}
 		return altIdMap;
 	}
-	
+
 	/**
 	 * @param altId
 	 * @return OWLObject that has matching altId, or null if not found
@@ -902,6 +903,8 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		// special magic for finding IRIs from a non-standard identifier
 		// This is the case for relations (OWLObject properties) with a short hand
 		// or for relations with a non identifiers with-out a colon, e.g. negative_regulation
+		// we first collect all candidate matching properties in candIRISet.
+		Set<IRI> candIRISet = Sets.newHashSet();
 		if (!id.contains(":")) {
 			final OWLAnnotationProperty shortHand = getDataFactory().getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_shorthand.getIRI());
 			final OWLAnnotationProperty oboIdInOwl = getDataFactory().getOWLAnnotationProperty(Obo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
@@ -920,7 +923,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 									OWLLiteral literal = (OWLLiteral) value;
 									String shortHandLabel = literal.getLiteral();
 									if (id.equals(shortHandLabel)) {
-										return p.getIRI();
+										candIRISet.add(p.getIRI());
 									}
 								}
 							}
@@ -930,7 +933,29 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 			}
 		}
 
+		// In the case where we find multiple candidate IRIs, we give priorities for IRIs from BFO or RO ontologies.
+		IRI returnIRI = null;
+		for (IRI iri: candIRISet) {
+			String iriStr = iri.toString();
+			if (iriStr.contains("BFO") || iriStr.contains("RO")) {
+				returnIRI = iri;
+			}
+		}
 
+		// If we were not able to find RO/BFO candidate IRIs for id
+		if (returnIRI == null) {
+			// We return it only if we have only one candidate. 
+			if (candIRISet.size() == 1)
+				return new ArrayList<IRI>(candIRISet).get(0);
+			// This is the unexpected case. Multiple non-RO/BPO properties are mapped to given id and it's not clear what to return.
+			else if (candIRISet.size() > 1)
+				throw new RuntimeException("Multiple candidate IRIs are found for id: " +  id + ". None of them are from BFO or RO.");
+		}
+		// If we were able to find the property from RO/BFO, just return it. 
+		else {
+			return returnIRI;
+		}
+		
 		// otherwise use the obo2owl method
 		Obo2Owl b = new Obo2Owl(getManager()); // re-use manager, creating a new one can be expensive as this is a highly used code path
 		b.setObodoc(new OBODoc());
@@ -985,8 +1010,8 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	public OWLClass getOWLClassByIdentifier(String id) {
 		return getOWLClassByIdentifier(id, false);
 	}
-	
-	
+
+
 	/**
 	 * Given an OBO-style ID, return the corresponding OWLClass, if it is declared and not an alt_id - otherwise null
 	 * 
@@ -1000,7 +1025,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		}
 		return cls;
 	}
-	
+
 	public boolean isOboAltId(OWLEntity e) {
 		Set<OWLAnnotationAssertionAxiom> axioms = new HashSet<>();
 		for(OWLOntology ont : getAllOntologies()) {
@@ -1008,7 +1033,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		}
 		return isOboAltId(axioms);
 	}
-	
+
 	static boolean isOboAltId(Set<OWLAnnotationAssertionAxiom> annotations) {
 		boolean hasReplacedBy = false;
 		boolean isMerged = false;
@@ -1033,7 +1058,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		boolean result = hasReplacedBy && isMerged && isDeprecated;
 		return result;
 	}
-	
+
 	/**
 	 * 
 	 * As {@link #getOWLClassByIdentifier(String)} but include pre-resolution step
@@ -1445,9 +1470,9 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		}
 		return null;
 	}
-	
+
 	static final Pattern ID_SPACE_PATTERN = Pattern.compile("([a-z]+):\\d+", Pattern.CASE_INSENSITIVE);
-	
+
 	/**
 	 * Try to extract an id space from an {@link OWLObject}.
 	 * Currently it is only defined for an {@link OWLClass}, 
@@ -1469,11 +1494,11 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 				}
 				return null;
 			}
-			
+
 		});
 		return idSpace;
 	}
-	
+
 	/**
 	 * It returns the id space.
 	 * <p>
@@ -1488,7 +1513,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	public String getIdSpace(OWLObject obj, List<String> sargs) {
 		return getIdSpace(obj);
 	}
-	
+
 	/**
 	 * Generate a OboGraphs JSON ontology blob for the local axioms for an object.
 	 * 
@@ -1505,33 +1530,33 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @throws OWLOntologyCreationException
 	 */
 	public String getOboGraphJSONString(OWLObject obj) throws JsonProcessingException, OWLOntologyCreationException {
-        FromOwl fromOwl = new FromOwl();
-        OWLOntologyManager m = sourceOntology.getOWLOntologyManager();
-        if (obj instanceof OWLNamedObject) {
-            OWLNamedObject nobj = (OWLNamedObject)obj;
-            OWLOntology ont = m.createOntology(nobj.getIRI());
-            Set<OWLAxiom> axioms = new HashSet<>();
-            if (nobj instanceof OWLClass) {
-                axioms.addAll(sourceOntology.getAxioms((OWLClass)nobj, Imports.INCLUDED));
-            }
-            else if (nobj instanceof OWLObjectProperty) {
-                axioms.addAll(sourceOntology.getAxioms((OWLObjectProperty)nobj, Imports.INCLUDED));
-            }
-            m.addAxioms(ont, axioms);
-            axioms = new HashSet<>();
-            for (OWLEntity e : ont.getSignature()) {
-                axioms.addAll(sourceOntology.getAnnotationAssertionAxioms(e.getIRI()));
-            }
-            axioms.addAll(sourceOntology.getAnnotationAssertionAxioms(nobj.getIRI()));
-            m.addAxioms(ont, axioms);
-            
-            GraphDocument gd = fromOwl.generateGraphDocument(ont);
-            return OgJsonGenerator.render(gd);
-        }
-        else {
-            return "{}";
-        }
-        
+		FromOwl fromOwl = new FromOwl();
+		OWLOntologyManager m = sourceOntology.getOWLOntologyManager();
+		if (obj instanceof OWLNamedObject) {
+			OWLNamedObject nobj = (OWLNamedObject)obj;
+			OWLOntology ont = m.createOntology(nobj.getIRI());
+			Set<OWLAxiom> axioms = new HashSet<>();
+			if (nobj instanceof OWLClass) {
+				axioms.addAll(sourceOntology.getAxioms((OWLClass)nobj, Imports.INCLUDED));
+			}
+			else if (nobj instanceof OWLObjectProperty) {
+				axioms.addAll(sourceOntology.getAxioms((OWLObjectProperty)nobj, Imports.INCLUDED));
+			}
+			m.addAxioms(ont, axioms);
+			axioms = new HashSet<>();
+			for (OWLEntity e : ont.getSignature()) {
+				axioms.addAll(sourceOntology.getAnnotationAssertionAxioms(e.getIRI()));
+			}
+			axioms.addAll(sourceOntology.getAnnotationAssertionAxioms(nobj.getIRI()));
+			m.addAxioms(ont, axioms);
+
+			GraphDocument gd = fromOwl.generateGraphDocument(ont);
+			return OgJsonGenerator.render(gd);
+		}
+		else {
+			return "{}";
+		}
+
 	}
 }
 

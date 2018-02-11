@@ -54,12 +54,12 @@ import owltools.graph.OWLGraphWrapper;
 public class BasicAnnotationPropagator extends AbstractAnnotationPredictor implements AnnotationPredictor {
 
 	protected static Logger LOG = Logger.getLogger(BasicAnnotationPropagator.class);
-	
+
 	protected static boolean SKIP_IEA = true; 
-	
+
 	private static final String ASSIGNED_BY_CONSTANT = "GOC";
 	private static final String gocheck_do_not_annotate = "gocheck_do_not_annotate";
-	
+
 	private OWLReasoner reasoner = null;
 	private Map<String, Set<OWLClass>> propagationRules = null;
 	private Map<String, String> aspectMap = null;
@@ -79,7 +79,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		this.throwExceptions = throwExceptions;
 		isInitialized = init();
 	}
-	
+
 	private boolean init() {
 		LOG.info("Start preparing propagation rules");
 		OWLGraphWrapper graph = getGraph();
@@ -98,7 +98,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		LOG.info("Finished preparing propagation rules");
 		return true;
 	}
-	
+
 	@Override
 	public boolean isInitialized() {
 		return isInitialized;
@@ -113,28 +113,30 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	 */
 	protected Map<String, Set<OWLClass>> createPropagationRules(OWLGraphWrapper graph, OWLReasoner reasoner) {
 		Map<String, Set<OWLClass>> map = new HashMap<String, Set<OWLClass>>();
-		
+
 		OWLClass mf = graph.getOWLClassByIdentifier("GO:0003674"); // molecular_function
 		OWLClass bp = graph.getOWLClassByIdentifier("GO:0008150"); // biological_process
 		OWLClass cc = graph.getOWLClassByIdentifier("GO:0005575"); // cellular_component
-		
+
 		OWLObjectProperty part_of = graph.getOWLObjectPropertyByIdentifier("part_of");
-		if (part_of == null) {
+		if (part_of == null)
 			LOG.warn("Could not find relation by id 'part_of'.");
-		}
+		if (part_of.toString().contains("BFO") != true)
+			throw new RuntimeException("The property mapped to 'part_of' does not come from BFO. Is the correct ontology (GO) loaded?");
+
 		OWLObjectProperty occurs_in = graph.getOWLObjectPropertyByIdentifier("occurs_in");
-		if (occurs_in == null) {
+		if (occurs_in == null)
 			LOG.warn("Could not find relation by id 'occurs_in'.");
-		}
-		
-		
+		if (occurs_in.toString().contains("BFO") != true)
+			throw new RuntimeException("The property mapped to 'occurs_in' does not come from BFO. Is the correct ontology (GO) loaded?");
+
 		// MF -> BP over part_of
 		if (part_of != null && mf != null && bp != null) {
 			// get all classes in the mf and bp branch
 			Set<OWLClass> mfClasses = reasoner.getSubClasses(mf, false).getFlattened();
 			Set<OWLClass> bpClasses = reasoner.getSubClasses(bp, false).getFlattened();
 			Map<Set<OWLClass>, Set<OWLClass>> cache = new HashMap<Set<OWLClass>, Set<OWLClass>>();
-			
+
 			OWLClass metabolicProcess = graph.getOWLClassByIdentifier("GO:0008152"); //  metabolic process
 			for (OWLClass mfClass : mfClasses) {
 				List<String> mfClassSubsets = graph.getSubsets(mfClass);
@@ -148,16 +150,16 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				}
 				Set<OWLObjectProperty> relations = Collections.singleton(part_of);
 				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(mfClass, relations, graph, reasoner, bpClasses, cache);
-				
+
 				if (!nonRedundantLinks.isEmpty()) {
 					// remove too high level targets and metabolic process
 					if (metabolicProcess != null) {
 						nonRedundantLinks.remove(metabolicProcess);
 					}
-					
+
 					// iterate and delete unwanted
 					removeUninformative(graph, nonRedundantLinks);
-					
+
 					// add to map
 					if (!nonRedundantLinks.isEmpty()) {
 						map.put(graph.getIdentifier(mfClass), nonRedundantLinks);
@@ -168,15 +170,15 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		else {
 			LOG.warn("Skipping MF -> BP over 'part_of'.");
 		}
-		
-		
+
+
 		// BP -> CC over occurs_in
 		if (occurs_in != null && bp != null && cc != null) {
 			// get all classes in the bp and cc branch
 			Set<OWLClass> bpClasses = reasoner.getSubClasses(bp, false).getFlattened();
 			Set<OWLClass> ccClasses = reasoner.getSubClasses(cc, false).getFlattened();
 			Map<Set<OWLClass>, Set<OWLClass>> cache = new HashMap<Set<OWLClass>, Set<OWLClass>>();
-			
+
 			for(OWLClass bpClass : bpClasses) {
 				List<String> bpClassSubsets = graph.getSubsets(bpClass);
 				if (bpClassSubsets.contains(gocheck_do_not_annotate)) {
@@ -185,10 +187,10 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				}
 				Set<OWLObjectProperty> relations = Collections.singleton(occurs_in);
 				Set<OWLClass> nonRedundantLinks = getNonRedundantLinkedClasses(bpClass, relations, graph, reasoner, ccClasses, cache);
-				
+
 				if (!nonRedundantLinks.isEmpty()) {
 					removeUninformative(graph, nonRedundantLinks);
-					
+
 					// add to map
 					if (!nonRedundantLinks.isEmpty()) {
 						map.put(graph.getIdentifier(bpClass), nonRedundantLinks);
@@ -199,7 +201,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		else {
 			LOG.warn("Skipping BP -> CC over 'occurs_in'.");
 		}
-		
+
 		if (map.isEmpty()) {
 			// only fail if there are no propagation rules
 			// the test case uses a custom ontology, which has no cc or 'occurs_in' relation
@@ -226,7 +228,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			}
 		}
 	}
-	
+
 	/**
 	 * Retrieve the non redundant set of linked classes using the given
 	 * relation. The reasoner is used to infer the super and subsets for the
@@ -265,10 +267,10 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			nonRedundantLinks = reduceToNonRedundant(linkedClasses, reasoner);
 			cache.put(linkedClasses, nonRedundantLinks);
 		}
-		
+
 		return nonRedundantLinks;
 	}
-	
+
 	/**
 	 * Lookup relation super classes in graph g for a given sub class c and property p.
 	 * 
@@ -281,7 +283,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		Set<OWLObjectProperty> properties = Collections.singleton(g.getOWLObjectPropertyByIdentifier(property));
 		return getDirectLinkedClasses(c, properties, g, null);
 	}
-	
+
 	/**
 	 * Lookup relation super classes in graph g for a given sub class c and property p.
 	 * If superSet not null, only retain super classes which are in the given super set.
@@ -294,7 +296,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	 */
 	protected static Set<OWLClass> getDirectLinkedClasses(OWLClass c, Set<OWLObjectProperty> properties, OWLGraphWrapper g, Set<OWLClass> superSet) {
 		Set<OWLClass> links = new HashSet<OWLClass>();
-		
+
 		for(OWLOntology o : g.getAllOntologies()) {
 			// check subClass axioms
 			for (OWLSubClassOfAxiom sca : o.getSubClassAxiomsForSubClass(c)) {
@@ -339,7 +341,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		}
 		return links;
 	}
-	
+
 	/**
 	 * Given a set of classes, create a new non-redundant set with respect to
 	 * the inferred super class hierarchy. Remove all classes which are
@@ -377,43 +379,40 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	 */
 	protected Map<String, String> createDefaultAspectMap(OWLGraphWrapper graph) {
 		Map<String, String> map = new HashMap<String, String>();
-		
+
 		OWLClass mf = graph.getOWLClassByIdentifier("GO:0003674"); // molecular_function
 		if (mf != null) {
 			String mfKey = getGoSubOntology(mf, graph);
 			if (mfKey == null) 
 				throw new RuntimeException("Could not retrieve sub-ontology for GO:0003674 (molecular_function). The value of the OBO-namespace tag does not exist.");
-			
 			map.put(mfKey, "F");
 		}
-		
+
 		OWLClass bp = graph.getOWLClassByIdentifier("GO:0008150"); // biological_process
 		if (bp != null) {
 			String bpKey = getGoSubOntology(bp, graph);
 			if (bpKey == null) 
 				throw new RuntimeException("Could not retrieve sub-ontology for GO:0008150 (biological_process). The value of the OBO-namespace tag does not exist.");
-
 			map.put(bpKey, "P");
 		}
-		
+
 		OWLClass cc = graph.getOWLClassByIdentifier("GO:0005575"); // cellular_component
 		if (cc != null) {
 			String ccKey = getGoSubOntology(cc, graph);
 			if (ccKey == null) 
 				throw new RuntimeException("Could not retrieve sub-ontology for GO:0005575 (celluar_component). The value of the OBO-namespace tag does not exist.");
-
 			map.put(ccKey, "C");
 		}
-		
+
 		if (map.isEmpty() || map.containsKey(null)) {
 			// only fail if there are mappings
 			// the test case uses a custom ontology, which has no cc branch
 			throw new RuntimeException("Could not create any valid aspect mappings. Is the correct ontology (GO) loaded?");
 		}
-		
+
 		return Collections.unmodifiableMap(map);
 	}
-	
+
 	/**
 	 * Get the specific sub ontology.
 	 * 
@@ -424,7 +423,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	protected String getGoSubOntology(OWLClass c, OWLGraphWrapper g) {
 		return g.getNamespace(c);
 	}
-	
+
 	/**
 	 * Handle the predictions. Keeps track of predictions by evidence type and
 	 * predicted class.<br>
@@ -435,7 +434,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	 */
 	private static class AllPreditions {
 		private final Map<String, Map<OWLClass, List<Prediction>>> allPredictions = new HashMap<String, Map<OWLClass, List<Prediction>>>();
-		
+
 		/**
 		 * Add a prediction.
 		 * 
@@ -443,7 +442,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		 * @param prediction
 		 */
 		void add(OWLClass linked, Prediction prediction) {
-			
+
 			GeneAnnotation annotation = prediction.getGeneAnnotation();
 			String evidenceCls = annotation.getShortEvidence();
 			Map<OWLClass, List<Prediction>> evidenceGroup = allPredictions.get(evidenceCls);
@@ -491,22 +490,22 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				if (add) {
 					predictions.add(prediction);
 				}
-				
+
 			}
 			else {
 				// do not run any checks for the first prediction
 				predictions.add(prediction);
 			}
-			
+
 		}
-		
+
 		private <T1,T2> boolean equals(Pair<T1,T2> p1, Pair<T1,T2> p2) {
 			if (p1 == null) {
 				return p1 == p2;
 			}
 			return p1.equals(p2);
 		}
-		
+
 		private boolean equalsList(List<String> l1, List<String> l2) {
 			if (l1 == null && l2 == null) {
 				return true;
@@ -521,13 +520,13 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			for (int i = 0; i < l2.size(); i++) {
 				boolean eq = StringUtils.equals(l1.get(i), l2.get(i));
 				if (eq == false) {
-					 matches = false;
-					 break;
+					matches = false;
+					break;
 				}
 			}
 			return matches;
 		}
-		
+
 		private boolean equalsExprs(List<List<ExtensionExpression>> l1, List<List<ExtensionExpression>> l2) {
 			if (l1 == null && l2 == null) {
 				return true;
@@ -542,13 +541,13 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			for (int i = 0; i < l2.size(); i++) {
 				boolean eq = equalsExpr(l1.get(i), l2.get(i));
 				if (eq == false) {
-					 matches = false;
-					 break;
+					matches = false;
+					break;
 				}
 			}
 			return matches;
 		}
-		
+
 		private boolean equalsExpr(List<ExtensionExpression> l1, List<ExtensionExpression> l2) {
 			if (l1 == null && l2 == null) {
 				return true;
@@ -571,13 +570,13 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				}
 				boolean eq = expr1.equals(expr2);
 				if (eq == false) {
-					 matches = false;
-					 break;
+					matches = false;
+					break;
 				}
 			}
 			return matches;
 		}
-		
+
 		/**
 		 * Retrieve all evidence codes, which have predictions.
 		 * 
@@ -586,7 +585,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		Collection<String> getEvidences() {
 			return Collections.unmodifiableCollection(allPredictions.keySet());
 		}
-		
+
 		/**
 		 * Retrieve all classes, for which there are predictions, given an evidence code.
 		 * 
@@ -600,7 +599,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			}
 			return Collections.unmodifiableSet(classes.keySet());
 		}
-		
+
 		/**
 		 * Retrieve predictions for a given evidence code and prediction class.
 		 * 
@@ -620,7 +619,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			return predictions;
 		}
 	}
-	
+
 	@Override
 	public List<Prediction> predictForBioEntities(Map<Bioentity, ? extends Collection<GeneAnnotation>> annMap) {
 		List<Prediction> allPredictions = new ArrayList<Prediction>();
@@ -635,7 +634,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		AllPreditions allPredictions = new AllPreditions();
 		Map<String, List<GeneAnnotation>> annotationsByEvidence = new HashMap<String, List<GeneAnnotation>>();
 		for (GeneAnnotation ann : annotations) {
-			
+
 			// TODO move the exclusion list to it's own function for better customization
 			final String evidenceCls = ann.getShortEvidence();
 			if (evidenceCls.equals("ND")) {
@@ -651,7 +650,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				// if the annotation was assigned by the GOC, assume it is an previous prediction and ignore it.
 				continue;
 			}
-			
+
 			// add to group
 			List<GeneAnnotation> group = annotationsByEvidence.get(evidenceCls);
 			if (group == null) {
@@ -659,7 +658,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				annotationsByEvidence.put(evidenceCls, group);
 			}
 			group.add(ann);
-			
+
 			if (ann.hasQualifiers()) {
 				// ignore annotations with a qualifier.
 				// Do *not* propagate
@@ -672,7 +671,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				// no nodes to propagate to
 				continue;
 			}
-			
+
 			for (OWLClass linkedClass : linkedClasses) {
 				String aspect = aspectMap.get(getSubOntology(linkedClass));
 				Prediction p = createPrediction(linkedClass, aspect, cid, ann);
@@ -680,12 +679,12 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 				allPredictions.add(linkedClass, p);
 			}
 		}
-		
+
 		List<Prediction> predictions = new ArrayList<Prediction>();
-		
+
 		for(String evidence : allPredictions.getEvidences()) {
 			Set<OWLClass> nonRedundantClasses = reduceToNonRedundant(allPredictions.getClasses(evidence), reasoner);
-		
+
 			// only add the predictions, if they are more specialized
 			if (!nonRedundantClasses.isEmpty()) {
 				List<GeneAnnotation> annotationGroup = annotationsByEvidence.get(evidence);
@@ -695,7 +694,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 						if (currentPredictions.isEmpty() == false) {
 							String aspect = currentPredictions.get(0).getGeneAnnotation().getAspect();
 							Set<OWLClass> existing = getIsaPartofSuperClassClosureAndAspect(annotationGroup, aspect);
-							
+
 							if (existing.contains(cls) == false) {
 								// the cls is more specific than any existing annotation
 								// add to the predictions
@@ -716,7 +715,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		}
 		return predictions;
 	}
-	
+
 	private String createReason(OWLClass predicted, String type, String source, String evidence, OWLGraphWrapper g) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(g.getIdentifier(predicted));
@@ -743,7 +742,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		sb.append(evidence);
 		return sb.toString();
 	}
-	
+
 	private Set<OWLClass> getIsaPartofSuperClassClosureAndAspect(Collection<GeneAnnotation> annotations, String aspect) {
 		OWLGraphWrapper g = getGraph();
 		Set<OWLClass> classes = new HashSet<OWLClass>();
@@ -761,14 +760,14 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		}
 		return getIsaPartofSuperClassClosure(classes, g, reasoner);
 	}
-	
+
 	protected static Set<OWLClass> getIsaPartofSuperClassClosure(Collection<OWLClass> annotations, OWLGraphWrapper graph, OWLReasoner r) {
 		Set<OWLClass> classes = new HashSet<OWLClass>();
 		for (OWLClass owlClass : annotations) {
 			classes.add(owlClass);
 			classes.addAll(r.getSuperClasses(owlClass, false).getFlattened());
 		}
-		
+
 		LinkedList<OWLClass> queue = new LinkedList<OWLClass>(classes);
 		while (queue.isEmpty() == false) {
 			OWLClass cls = queue.removeFirst();
@@ -790,57 +789,57 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		}
 		return classes;
 	}
-	
-	
+
+
 	protected String getSubOntology(OWLClass c) {
 		return getGoSubOntology(c, getGraph());
 	}
 
 	protected Prediction createPrediction(OWLClass c, String aspect, String with, GeneAnnotation source) {
-		
+
 		GeneAnnotation annP = new GeneAnnotation();
 		// c1-c3
 		annP.setBioentity(source.getBioentity());
 		annP.setBioentityObject(source.getBioentityObject());
-		
+
 		// c4 composite qualifier
 		// do *not* copy, in-fact do not propagate an annotation, which has qualifiers.
-		
+
 		// c5 cls
 		annP.setCls(getGraph().getIdentifier(c));
-		
+
 		// c6 referenceIds
 		annP.addReferenceIds(source.getReferenceIds());
-		
+
 		// c7 evidence
 		annP.setEvidence(source.getShortEvidence(), source.getEcoEvidenceCls());
-		
+
 		// c8 with expression
 		// because we propagate the evidence code, we also have to propagate the with column
 		annP.setWithInfos(source.getWithInfos());
-		
+
 		// c9 aspect
 		annP.setAspect(aspect);
-		
+
 		// c10-c12
 		// bio entity
-		
+
 		// c13 taxon
 		annP.setActsOnTaxonId(source.getActsOnTaxonId());
-		
+
 		// c14 last update
 		// because we propagate the evidence code, we also have to propagate the date
 		annP.setLastUpdateDate(source.getLastUpdateDate());
-		
+
 		// c15 assigned by GOC
 		annP.setAssignedBy(ASSIGNED_BY_CONSTANT);
-		
+
 		// c16 extension - drop
 		// do *not* copy
-		
+
 		// c17 ISO form
 		annP.setGeneProductForm(source.getGeneProductForm());
-		
+
 		Prediction prediction = new Prediction(annP);
 		return prediction;
 	}
