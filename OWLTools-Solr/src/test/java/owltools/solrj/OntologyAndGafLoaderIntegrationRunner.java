@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Properties;
 
 import org.apache.commons.lang3.time.StopWatch;
-import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.AfterClass;
@@ -122,7 +122,7 @@ public class OntologyAndGafLoaderIntegrationRunner {
 
 			final StopWatch ontologyWatch = new StopWatch();
 			ontologyWatch.start();
-			final FlexSolrDocumentLoader ontologyLoader = new FlexSolrDocumentLoader((SolrClient)null, c) {
+			final FlexSolrDocumentLoader ontologyLoader = new FlexSolrDocumentLoader((SolrServer)null, c) {
 
 				@Override
 				protected void addToServer(Collection<SolrInputDocument> docs)

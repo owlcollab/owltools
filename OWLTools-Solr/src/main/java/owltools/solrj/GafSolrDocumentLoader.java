@@ -14,7 +14,7 @@ import java.util.Set;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -65,7 +65,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	 * @param server
 	 * @param triggerLimit
 	 */
-	protected GafSolrDocumentLoader(SolrClient server, int triggerLimit) {
+	protected GafSolrDocumentLoader(SolrServer server, int triggerLimit) {
 		super(server);
 		this.doc_limit_trigger = triggerLimit;
 	}

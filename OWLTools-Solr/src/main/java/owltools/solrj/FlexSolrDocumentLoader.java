@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -29,7 +29,7 @@ public class FlexSolrDocumentLoader extends AbstractSolrLoader {
 		current_doc_number = 0;
 	}
 	
-	protected FlexSolrDocumentLoader(SolrClient server, FlexCollection c) {
+	protected FlexSolrDocumentLoader(SolrServer server, FlexCollection c) {
 		super(server);
 		collection = c;
 		current_doc_number = 0;
