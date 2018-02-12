@@ -73,6 +73,7 @@ import owltools.solrj.PANTHERSolrDocumentLoader;
 import owltools.solrj.loader.MockSolrDocumentLoader;
 import owltools.solrj.loader.MockFlexSolrDocumentLoader;
 import owltools.solrj.loader.MockGafSolrDocumentLoader;
+import owltools.solrj.loader.MockModelAnnotationSolrDocumentLoader;
 import owltools.solrj.loader.MockSolrDocumentCollection;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
@@ -201,7 +202,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 */
 	@SuppressWarnings("deprecation")
 	@CLIMethod("--solr-purge")
-	public void purgeSolr(Opts opts) throws Exception {
+	public void purgeSolr(Opts opts) throws Exception  {
 
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);				
@@ -316,83 +317,79 @@ public class SolrCommandRunner extends TaxonCommandRunner {
         boolean isMock = false;
 		int nClasses = 0;
 		// Actual ontology class loading.
-		try {
-		    FlexSolrDocumentLoader loader;
-	        if (url.equals("mock")) {
-	            loader = new MockFlexSolrDocumentLoader(flex);
-	            isMock = true;
-	        }
-	        else {
-	            loader = new FlexSolrDocumentLoader(url, flex);
-	        }
-		    
-			LOG.info("Trying ontology flex load.");
-			loader.load();
-			
-			// number of docs loaded MUST be equal to or higher than minClasses
-			// (docs also comprises non-class documents, e.g. ObjectProperties)
-			if (loader.getCurrentDocNumber() < minClasses) {
-	            LOG.error("Fewer documents loaded than expected: "+loader.getCurrentDocNumber()+" < "+minClasses);
-	            exit(1);			    
-			}
-			
-			// Load likely successful--log it.
-			//optionallyLogLoad("ontology", ???);
-			// TODO: Well, this is a lame second best.
-			//for( OWLOntology o : g.getAllOntologies() ){
-			for( OWLOntology o : g.getManager().getOntologies() ){
-					
-				//optionallyLogLoad("ontology", o.getOntologyID().toString());
-				// This is "correct", but I'm only getting one.
-				String ont_id = "unknown";
-				String ont_version = "unknown";
-				try {
-					if (o.getOntologyID() !=  null) {
-						Optional<IRI> optional = o.getOntologyID().getOntologyIRI();
-						if (optional.isPresent()) {
-							ont_id = optional.get().toString();
-						}
-						else {
-							LOG.info("Failed to get ID of: " + o.toString() + "!");
-						}
-					}
-				} catch (NullPointerException e) {
-					LOG.info("Failed to get ID of: " + o.toString() + "!");
-				}
-				
-				try {
-					Optional<IRI> versionIRI = o.getOntologyID().getVersionIRI();
-					if (versionIRI.isPresent()){
-						ont_version = versionIRI.get().toString();
-						Pattern p = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
-						Matcher m = p.matcher(ont_version);
-						m.find();
-						ont_version = m.group(0);
-						//ont_version = StringUtils.substringBetween(ont_version, "releases/", "/");
-					}
-					else {
-						ont_version = null;
-					}
-					if( ont_version == null || ont_version.equals("") ){
-						// Sane fallback.
-						LOG.info("Failed to extract version of: " + ont_id + "!");
-					}
-				} catch (NullPointerException e) {
-					LOG.info("Failed to get version of: " + ont_id + "!");
-				} catch (IllegalStateException e) {
-					LOG.info("Failed to get match for version of: " + ont_id + "!");
-				}
-				optionallyLogLoad("ontology", ont_id, ont_version);
-				
-		        if (isMock) {
-		            showMockDocs((MockSolrDocumentLoader) loader);
-		        }
-
-			}
-		} catch (SolrServerException e) {
-			LOG.info("Ontology load at: " + url + " failed!");
-			e.printStackTrace();
+		FlexSolrDocumentLoader loader;
+		if (url.equals("mock")) {
+		    loader = new MockFlexSolrDocumentLoader(flex);
+		    isMock = true;
 		}
+		else {
+		    loader = new FlexSolrDocumentLoader(url, flex);
+		}
+
+		LOG.info("Trying ontology flex load.");
+		loader.load();
+
+		// number of docs loaded MUST be equal to or higher than minClasses
+		// (docs also comprises non-class documents, e.g. ObjectProperties)
+		if (loader.getCurrentDocNumber() < minClasses) {
+		    LOG.error("Fewer documents loaded than expected: "+loader.getCurrentDocNumber()+" < "+minClasses);
+		    exit(1);
+		}
+
+		// Load likely successful--log it.
+		//optionallyLogLoad("ontology", ???);
+		// TODO: Well, this is a lame second best.
+		//for( OWLOntology o : g.getAllOntologies() ){
+		for( OWLOntology o : g.getManager().getOntologies() ){
+
+		    //optionallyLogLoad("ontology", o.getOntologyID().toString());
+		    // This is "correct", but I'm only getting one.
+		    String ont_id = "unknown";
+		    String ont_version = "unknown";
+		    try {
+		        if (o.getOntologyID() !=  null) {
+		            Optional<IRI> optional = o.getOntologyID().getOntologyIRI();
+		            if (optional.isPresent()) {
+		                ont_id = optional.get().toString();
+		            }
+		            else {
+		                LOG.info("Failed to get ID of: " + o.toString() + "!");
+		            }
+		        }
+		    } catch (NullPointerException e) {
+		        LOG.info("Failed to get ID of: " + o.toString() + "!");
+		    }
+
+		    try {
+		        Optional<IRI> versionIRI = o.getOntologyID().getVersionIRI();
+		        if (versionIRI.isPresent()){
+		            ont_version = versionIRI.get().toString();
+		            Pattern p = Pattern.compile("(\\d{4}-\\d{2}-\\d{2})");
+		            Matcher m = p.matcher(ont_version);
+		            m.find();
+		            ont_version = m.group(0);
+		            //ont_version = StringUtils.substringBetween(ont_version, "releases/", "/");
+		        }
+		        else {
+		            ont_version = null;
+		        }
+		        if( ont_version == null || ont_version.equals("") ){
+		            // Sane fallback.
+		            LOG.info("Failed to extract version of: " + ont_id + "!");
+		        }
+		    } catch (NullPointerException e) {
+		        LOG.info("Failed to get version of: " + ont_id + "!");
+		    } catch (IllegalStateException e) {
+		        LOG.info("Failed to get match for version of: " + ont_id + "!");
+		    }
+		    optionallyLogLoad("ontology", ont_id, ont_version);
+
+		    if (isMock) {
+		        showMockDocs((MockSolrDocumentLoader) loader);
+		    }
+
+		}
+
 	}
 	
 
@@ -412,14 +409,9 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		String url = sortOutSolrURL(globalSolrURL);				
 
 		// Actual ontology class loading.
-		try {
-			OntologyGeneralSolrDocumentLoader loader = new OntologyGeneralSolrDocumentLoader(url, g);
-			LOG.info("Trying ontology general load.");
-			loader.load();
-		} catch (SolrServerException e) {
-			LOG.info("Ontology load at: " + url + " failed!");
-			e.printStackTrace();
-		}
+		OntologyGeneralSolrDocumentLoader loader = new OntologyGeneralSolrDocumentLoader(url, g);
+		LOG.info("Trying ontology general load.");
+		loader.load();
 	}
 	
 	/**
@@ -520,7 +512,9 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		Set<String> modelStateFilter = null;
 		boolean removeDeprecatedModels = false;
 		boolean removeTemplateModels = false;
-		boolean removeUnsatisfiableModels = false;
+        boolean removeUnsatisfiableModels = false;
+        boolean exitIfUnsatisfiable = true;
+        boolean exitIfLoadFails = true;
 		while (opts.hasOpts()) {
 			if (opts.nextEq("--defaultModelStateFilter|--productionModelStateFilter")) {
 				if(modelStateFilter != null) { 
@@ -550,9 +544,14 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			else if (opts.nextEq("--excludeUnsatisfiableModels|--excludeUnsatisfiable")) {
 				removeUnsatisfiableModels = true;
 			}
-			else if (opts.nextEq("--includeUnsatisfiableModels|--includeUnsatisfiable")) {
-				removeUnsatisfiableModels = false;
-			}
+            else if (opts.nextEq("--includeUnsatisfiableModels|--includeUnsatisfiable")) {
+                removeUnsatisfiableModels = false;
+                exitIfUnsatisfiable = false;
+            }
+            else if (opts.nextEq("--noExitIfLoadFails")) {
+                opts.info("", "carry on if fail to load any individual model fails. Default is fail fast");
+                exitIfLoadFails = false;
+            }
 			else
 				break;
 
@@ -561,13 +560,15 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		// Check to see if the global url has been set.
 		String url = sortOutSolrURL(globalSolrURL);
 
+		// Ensure that legoCatalogs is defined, even is empty.
+		if( legoCatalogs == null ){
+			legoCatalogs = new ArrayList<File>();
+			LOG.warn("Missing lego catalogs...");
+		}
+
 		// Only proceed if our environment was well-defined.
-		if( legoCatalogs == null || legoFiles == null || legoModelPrefix == null ||
-				legoCatalogs.isEmpty() || legoFiles.isEmpty() ){
+		if( legoFiles == null || legoModelPrefix == null || legoFiles.isEmpty() ){
 			String details = "";
-			if (legoCatalogs == null || legoCatalogs.isEmpty()) {
-				details += "Missing catalog";
-			}
 			if (legoFiles == null || legoFiles.isEmpty()) {
 				details += " Missing legoFiles";
 			}
@@ -577,10 +578,10 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			LOG.error("Lego environment not well defined--skipping: "+details);
 			exit(-1);
 		}else{
-			LOG.info("Start Loading models, count: "+legoFiles.size());
+			LOG.warn("Start Loading models, count: "+legoFiles.size());
 			// Ready the environment for every pass.
 			ParserWrapper pw = new ParserWrapper();
-			// Add all of the catalogs.
+			// Add all of the catalogs; possibly none.
 			for( File legoCatalog : legoCatalogs ){
 				pw.addIRIMapper(new CatalogXmlIRIMapper(legoCatalog));
 			}
@@ -600,7 +601,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 						continue;
 					}
 					
-					// Some sanity checks--some of the genereated ones are problematic.
+					// Some sanity checks--some of the generated ones are problematic.
 					currentReasoner = reasonerFactory.createReasoner(model);
 					boolean consistent = currentReasoner.isConsistent();
 					if(consistent == false){
@@ -608,22 +609,33 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 						LOG.warn("Skip since inconsistent: " + fname);
 						continue;
 					}
-					Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
-					if (removeUnsatisfiableModels && unsatisfiable.isEmpty() == false) {
-						LOG.warn("Skip since unsatisfiable: " + fname);
-						continue;
-					}
 					
 					ModelAnnotationSolrDocumentLoader loader = null;
 					try {
 						LOG.info("Trying complex annotation load of: " + fname);
+						boolean isMock = false;
 						String modelUrl = legoModelPrefix + fname;
-						loader = new ModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl, 
-								modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+						if (url.equals("mock")) {
+						    loader = new MockModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl,
+						            modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+						    isMock = true;
+						}
+						else {
+						    loader = new ModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl,
+						            modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+						}
+
 						loader.load();
+				        if (isMock) {
+				            showMockDocs((MockModelAnnotationSolrDocumentLoader) loader);
+				        }
+
 					} catch (SolrServerException e) {
 						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
 						e.printStackTrace();
+						if (exitIfLoadFails) {
+						    System.exit(1);
+						}
 					}
 					finally {
 						IOUtils.closeQuietly(loader);
@@ -718,6 +730,8 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 						continue;
 					}
 					Set<OWLClass> unsatisfiable = currentReasoner.getUnsatisfiableClasses().getEntitiesMinusBottom();
+
+					// TODO - make configurable to allow fail fast
 					if (unsatisfiable.isEmpty() == false) {
 						LOG.info("Skip since unsatisfiable: " + fname);
 						continue;
@@ -734,6 +748,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					} catch (SolrServerException e) {
 						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
 						e.printStackTrace();
+						System.exit(1);
 					}
 				} finally {
 					// Cleanup reasoner and ontology.
@@ -810,6 +825,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 					} catch (SolrServerException e) {
 						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
 						e.printStackTrace();
+						System.exit(1);
 					}
 				} finally {
 					// Cleanup reasoner and ontology.
@@ -1006,27 +1022,27 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	 * @param opts
 	 * @throws Exception
 	 */
-	@CLIMethod("--solr-load-gpads")
-	public void loadGPADsSolr(Opts opts) throws Exception {
-		// Check to see if the global url has been set.
-		//String url = sortOutSolrURL(globalSolrURL);
-
-		List<String> files = opts.nextList();
-		if( files.size() % 2 != 0 ){
-			System.err.println("GPAD format comes in pairs; skipping...");
-		}else{
-			while( ! files.isEmpty() ){
-				String car = files.remove(0);
-				String cdr = files.remove(0);
-				LOG.info("Parsing GPAD car: " + car);
-				LOG.info("Parsing GPAD cdr: " + cdr);
-				// TODO: a new buildDocument that takes the two GPAD arguments.
-				//GafObjectsBuilder builder = new GafObjectsBuilder();
-				//gafdoc = builder.buildDocument(car, cdr);
-				//loadGAFDoc(url, gafdoc);
-			}
-		}
-	}
+//	@CLIMethod("--solr-load-gpads")
+//	public void loadGPADsSolr(Opts opts) throws Exception {
+//		// Check to see if the global url has been set.
+//		//String url = sortOutSolrURL(globalSolrURL);
+//
+//		List<String> files = opts.nextList();
+//		if( files.size() % 2 != 0 ){
+//			System.err.println("GPAD format comes in pairs; skipping...");
+//		}else{
+//			while( ! files.isEmpty() ){
+//				String car = files.remove(0);
+//				String cdr = files.remove(0);
+//				LOG.info("Parsing GPAD car: " + car);
+//				LOG.info("Parsing GPAD cdr: " + cdr);
+//				// TODO: a new buildDocument that takes the two GPAD arguments.
+//				//GafObjectsBuilder builder = new GafObjectsBuilder();
+//				//gafdoc = builder.buildDocument(car, cdr);
+//				//loadGAFDoc(url, gafdoc);
+//			}
+//		}
+//	}
 	
 	/**
 	 * Used for applying the panther trees to the currently data run.
@@ -1208,7 +1224,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 	/*
 	 * Wrapper multiple places where there is direct GAF loading.
 	 */
-	private void loadGAFDoc(String url, GafDocument gafdoc, EcoTools eco, TaxonTools taxo, PANTHERForest pset, String taxonSubsetName, String ecoSubsetName) throws IOException{
+	private void loadGAFDoc(String url, GafDocument gafdoc, EcoTools eco, TaxonTools taxo, PANTHERForest pset, String taxonSubsetName, String ecoSubsetName) throws IOException, SolrServerException{
 
 		// Seth's head explodes with non-end return!
 		// TODO: Ask Chris if there is any reason to have null on empty GAFs.
@@ -1235,20 +1251,9 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		loader.setTaxonSubsetName(taxonSubsetName);
 		loader.setEcoSubsetName(ecoSubsetName);
 		loader.setGraph(g);
-		try {
-			LOG.info("Loading server at: " + url + " with: " + gafdoc.getDocumentPath());
-			loader.load();
-		} catch (java.lang.NullPointerException e) { // can trigger when the GAF is empty
-			LOG.warn("Huh...some null pointer exception...good luck! At: " + url + ", " + gafdoc.getDocumentPath());
-			//LOG.warn("Message: " + e.getMessage());
-			e.printStackTrace();
-		} catch (SolrException e) { // can trigger when there is more than one PANTHER tree
-			LOG.warn("Possible PANTHER error: " + url + " with: " + e.toString());
-			e.printStackTrace();
-		} catch (SolrServerException e) {
-			LOG.warn("Something has gone south with Solr: " + url);
-			e.printStackTrace();
-		}
+		LOG.info("Loading server at: " + url + " with: " + gafdoc.getDocumentPath());
+		loader.load();
+
         if (isMock) {
             showMockDocs((MockSolrDocumentLoader) loader);
         }

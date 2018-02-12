@@ -6,11 +6,16 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
@@ -18,6 +23,9 @@ import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
 public class OWLToolsTestBasics {
+    
+    private static Logger LOG = Logger.getLogger(OWLToolsTestBasics.class);
+
 	
 	protected static File getResource(String name) {
 		assertNotNull(name);
@@ -55,5 +63,36 @@ public class OWLToolsTestBasics {
 		writer.write(oboDoc, stream);
 		stream.close();
 		return out.getBuffer().toString();
+	}
+	
+	private static boolean ignore(OWLAxiom a) {
+	    if (a instanceof OWLAnnotationAssertionAxiom) {
+	        if (((OWLAnnotationAssertionAxiom)a).getProperty().getIRI().
+	                equals(IRI.create("http://www.geneontology.org/formats/oboInOwl#id"))) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+	
+	
+	protected static int compare(OWLOntology ont1, OWLOntology ont2) {
+        Set<OWLAxiom> notIn1 = new HashSet<>();
+        Set<OWLAxiom> notIn2 = new HashSet<>();
+        for (OWLAxiom a1 : ont1.getAxioms()) {
+            if (!ont2.containsAxiom(a1) && !ignore(a1)) {
+                LOG.error("ont2 missing "+a1);
+                notIn2.add(a1);
+            }
+        }
+        
+        for (OWLAxiom a2 : ont2.getAxioms()) {
+            if (!ont1.containsAxiom(a2) && !ignore(a2)) {
+                LOG.error("ont1 missing "+a2);
+                notIn2.add(a2);
+            }
+        }
+        
+        return notIn1.size() + notIn2.size();
 	}
 }

@@ -736,16 +736,20 @@ public class Mooncat {
     }
 
     public void removeAxiomsAboutIdSpace(String idspace, boolean removeDangling) {
-        removeAxiomsAboutIdSpace(idspace, removeDangling, true);
+        removeAxiomsAboutIdSpace(idspace, removeDangling, true, false);
     }
-    public void removeAxiomsAboutIdSpace(String idspace, boolean removeDangling, boolean removeAnnotations) {
+    public void removeAxiomsAboutIdSpace(String idspace, boolean removeDangling, boolean removeAnnotations, boolean isInvert) {
         LOG.info("Removing classes not in: "+idspace);
         idspace = idspace.toLowerCase()+":";
         Set<OWLAxiom> rmAxioms = new HashSet<>();
         int n=0;
         for (OWLClass c : graph.getSourceOntology().getClassesInSignature()) {
             String id = graph.getIdentifier(c).toLowerCase();
-            if (id.startsWith(idspace)) {
+            boolean isRm = id.startsWith(idspace);
+            if (isInvert) {
+                isRm = !isRm;
+            }
+            if (isRm) {
                 n++;
                 rmAxioms.addAll(graph.getSourceOntology().getAxioms(c));
                 if (removeAnnotations) {

@@ -153,6 +153,10 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	@Override
 	public void close() throws IOException {
 		graph.close();
+        if (reasoner != null) {
+            reasoner.dispose();
+        }
+
 	}
 
 	@Override

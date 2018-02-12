@@ -167,7 +167,7 @@ public class GAFParser implements AnnotationParserMessages {
 						return ReadState.next;
 					}else{
 						fireParsingWarning(error);
-						LOG.warn(error + " : " + this.currentRow);
+						LOG.info(error + " : " + this.currentRow);
 					}
 				}
 				return ReadState.success;
