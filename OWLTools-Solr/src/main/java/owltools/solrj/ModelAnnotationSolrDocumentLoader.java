@@ -13,7 +13,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
@@ -92,7 +92,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		this(createDefaultServer(golrUrl), model, r, modelUrl, modelFilter, skipDeprecatedModels, skipTemplateModels);
 	}
 	
-	public ModelAnnotationSolrDocumentLoader(SolrServer server, OWLOntology model, OWLReasoner r, String modelUrl, 
+	public ModelAnnotationSolrDocumentLoader(SolrClient server, OWLOntology model, OWLReasoner r, String modelUrl, 
 			Set<String> modelFilter, boolean skipDeprecatedModels, boolean skipTemplateModels) {
 		super(server);
 		this.model = model;
