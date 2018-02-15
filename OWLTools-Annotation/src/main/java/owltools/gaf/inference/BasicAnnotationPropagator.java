@@ -121,15 +121,14 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		OWLObjectProperty part_of = graph.getOWLObjectPropertyByIdentifier("part_of");
 		if (part_of == null)
 			LOG.warn("Could not find relation by id 'part_of'.");
-		if (part_of.toString().contains("BFO") != true)
+		else if (part_of.toString().contains("http://purl.obolibrary.org/obo/BFO_0000050") != true)
 			throw new RuntimeException("The property mapped to 'part_of' does not come from BFO. Is the correct ontology (GO) loaded?");
 
 		OWLObjectProperty occurs_in = graph.getOWLObjectPropertyByIdentifier("occurs_in");
 		if (occurs_in == null)
 			LOG.warn("Could not find relation by id 'occurs_in'.");
-		if (occurs_in.toString().contains("BFO") != true)
+		else if (occurs_in.toString().contains("http://purl.obolibrary.org/obo/BFO_0000066") != true)
 			throw new RuntimeException("The property mapped to 'occurs_in' does not come from BFO. Is the correct ontology (GO) loaded?");
-		
 		
 		// MF -> BP over part_of
 		if (part_of != null && mf != null && bp != null) {
