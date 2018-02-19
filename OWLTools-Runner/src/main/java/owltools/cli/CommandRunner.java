@@ -3120,6 +3120,10 @@ public class CommandRunner extends CommandRunnerBase {
                         opts.info("", "if true, bring all classes from source across, even if unmapped");
                         copier.isIncludeUnmapped = true;
                     }
+                    else if (opts.nextEq("-x|--exclude-seen-literals")) {
+                        opts.info("", "if true, include only axioms with novel literals");
+                        copier.isFreshLiteralsOnly = true;
+                    }
                     else if (opts.nextEq("--no-strict")) {
                         opts.info(
                                 "", "if set, perform less rigorous filtering. "+

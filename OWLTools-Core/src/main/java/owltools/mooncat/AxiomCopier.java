@@ -57,7 +57,13 @@ public class AxiomCopier {
      * We may want to do this if we want to annotate an axiom with all sources
      */
     public boolean isCopyDuplicates = false;
-    
+
+    /**
+     * If true, exclude annotation axiom if we already have seen the literal
+     * (regardless of axiom)
+     */
+    public boolean isFreshLiteralsOnly = false;
+
     /**
      * If true, check all incoming axioms to ensure they do not cause
      * incoherency
@@ -73,7 +79,7 @@ public class AxiomCopier {
     
     public OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
     
-    public boolean isCopyLabelToExactSynonym = true;
+    public boolean isCopyLabelToExactSynonym = false;
     
     
     
@@ -180,6 +186,11 @@ public class AxiomCopier {
         // reflexive mappings of classes S->T
         Map<OWLClass, OWLClass> eqMap = new HashMap<>();
         
+        // all literals encountered
+        Set<String> literals = new HashSet<String>();
+        
+        
+        
         OWLDataFactory df = targetOnt.getOWLOntologyManager().getOWLDataFactory();
         
         Set<OWLAxiom> targetAxioms = targetOnt.getAxioms(Imports.EXCLUDED);
@@ -205,6 +216,7 @@ public class AxiomCopier {
                 OWLAnnotationAssertionAxiom aax = (OWLAnnotationAssertionAxiom)ax;
                 AnnTuple tup = getAnnTuple(aax);
                 annTuples.add(tup);
+                literals.add(tup.val);
             }
         }
         
@@ -322,7 +334,9 @@ public class AxiomCopier {
                     
                     // OBO convention: xref annotations are treated differently for
                     // axiom annotations (as are defs)
-                    boolean isXrefAnn = aax.getProperty().getIRI().toString().contains("Synonym");
+                    boolean isXrefAnn = 
+                            aax.getProperty().getIRI().toString().contains("Synonym") || 
+                            aax.getProperty().getIRI().toString().equals("http://purl.obolibrary.org/obo/IAO_0000115");
                     OWLAnnotationProperty ap1 = aax.getProperty();
                     Set<OWLAnnotationProperty> aps = new HashSet<>();
                     aps.add(ap1);
@@ -343,10 +357,13 @@ public class AxiomCopier {
 
                         boolean isDupe = annTuples.contains(tup) || 
                                 axiomsExisting.contains(newAxiom.getAxiomWithoutAnnotations());
+                        if (isFreshLiteralsOnly && literals.contains(tup.val))
+                            isDupe = true;
                         if (isCopyDuplicates || !isDupe) {
                             axiomsToAdd.add(newAxiom);
                         }
                     }
+                    axiomsToAdd.add(df.getOWLDeclarationAxiom(eqMap.get(srcClass)));
                 }
             }
             else {
@@ -388,6 +405,7 @@ public class AxiomCopier {
             v = av.toString();
         }
         v = v.toLowerCase();
+        v = v.replaceAll("^ +", "").replaceAll(" +$", "");
         return new AnnTuple((IRI)aax.getSubject(), v);
     }
 
