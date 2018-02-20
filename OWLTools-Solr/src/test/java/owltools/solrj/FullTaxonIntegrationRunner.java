@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Properties;
 
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.AfterClass;
@@ -58,7 +58,7 @@ public class FullTaxonIntegrationRunner {
 		GafSolrDocumentLoaderIntegrationRunner.gc();
 		GafSolrDocumentLoaderIntegrationRunner.printMemoryStats();
 		
-		FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader((SolrServer)null, c) {
+		FlexSolrDocumentLoader loader = new FlexSolrDocumentLoader((SolrClient)null, c) {
 
 			@Override
 			protected void addToServer(Collection<SolrInputDocument> docs)

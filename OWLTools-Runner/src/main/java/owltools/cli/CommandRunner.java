@@ -36,8 +36,6 @@ import java.util.UUID;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
-import javax.annotation.processing.SupportedOptions;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -45,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
-import org.forester.phylogeny.data.Annotation;
 import org.geneontology.reasoner.ExpressionMaterializingReasoner;
 import org.geneontology.reasoner.ExpressionMaterializingReasonerFactory;
 import org.geneontology.reasoner.OWLExtendedReasoner;
@@ -74,7 +71,6 @@ import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.HasIRI;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -167,7 +163,6 @@ import owltools.io.ParserWrapper.OWLGraphWrapperNameProvider;
 import owltools.io.StanzaToOWLConverter;
 import owltools.io.TableRenderer;
 import owltools.io.TableToAxiomConverter;
-import owltools.mooncat.AxiomCopier;
 import owltools.mooncat.BridgeExtractor;
 import owltools.mooncat.Diff;
 import owltools.mooncat.DiffUtil;
@@ -204,7 +199,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Sets.SetView;
 
 import de.derivo.sparqldlapi.Query;
 import de.derivo.sparqldlapi.QueryArgument;
@@ -306,9 +300,6 @@ public class CommandRunner extends CommandRunnerBase {
             }
             else if (opts.nextEq("--log-info")) {
                 Logger.getRootLogger().setLevel(Level.INFO);
-            }
-            else if (opts.nextEq("--log-warning")) {
-                Logger.getRootLogger().setLevel(Level.WARN);
             }
             else if (opts.nextEq("--log-debug")) {
                 Logger.getRootLogger().setLevel(Level.DEBUG);	
@@ -869,58 +860,39 @@ public class CommandRunner extends CommandRunnerBase {
                 }
                 OWLPrettyPrinter owlpp = getPrettyPrinter();
 
-                Set<OWLClass> sourceOntologyClasses = g.getSourceOntology().getClassesInSignature(Imports.EXCLUDED);
-                LOG.info("SOURCE ONTOLOGY CLASSES:" +sourceOntologyClasses.size());
-
-                // create ancestor lookup, pre-spiking
+                Set<OWLClass> cs = g.getSourceOntology().getClassesInSignature(Imports.EXCLUDED);
                 reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
+
                 Map<OWLClass, Set<OWLClass>> assertedParentMap = new HashMap<>();
-                for (OWLClass c : sourceOntologyClasses) {
+                for (OWLClass c : cs) {
                     assertedParentMap.put(c, reasoner.getSuperClasses(c, false).getFlattened());
                 }
                 reasoner.dispose();
+                LOG.info("CLASSES PRIOR:" +cs.size());
 
-                // spike in support ontologies
+                // spike
                 for (OWLOntology ont : g.getSupportOntologySet()) {
                     LOG.info("MERGING:" +ont);
                     g.mergeOntology(ont);
                 }
                 g.setSupportOntologySet(new HashSet<OWLOntology>());
 
-                // perform inference on spiked ontology, determine difference
+                // test
                 reasoner = createReasoner(g.getSourceOntology(),reasonerName,g.getManager());
                 int n = 0;
-                LOG.info("TESTING:" +sourceOntologyClasses.size());
-                for (OWLClass c : sourceOntologyClasses) {
-
-                    // all ancestors in spiked ontology
+                LOG.info("TESTING:" +cs.size());
+                for (OWLClass c : cs) {
                     Set<OWLClass> infParents = 
                             new HashSet<>(reasoner.getSuperClasses(c, false).getFlattened());
                     Set<OWLClass> infParentsDirect = 
                             new HashSet<>(reasoner.getSuperClasses(c, true).getFlattened());
-                    // get those unique to spiked ontology
                     infParents.removeAll(assertedParentMap.get(c));
-
-
                     for (OWLClass p : infParents) {
-
-                        // only report new inferences within source
-                        if (sourceOntologyClasses.contains(p)) {
-                            Set<OWLClass> pSubs = reasoner.getSubClasses(p, true).getFlattened();    
-                            boolean isRedundant = false;
-                            for (OWLClass p2 : pSubs) {
-                                if (sourceOntologyClasses.contains(p2) && infParents.contains(p2)) {
-                                    isRedundant = true;
-                                    break;
-                                }
-                            }
-
-                            if (!isRedundant) {
-                                String isDirect = infParentsDirect.contains(p) ? "PARENT" : "ANCESTOR";
-                                System.out.println(owlpp.render(c)+
-                                        "\t" + isDirect + "\t" + owlpp.render(p));
-                                n++;
-                            }
+                        if (cs.contains(p)) {
+                            String isDirect = infParentsDirect.contains(p) ? "PARENT" : "ANCESTOR";
+                            System.out.println("NEW_INFERRED: "+owlpp.render(c)+
+                                    " " + isDirect + " " + owlpp.render(p));
+                            n++;
                         }
                     }
                 }
@@ -1126,7 +1098,6 @@ public class CommandRunner extends CommandRunnerBase {
                 boolean isPreserveSynonyms = false;
                 boolean isPreserveRelations = false;
                 boolean isPreserveDeprecations = true;
-                boolean isPreserveDeprecationAxioms = true;
                 Set<IRI> preserveAnnotationPropertyIRIs = new HashSet<IRI>();
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-l|--preserve-labels")) {
@@ -1174,12 +1145,6 @@ public class CommandRunner extends CommandRunnerBase {
                         if (isPreserveDeprecations) {
                             if (aaa.getProperty().isDeprecated()) {
                                 keepAxioms.add(aaa);
-                            }
-                            if (isPreserveDeprecationAxioms) {
-                                if (piri.equals(Obo2OWLVocabulary.IRI_OIO_consider.getIRI()) ||
-                                        piri.equals(Obo2OWLVocabulary.IRI_IAO_0100001.getIRI())) {
-                                    keepAxioms.add(aaa);
-                                }
                             }
                         }
                         if (isPreserveDefinitions) {
@@ -1342,107 +1307,8 @@ public class CommandRunner extends CommandRunnerBase {
                 List<OWLOntologyChange> changes = oer.changeIRI(IRI.create(opts.nextOpt()),IRI.create(opts.nextOpt()));
                 g.getManager().applyChanges(changes);
             }
-            else if (opts.nextEq("--merge-axiom-annotations")) {
-                opts.info("", "merges logically equivalent axioms making union of all annotations");
-                OWLOntology ontology = g.getSourceOntology();
-                Set<OWLAxiom> axioms = ontology.getAxioms(Imports.EXCLUDED); 
-                Map<OWLAxiom, Set<OWLAnnotation>> amap = new HashMap<>();
-                for (OWLAxiom a : axioms) {
-                    OWLAxiom k = a.getAxiomWithoutAnnotations();
-                    if (!amap.containsKey(k))
-                        amap.put(k, new HashSet<>());
-                    amap.get(k).addAll(a.getAnnotations());
-                }
-                Set<OWLAxiom> newAxioms = new HashSet<>();
-                for (OWLAxiom a : amap.keySet()) {
-                    newAxioms.add(a.getAnnotatedAxiom(amap.get(a)));
-                }
-                g.getManager().removeAxioms(ontology, axioms);
-                g.getManager().addAxioms(ontology, newAxioms);             
-            }
-            else if (opts.nextEq("--interpret-xrefs")) {
-                opts.info("", "interprets xrefs using logical axioms, adds as annotations on xrefs");
-                boolean showOther = false;
-                while (opts.hasOpts()) {
-                    if (opts.nextEq("--show-others")) {
-                        opts.info("", "if set, who relationship type 'other'");
-                        showOther = true;
-                    }
-                    else
-                        break;
-                }
-                OWLOntology ont = g.getSourceOntology();
-                for (OWLClass c : g.getAllOWLClasses()) {
-                    List<String> xrefs = g.getXref(c);
-                    boolean hasWrittenTerm = false;
-                    for (String x : xrefs) {
-                        IRI xiri = g.getIRIByIdentifier(x);
-                        OWLClass xc = g.getDataFactory().getOWLClass(xiri);
-                        
-                        if (xc == null) {
-                            System.err.println("NO CLASS: "+xc);
-                            continue;
-                        }
-                        String rel = null;
-                        if (reasoner.getSuperClasses(c, false).containsEntity(xc)) {
-                            rel = "subClassOf";
-                        }
-                        else if (reasoner.getSuperClasses(xc, false).containsEntity(c)) {
-                            rel = "superClassOf";
-                        }
-                        else if (reasoner.getEquivalentClasses(c).contains(xc)) {
-                            rel = "equivalentTo";
-                        }
-                        else {
-                            if (!showOther)
-                                continue;
-                            rel = "other";
-                        }
-
-                        if (!hasWrittenTerm) {
-                            System.out.println("[Term]");
-                            System.out.println("id: " + g.getIdentifier(c)+" ! "+g.getLabel(c));
-                            hasWrittenTerm = true;
-                        }
-                        System.out.println("xref: " + x+" {xref=\"MONDO:"+rel+"\"}");
-                    }
-                    System.out.println();
-                }
-            }
-
-            else if (opts.nextEq("--add-xref-axiom-annotations")) {
-                opts.info("-l", "adds xref/provenance annotations to all axioms, excluding labels");
-                boolean includeLogical = false;
-                while (opts.hasOpts()) {
-                    if (opts.nextEq("-l|--logical")) {
-                        opts.info("", "include logical axioms (excluded by default");
-                        includeLogical = true;
-                    }
-                    else
-                        break;
-                }
-                OWLOntology ont = g.getSourceOntology();
-                for (OWLClass c : g.getAllOWLClasses()) {
-                    Set<String> xrefs = new HashSet<String>();
-                    xrefs.add(g.getIdentifier(c));
-                    Set<OWLAxiom> axioms = new HashSet<>();
-                    if (includeLogical)
-                        axioms.addAll(ont.getAxioms(c, Imports.EXCLUDED));
-                    for (OWLAnnotationAssertionAxiom a : ont.getAnnotationAssertionAxioms(c.getIRI())) {
-                        if (a.getProperty().isLabel())
-                            continue;
-                        axioms.add(a);
-                    }
-
-                    Set<OWLAxiom> newAxioms = axioms.stream().map( 
-                            a -> AxiomAnnotationTools.appendXrefAnnotations(a, xrefs, ont)).collect(Collectors.toSet());
-                    g.getManager().removeAxioms(ont, axioms);
-                    g.getManager().addAxioms(ont, newAxioms);
-                }
-            }
             else if (opts.nextEq("--merge-equivalence-sets")) {
-                opts.info("[-s PREFIX SCORE]* [-l PREFIX SCORE]* [-c PREFIX SCORE]* [-d PREFIX SCORE]* [-P PREFIX] [-x]", 
-                        "merges sets of equivalent classes. Prefix-based priorities used to determine representative member");
+                opts.info("[-s PREFIX SCORE]* [-l PREFIX SCORE]* [-c PREFIX SCORE]* [-d PREFIX SCORE]*", "merges sets of equivalent classes. Prefix-based priorities used to determine representative member");
                 EquivalenceSetMergeUtil esmu = new EquivalenceSetMergeUtil(g, reasoner);
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-s")) {
@@ -1465,24 +1331,11 @@ public class CommandRunner extends CommandRunnerBase {
                         OWLAnnotationProperty p = g.getDataFactory().getOWLAnnotationProperty( Obo2OWLVocabulary.IRI_IAO_0000115.getIRI() );
                         esmu.setPropertyPrefixScore( p, opts.nextOpt(), Double.parseDouble(opts.nextOpt()) );
                     }
-                    else if (opts.nextEq("-x")) {
-                        opts.info("", "Removes xrefs between named classes");
-                        esmu.setRemoveAxiomatizedXRefs(true);
-                    }
-                    else if (opts.nextEq("-P|--preserve")) {
-                        opts.info("PREFIX", "Disallows merging of classes with this prefix");
-                        esmu.noMergePrefix(opts.nextOpt());
-                    }
                     else {
                         break;
                     }
                 }
                 esmu.merge();
-            }
-            else if (opts.nextEq("--replace-annotations")) {
-                opts.info("[-p PROP]", "Replace annotation assertions of type PROP for equivalent classes");
-                // TODO
-
             }
             else if (opts.nextEq("--merge-equivalent-classes")) {
                 opts.info("[-f FROM-URI-PREFIX]* [-t TO-URI-PREFIX] [-a] [-sa]", "merges equivalent classes, from source(s) to target ontology");
@@ -1525,9 +1378,7 @@ public class CommandRunner extends CommandRunnerBase {
                 // we use equivalence axioms from the full complement of ontologies
                 // TODO - allow arbitrary entities
                 Map<Integer,Integer> binSizeMap = new HashMap<Integer,Integer>();
-                int nMatches = 0;
-                
-                for (OWLClass e : g.getAllOWLClasses()) {
+                for (OWLClass e : g.getSourceOntology().getClassesInSignature()) {
                     //LOG.info("  testing "+c+" ECAs: "+g.getSourceOntology().getEquivalentClassesAxioms(c));
                     // TODO - may be more efficient to invert order of testing
                     String iriStr = e.getIRI().toString();
@@ -1541,7 +1392,6 @@ public class CommandRunner extends CommandRunnerBase {
                     if (prefixFroms.size()==0)
                         isMatch = true;
                     if (isMatch) {
-                        nMatches ++;
                         Set<OWLClass> ecs = new HashSet<OWLClass>();
                         if (reasoner != null) {
                             ecs = reasoner.getEquivalentClasses(e).getEntities();
@@ -1558,7 +1408,6 @@ public class CommandRunner extends CommandRunnerBase {
                             }
                         }
                         int size = ecs.size();
-                        LOG.debug("Equiv mappings for : "+e+" = "+ecs);
                         if (binSizeMap.containsKey(size)) {
                             binSizeMap.put(size, binSizeMap.get(size) +1);
                         }
@@ -1572,7 +1421,6 @@ public class CommandRunner extends CommandRunnerBase {
 
                                 // add to mapping. Renaming will happen later
                                 e2iri.put(e, d.getIRI()); // TODO one-to-many
-                                LOG.debug("mapping "+e+" -> "+d);
 
                                 // annotation collapsing. In OBO, max cardinality of label, comment and definition is 1
                                 // note that this not guaranteed to work if multiple terms are being merged in
@@ -1607,28 +1455,21 @@ public class CommandRunner extends CommandRunnerBase {
                         }
                     }
                 }
-                LOG.info("Num matches = "+nMatches);
                 for (Integer k : binSizeMap.keySet()) {
                     LOG.info(" | Bin( "+k+" classes ) | = "+binSizeMap.get(k));
                 }
                 g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);
                 LOG.info("Mapping "+e2iri.size()+" entities");
+                // TODO - this is slow
                 List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
                 g.getManager().applyChanges(changes);
                 LOG.info("Mapped "+e2iri.size()+" entities!");
             }
             else if (opts.nextEq("--rename-entities-via-equivalent-classes")) {
-                opts.info("[-p PREFIX]", "renames entities in source ontology, using equiv axioms from all");
                 String prefix = null;
-                String prefixTo = null;
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-p|--prefix")) {
-                        opts.info("", "prefix to map from (FULL URI)");
                         prefix = opts.nextOpt();
-                    }
-                    else if (opts.nextEq("-q|--prefix-to")) {
-                        opts.info("", "prefix to map to (FULL URI)");
-                        prefixTo = opts.nextOpt();
                     }
                     else
                         break;
@@ -1659,9 +1500,6 @@ public class CommandRunner extends CommandRunnerBase {
                         }
                         for (OWLClassExpression d : OwlHelper.getEquivalentClasses(c, ont)) {
                             if (d instanceof OWLClass) {
-                                if (prefixTo != null && !d.asOWLClass().getIRI().toString().startsWith(prefixTo)) {
-                                    continue;
-                                }
                                 e2iri.put(c, d.asOWLClass().getIRI());
                                 LOG.info("  "+c+" ==> "+d );
                             }
@@ -2759,47 +2597,8 @@ public class CommandRunner extends CommandRunnerBase {
                     g.setSourceOntology(outputOntology);
                 }
             }
-            else if (opts.nextEq("--reason-subontologies")) {
-                opts.info("", "checks all ontologies in direct imports for incoherency");
-                while (opts.hasOpts()) {
-                    if (opts.nextEq("-r")) {
-                        opts.info("REASONERNAME", "selects the reasoner to use");
-                        reasonerName = opts.nextOpt();
-                    }
-                    else {
-                        break;
-                    }
-                }
-                OWLOntology ont = g.getSourceOntology();
-                Set<OWLImportsDeclaration> badImports = new HashSet<>();
-                for (OWLOntology o : ont.getDirectImports()) {
-                    boolean isIncoherent = false;
-                    OWLReasoner r = createReasoner(o, reasonerName, g.getManager());
-                    if (!r.isConsistent()) {
-                        LOG.error("INCONSISTENT: "+o);
-                        isIncoherent = true;
-                    }
-                    else {
-                        for (OWLClass c : r.getUnsatisfiableClasses()) {
-                            if (c.isBuiltIn())
-                                continue;
-                            LOG.error("UNSAT: "+o+" has "+c);
-                            isIncoherent = true;
-                        }
-                    }
-                    if (isIncoherent) {
-                        badImports.add(g.getDataFactory().getOWLImportsDeclaration(o.getOntologyID().getOntologyIRI().get()));
-                    }
-                }
-                OWLImportsDeclaration importDeclaration;
-                for (OWLImportsDeclaration i : badImports) {
-                    LOG.info("REMOVING: "+i);
-                    RemoveImport x = new RemoveImport(ont, i);
-                    g.getManager().applyChange(x);
-                }
-            }
             else if (opts.nextEq("--run-reasoner")) {
-                opts.info("[-r reasonername] [--assert-implied] [--indirect] [-u] [-m UNSATMODFILE]", "infer new relationships");
+                opts.info("[-r reasonername] [--assert-implied] [--indirect] [-u]", "infer new relationships");
                 boolean isAssertImplied = false;
                 boolean isDirect = true;
                 boolean isShowUnsatisfiable = false;
@@ -2834,7 +2633,7 @@ public class CommandRunner extends CommandRunnerBase {
                         isShowUnsatisfiable = true;
                     }
                     else if (opts.nextEq("-m|--unsatisfiable-module")) {
-                        opts.info("FILE", "create a module for the unsatisfiable classes.");
+                        opts.info("", "create a module for the unsatisfiable classes.");
                         unsatisfiableModule = opts.nextOpt();
                     }
                     else if (opts.nextEq("--trace-module-axioms")) {
@@ -3035,154 +2834,6 @@ public class CommandRunner extends CommandRunnerBase {
                     }
                 }
             }
-            else if (opts.nextEq("--copy-axioms")) {
-                opts.info("[-m MAPONT] [-s SRCONT] [-n] [-l] [--no-strict]",
-                        "copies axioms from SRC to current (target) ontology");
-                AxiomCopier copier = new AxiomCopier();
-                OWLOntology mapOnt = null;
-                OWLOntology targetOnt = g.getSourceOntology();
-                OWLOntology sourceOnt = null;
-                boolean isCopyDuplicates = false;
-                boolean isTestForCoherency = false;
-                
-                boolean isNew = false;
-                while (opts.hasOpts()) {
-                    if (opts.nextEq("-m|--map-ontology")) {
-                        opts.info("ONTPATH", "REQUIRED");
-                        mapOnt = pw.parse( opts.nextOpt() );
-                    }
-                    else if (opts.nextEq("-s|--source-ontology")) {
-                        opts.info("ONTPATH", "REQUIRED");
-                        sourceOnt = pw.parse( opts.nextOpt() );
-                    }
-                    else if (opts.nextEq("-n|--new")) {
-                        opts.info("", "if true, place copied axioms in a new ontology");
-                        isNew = true;
-                    }
-                    else if (opts.nextEq("-l|--logic")) {
-                        opts.info("", "if true, do logical test for coherency on each logical axiom");
-                        isTestForCoherency = true;
-                    }
-                    else if (opts.nextEq("--no-strict")) {
-                        opts.info(
-                                "", "if set, perform less rigorous filtering. "+
-                                "use greedy approach, incrementally adding axioms. "+
-                                "Implies -l");
-                        isTestForCoherency = true;
-                        copier.isUseConservative = false;
-                    }
-                    else if (opts.nextEq("-d|--copy-duplicates")) {
-                        opts.info("", "if true, copy axioms that already exist");
-                        isCopyDuplicates = true;
-                    }
-                    else {
-                        break;
-                    }
-                }
-                copier.isCopyDuplicates = isCopyDuplicates; 
-                copier.isTestForCoherency = isTestForCoherency;
-                Set<OWLAxiom> axioms = copier.copyAxioms(sourceOnt, targetOnt, mapOnt);
-                System.out.println("COPIED AXIOMS: "+axioms.size());
-                if (isNew) {
-                    g.setSourceOntology(g.getManager().createOntology());
-                }
-                g.getManager().addAxioms(g.getSourceOntology(), axioms);
-            }
-            else if (opts.nextEq("--eval-equiv-axiom")) {
-                opts.info("[-c CLASSLIST]", "tests the classification power of an existing equivalence "+
-                        "axiom on an owlclass. Attempts to recapitulate classification of all subclasses with and without axiom. "+
-                        "measures jaccard similarity of superclass list before and after");
-                List<String> clsIds = new ArrayList<>();
-                while (opts.hasOpts()) {
-                    if (opts.nextEq("-c|--classes")) {
-                        clsIds = opts.nextList();
-                    }
-                    else if (opts.nextEq("-r")) {
-                        opts.info("REASONERNAME", "selects the reasoner to use");
-                        reasonerName = opts.nextOpt();
-                    }
-                    else {
-                        break;
-                    }
-                }            
-                OWLOntologyManager mgr = g.getManager();
-                OWLOntology ont = g.getSourceOntology();
-                OWLPrettyPrinter owlpp = getPrettyPrinter();
-                reasoner = createReasoner(ont, reasonerName, mgr);
-                for (String clsiId :clsIds) {
-                    OWLClass c = g.getOWLClassByIdentifier(clsiId);
-                    System.out.println("EVAL: "+owlpp.render(c));
-                    
-                    // axioms to recapitulate: test set
-                    Set<OWLAxiom> testAxioms = new HashSet<>();
-                    Set<OWLAxiom> eqAxioms = new HashSet<>();
-                    Set<OWLClass> moduleClasses = reasoner.getSubClasses(c, false).getFlattened();
-                    moduleClasses.add(c);
-                    
-                    Map<OWLClass, Set<OWLClass>> testSuperClassMap = new HashMap<>();
-                    for (OWLClass sc : moduleClasses) {
-                        testAxioms.addAll(ont.getSubClassAxiomsForSubClass(sc));
-                        Set<OWLClass> sups = reasoner.getSuperClasses(sc, false).getFlattened();
-                       
-                        //testSuperClassMap.put(sc, Sets.intersection(sups, moduleClasses));
-                        testSuperClassMap.put(sc, sups);
-                    }
-                    eqAxioms.addAll(ont.getEquivalentClassesAxioms(c));
-                    
-                    for (OWLAxiom eqa : eqAxioms) {
-                        System.out.println("  testing power of: "+owlpp.render(eqa));
-                    }
-                    
-                    mgr.removeAxioms(ont, testAxioms);
-                    String[] states = {"withAxiom", "withoutAxiom"};
-                    Map<OWLClass,Map<String,Set<OWLClass>>> reinfMap = new HashMap<>();
-                    for (String state : states) {
-                        reasoner.flush();
-                        int n = 0;
-                        double jsimTotal = 0.0;
-                        for (OWLClass sc : moduleClasses) {
-                            Set<OWLClass> sups = reasoner.getSuperClasses(sc, false).getFlattened();
-                            //sups = Sets.intersection(sups, moduleClasses);
-                            int numI = Sets.intersection(sups, testSuperClassMap.get(sc)).size();
-                            int numU = Sets.union(sups, testSuperClassMap.get(sc)).size();
-                             if (numU>0) {
-                                double jsim = numI / (double)numU;
-                                jsimTotal += jsim;
-                                n++;
-                                //LOG.debug("ANCS);
-                            }
-                            Sets.difference(sups, testSuperClassMap.get(sc));
-                            if (!reinfMap.containsKey(sc)) {
-                                reinfMap.put(sc, new HashMap<>());
-                            }
-                            reinfMap.get(sc).put(state, sups);
-                        }
-                        double jsimAvg = jsimTotal / n;
-                        System.out.println(" score "+state+" jaccard sim average="+jsimAvg+"  n="+n);
-                        mgr.removeAxioms(ont, eqAxioms);
-                    }
-                    for (OWLClass sc : moduleClasses) {
-                        Set<OWLClass> sups1 = reinfMap.get(sc).get(states[0]);
-                        Set<OWLClass> sups2 = reinfMap.get(sc).get(states[1]);
-                        if (!sups1.equals(sups2)) {
-                            System.out.println("DIFF FOR: "+owlpp.render(sc));
-                            Set<OWLClass> diff1 = Sets.difference(sups1, sups2);
-                            Set<OWLClass> diff2 = Sets.difference(sups2, sups1);
-                            for (OWLClass cd : diff1) {
-                                System.out.println("  "+ states[0]+" : "+owlpp.render(cd));
-                            }
-                            for (OWLClass cd : diff2) {
-                                System.out.println("  "+ states[1]+" : "+owlpp.render(cd));
-                            }
-                        }
-                    }
-                    
-                    
-                    // restore
-                    mgr.addAxioms(ont, eqAxioms);
-                    mgr.addAxioms(ont, testAxioms);
-                }
-          }
             else if (opts.nextEq("--stash-subclasses")) {
                 opts.info("[-a][--prefix PREFIX][--ontology RECAP-ONTOLOGY-IRI", 
                         "removes all subclasses in current source ontology; after reasoning, try to re-infer these");
@@ -3440,105 +3091,7 @@ public class CommandRunner extends CommandRunnerBase {
 
                 System.err.println("TODO");
             }
-            else if (opts.nextEq("--obsolete-replace")) {
-                opts.info("ID REPLACEMENT-ID", "Add a deprecation axiom");
-                OWLObject obsObj = resolveEntity( opts);
-                OWLObject repl = resolveEntity( opts);
-                OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
-                Set<OWLAxiom> rmAxioms = new HashSet<>();
-                OWLOntology ont = g.getSourceOntology();
-                IRI obsObjIRI = ((HasIRI) obsObj).getIRI();
-                IRI replIRI = ((HasIRI) repl).getIRI();
-                String origLabel = g.getLabel(obsObj);
-                String label = "obsolete "+origLabel;
-                for (OWLAnnotationAssertionAxiom a : ont.getAnnotationAssertionAxioms(obsObjIRI)) {
-                   if (a.getProperty().isLabel()) {
-                       rmAxioms.add(a);
-                   }
-                   if (a.getProperty().isComment()) {
-                       rmAxioms.add(a);                       
-                   }
-                   if (a.getProperty().getIRI().equals(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI())) {
-                       //if (g.getDef(((HasIRI) repl).getIRI()) != null) {
-                           rmAxioms.add(a);               
-                       //}
-                   }
-                }
-                LOG.info("REMOVING: "+rmAxioms);
-                g.getManager().removeAxioms(ont, rmAxioms);
-                
-                Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
-                e2iri.put((OWLEntity) obsObj, replIRI);
-                List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
-                g.getManager().applyChanges(changes);
-                OWLDataFactory df = g.getDataFactory();
-                Set<OWLAxiom> newAxioms = new HashSet<>();
-                OWLAnnotationProperty synp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_hasExactSynonym.getIRI());
-                OWLAnnotationProperty xp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI());
-                OWLAnnotation synAnn = df.getOWLAnnotation(xp, df.getOWLLiteral(g.getIdentifier(obsObjIRI)));
-                Set<OWLAnnotation> synAnns = Collections.singleton(synAnn);
-                newAxioms.add(df.getOWLDeclarationAxiom((OWLClass)obsObj));
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getOWLDeprecated(), obsObjIRI, df.getOWLLiteral(true)));
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getRDFSLabel(), obsObjIRI, df.getOWLLiteral(label)));
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(synp, replIRI, df.getOWLLiteral(origLabel), synAnns));
-                
-                OWLAnnotationProperty rp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0100001.getIRI());
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(rp, obsObjIRI,
-                        df.getOWLLiteral(g.getIdentifier(repl))));
-  
-                g.getManager().addAxioms(ont, newAxioms);
-
-            }
-            else if (opts.nextEq("--replace-annotations")) {
-                opts.info("[-p PROP]", "Replace annotation assertions of type PROP for equivalent classes");
-                OWLObject obsObj = resolveEntity( opts);
-                OWLObject repl = resolveEntity( opts);
-                OWLEntityRenamer oer = new OWLEntityRenamer(g.getManager(), g.getAllOntologies());
-                Set<OWLAxiom> rmAxioms = new HashSet<>();
-                OWLOntology ont = g.getSourceOntology();
-                IRI obsObjIRI = ((HasIRI) obsObj).getIRI();
-                IRI replIRI = ((HasIRI) repl).getIRI();
-                String origLabel = g.getLabel(obsObj);
-                String label = "obsolete "+origLabel;
-                for (OWLAnnotationAssertionAxiom a : ont.getAnnotationAssertionAxioms(obsObjIRI)) {
-                   if (a.getProperty().isLabel()) {
-                       rmAxioms.add(a);
-                   }
-                   if (a.getProperty().isComment()) {
-                       rmAxioms.add(a);                       
-                   }
-                   if (a.getProperty().getIRI().equals(Obo2OWLVocabulary.IRI_IAO_0000115.getIRI())) {
-                       //if (g.getDef(((HasIRI) repl).getIRI()) != null) {
-                           rmAxioms.add(a);               
-                       //}
-                   }
-                }
-                LOG.info("REMOVING: "+rmAxioms);
-                g.getManager().removeAxioms(ont, rmAxioms);
-                
-                Map<OWLEntity,IRI> e2iri = new HashMap<OWLEntity,IRI>();
-                e2iri.put((OWLEntity) obsObj, replIRI);
-                List<OWLOntologyChange> changes = oer.changeIRI(e2iri);
-                g.getManager().applyChanges(changes);
-                OWLDataFactory df = g.getDataFactory();
-                Set<OWLAxiom> newAxioms = new HashSet<>();
-                OWLAnnotationProperty synp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_hasExactSynonym.getIRI());
-                OWLAnnotationProperty xp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_hasDbXref.getIRI());
-                OWLAnnotation synAnn = df.getOWLAnnotation(xp, df.getOWLLiteral(g.getIdentifier(obsObjIRI)));
-                Set<OWLAnnotation> synAnns = Collections.singleton(synAnn);
-                newAxioms.add(df.getOWLDeclarationAxiom((OWLClass)obsObj));
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getOWLDeprecated(), obsObjIRI, df.getOWLLiteral(true)));
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(df.getRDFSLabel(), obsObjIRI, df.getOWLLiteral(label)));
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(synp, replIRI, df.getOWLLiteral(origLabel), synAnns));
-                
-                OWLAnnotationProperty rp = df.getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_IAO_0100001.getIRI());
-                newAxioms.add(df.getOWLAnnotationAssertionAxiom(rp, obsObjIRI,
-                        df.getOWLLiteral(g.getIdentifier(repl))));
-  
-                g.getManager().addAxioms(ont, newAxioms);
-
-            }
-           else if (opts.nextEq("-d") || opts.nextEq("--draw")) {
+            else if (opts.nextEq("-d") || opts.nextEq("--draw")) {
                 opts.info("[-o FILENAME] [-f FMT] LABEL/ID", "generates a file tmp.png made using QuickGO code");
                 String imgf = "tmp.png";
                 String fmt = "png";
@@ -3850,26 +3403,20 @@ public class CommandRunner extends CommandRunnerBase {
                 m.removeSubsetClasses(cset, isRemoveDangling);
             }
             else if (opts.nextEq("--remove-axioms-about")) {
-                opts.info("[-v] [-d] IDSPACES", "Removes axioms that are about the specified ID space");
+                opts.info("[-d] IDSPACES", "Removes axioms that are about the specified ID space");
                 boolean isRemoveDangling = true;
-                boolean isInvert = false;
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-d|--keep-dangling")) {
                         opts.info("",
                                 "if specified, dangling axioms (ie pointing to removed classes) are preserved");
                         isRemoveDangling = false;
                     }
-                    else if (opts.nextEq("-v|--invert")) {
-                        opts.info("",
-                                "invert - remove axioms NOT about");
-                        isInvert = true;
-                    }
                     else
                         break;
                 }
                 String idspace = opts.nextOpt();
                 Mooncat m = new Mooncat(g);
-                m.removeAxiomsAboutIdSpace(idspace, isRemoveDangling, true, isInvert);
+                m.removeAxiomsAboutIdSpace(idspace, isRemoveDangling);
             }
             else if (opts.nextEq("--remove-classes-in-idspace")) {
                 opts.info("[-d] [-s IDSPACE]", "Removes classes in an ID space from ontology");
@@ -3904,22 +3451,12 @@ public class CommandRunner extends CommandRunnerBase {
                 m.removeSubsetClasses(cset, isRemoveDangling);
             }
             else if (opts.nextEq("--extract-subset")) {
-                opts.info("[-x] SUBSET", "Extract a subset (aka slim) from an ontology, storing subset in place of existing ontology");
-                boolean isRemoveDangling = false;
-                while (opts.hasOpts()) {
-                    if (opts.nextEq("-x|--remove-dangling")) {
-                        opts.info("",
-                                "if specified, dangling axioms (ie pointing to removed classes) are removed");
-                        isRemoveDangling = true;
-                    }
-                    else
-                        break;
-                }
+                opts.info("SUBSET", "Extract a subset (aka slim) from an ontology, storing subset in place of existing ontology");
                 String subset = opts.nextOpt();
                 Set<OWLClass> cset = g.getOWLClassesInSubset(subset);
                 LOG.info("Removing "+cset.size()+" classes");
                 Mooncat m = new Mooncat(g);
-                m.removeSubsetComplementClasses(cset, isRemoveDangling);
+                m.removeSubsetComplementClasses(cset, false);
             }
             else if (opts.nextEq("--translate-undeclared-to-classes")) {
                 for (OWLAnnotationAssertionAxiom a : g.getSourceOntology().getAxioms(AxiomType.ANNOTATION_ASSERTION)) {

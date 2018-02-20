@@ -8,9 +8,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -29,7 +29,9 @@ public abstract class AbstractSolrLoader {
 	
 	private static Logger LOG = Logger.getLogger(AbstractSolrLoader.class);
 	
-    protected SolrServer server;
+	// note: SolrServer was deprecated and finally removed in solr6.
+	// we replace the class usage TODO - change variable name
+    protected SolrClient server;
     
     private Collection<SolrInputDocument> docs = new ArrayList<SolrInputDocument>();
 
@@ -47,7 +49,7 @@ public abstract class AbstractSolrLoader {
 		this.graph = graph;
 	}
 
-	public AbstractSolrLoader(SolrServer server) {
+	public AbstractSolrLoader(SolrClient server) {
 		super();
 		this.server = server;
 	}
@@ -57,9 +59,10 @@ public abstract class AbstractSolrLoader {
 		
 	}
 	
-	public static final SolrServer createDefaultServer(String url) throws MalformedURLException {
+	public static final SolrClient createDefaultServer(String url) throws MalformedURLException {
 		LOG.info("Server at: " + url);
-		return new CommonsHttpSolrServer(url);
+		// TODO: https://mycore.atlassian.net/browse/DBT-77 use HttpSolrClient.Builder
+		return new HttpSolrClient(url);
 	}
 
 	/**

@@ -380,32 +380,20 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		
 		OWLClass mf = graph.getOWLClassByIdentifier("GO:0003674"); // molecular_function
 		if (mf != null) {
-			String mfKey = getGoSubOntology(mf, graph);
-			if (mfKey == null) 
-				throw new RuntimeException("Could not retrieve sub-ontology for GO:0003674 (molecular_function). The value of the OBO-namespace tag does not exist.");
-			
-			map.put(mfKey, "F");
+			map.put(getGoSubOntology(mf, graph), "F");
 		}
 		
 		OWLClass bp = graph.getOWLClassByIdentifier("GO:0008150"); // biological_process
 		if (bp != null) {
-			String bpKey = getGoSubOntology(bp, graph);
-			if (bpKey == null) 
-				throw new RuntimeException("Could not retrieve sub-ontology for GO:0008150 (biological_process). The value of the OBO-namespace tag does not exist.");
-
-			map.put(bpKey, "P");
+			map.put(getGoSubOntology(bp, graph), "P");
 		}
 		
 		OWLClass cc = graph.getOWLClassByIdentifier("GO:0005575"); // cellular_component
 		if (cc != null) {
-			String ccKey = getGoSubOntology(cc, graph);
-			if (ccKey == null) 
-				throw new RuntimeException("Could not retrieve sub-ontology for GO:0005575 (celluar_component). The value of the OBO-namespace tag does not exist.");
-
-			map.put(ccKey, "C");
+			map.put(getGoSubOntology(cc, graph), "C");
 		}
 		
-		if (map.isEmpty() || map.containsKey(null)) {
+		if (map.isEmpty()) {
 			// only fail if there are mappings
 			// the test case uses a custom ontology, which has no cc branch
 			throw new RuntimeException("Could not create any valid aspect mappings. Is the correct ontology (GO) loaded?");
