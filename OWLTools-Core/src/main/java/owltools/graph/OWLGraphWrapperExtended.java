@@ -52,8 +52,8 @@ import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
-import owltools.io.OWLOboGraphsFormat;
 import owltools.util.OwlHelper;
 
 /**
@@ -898,10 +898,12 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 				return ((OWLNamedObject) obj).getIRI();
 			}
 		}
-
+		
 		// special magic for finding IRIs from a non-standard identifier
 		// This is the case for relations (OWLObject properties) with a short hand
 		// or for relations with a non identifiers with-out a colon, e.g. negative_regulation
+		// we first collect all candidate matching properties in candIRISet.
+		Set<IRI> candIRISet = Sets.newHashSet();
 		if (!id.contains(":")) {
 			final OWLAnnotationProperty shortHand = getDataFactory().getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_shorthand.getIRI());
 			final OWLAnnotationProperty oboIdInOwl = getDataFactory().getOWLAnnotationProperty(Obo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
@@ -920,7 +922,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 									OWLLiteral literal = (OWLLiteral) value;
 									String shortHandLabel = literal.getLiteral();
 									if (id.equals(shortHandLabel)) {
-										return p.getIRI();
+										candIRISet.add(p.getIRI());
 									}
 								}
 							}
@@ -929,8 +931,30 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 				}
 			}
 		}
-
-
+		
+		// In the case where we find multiple candidate IRIs, we give priorities for IRIs from BFO or RO ontologies.
+		IRI returnIRI = null;
+		for (IRI iri: candIRISet) {
+			String iriStr = iri.toString();
+			if (iriStr.contains("BFO") || iriStr.contains("RO")) {
+				returnIRI = iri;
+			}
+		}
+		
+		// If we were not able to find RO/BFO candidate IRIs for id
+		if (returnIRI == null) {
+			// We return it only if we have only one candidate. 
+			if (candIRISet.size() == 1)
+				return new ArrayList<IRI>(candIRISet).get(0);
+			// This is the unexpected case. Multiple non-RO/BPO properties are mapped to given id and it's not clear what to return.
+			else if (candIRISet.size() > 1)
+				throw new RuntimeException("Multiple candidate IRIs are found for id: " +  id + ". None of them are from BFO or RO.");
+		}
+		// If we were able to find the property from RO/BFO, just return it. 
+		else {
+			return returnIRI;
+		}
+		
 		// otherwise use the obo2owl method
 		Obo2Owl b = new Obo2Owl(getManager()); // re-use manager, creating a new one can be expensive as this is a highly used code path
 		b.setObodoc(new OBODoc());

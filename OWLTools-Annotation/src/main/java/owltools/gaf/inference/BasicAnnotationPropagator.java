@@ -119,14 +119,16 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 		OWLClass cc = graph.getOWLClassByIdentifier("GO:0005575"); // cellular_component
 		
 		OWLObjectProperty part_of = graph.getOWLObjectPropertyByIdentifier("part_of");
-		if (part_of == null) {
+		if (part_of == null)
 			LOG.warn("Could not find relation by id 'part_of'.");
-		}
+		else if (part_of.toString().contains("http://purl.obolibrary.org/obo/BFO_0000050") != true)
+			throw new RuntimeException("The property mapped to 'part_of' does not come from BFO. Is the correct ontology (GO) loaded?");
+
 		OWLObjectProperty occurs_in = graph.getOWLObjectPropertyByIdentifier("occurs_in");
-		if (occurs_in == null) {
+		if (occurs_in == null)
 			LOG.warn("Could not find relation by id 'occurs_in'.");
-		}
-		
+		else if (occurs_in.toString().contains("http://purl.obolibrary.org/obo/BFO_0000066") != true)
+			throw new RuntimeException("The property mapped to 'occurs_in' does not come from BFO. Is the correct ontology (GO) loaded?");
 		
 		// MF -> BP over part_of
 		if (part_of != null && mf != null && bp != null) {
@@ -392,7 +394,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			String bpKey = getGoSubOntology(bp, graph);
 			if (bpKey == null) 
 				throw new RuntimeException("Could not retrieve sub-ontology for GO:0008150 (biological_process). The value of the OBO-namespace tag does not exist.");
-
+			
 			map.put(bpKey, "P");
 		}
 		
@@ -401,7 +403,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 			String ccKey = getGoSubOntology(cc, graph);
 			if (ccKey == null) 
 				throw new RuntimeException("Could not retrieve sub-ontology for GO:0005575 (celluar_component). The value of the OBO-namespace tag does not exist.");
-
+			
 			map.put(ccKey, "C");
 		}
 		
