@@ -2,16 +2,20 @@ package owltools.graph;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.SerializationUtils;
 import org.apache.log4j.Logger;
 import org.geneontology.reasoner.ExpressionMaterializingReasoner;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -35,13 +39,18 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLPropertyExpressionVisitor;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.reasoner.NodeSet;
+import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
 import owltools.graph.shunt.OWLShuntNode;
 import owltools.util.OwlHelper;
+import uk.ac.manchester.cs.owl.owlapi.OWLClassImpl;
+import uk.ac.manchester.cs.owl.owlapi.OWLObjectSomeValuesFromImpl;
 
+import com.beust.jcommander.internal.Sets;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -51,9 +60,14 @@ import com.google.common.cache.LoadingCache;
  * @see OWLGraphWrapperEdges
  */
 public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended implements Closeable {
-
 	private static Logger LOG = Logger.getLogger(OWLGraphWrapper.class);
-
+	private volatile ExpressionMaterializingReasoner reasoner = null;
+	private volatile boolean isSynchronized = false;	
+	private final Set<OWLObjectProperty> materializationPropertySet = new HashSet<OWLObjectProperty>();
+	// A cache of an arbitrary relationship closure for a certain object.
+	private LoadingCache<OWLObject, Map<List<String>,Map<String,String>>> cache = null;
+	private int cacheSize = 100000; // default size
+	
 	protected OWLGraphWrapperEdgesAdvanced(OWLOntology ontology) {
 		super(ontology);
 	}
@@ -61,13 +75,6 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	protected OWLGraphWrapperEdgesAdvanced(String iri) throws OWLOntologyCreationException {
 		super(iri);
 	}
-	
-	private volatile ExpressionMaterializingReasoner reasoner = null;
-	private volatile boolean isSynchronized = false;
-
-	// A cache of an arbitrary relationship closure for a certain object.
-	private LoadingCache<OWLObject, Map<List<String>,Map<String,String>>> cache = null;
-	private int cacheSize = 100000; // default size
 	
 	public void setEdgesAdvancedCacheSize(int size) {
 		this.cacheSize = size;
@@ -79,8 +86,6 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		}
 		return 0;
 	}
-	
-	private final Set<OWLObjectProperty> materializationPropertySet = new HashSet<OWLObjectProperty>();
 	
 	public synchronized void addPropertyForMaterialization(OWLObjectProperty p) {
 		boolean add = materializationPropertySet.add(p);
@@ -124,7 +129,9 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 			reasoner = null;
 			isSynchronized = false;
 		}
-		neighborAxioms = null;
+
+		cache.invalidateAll();
+		cache.cleanUp();
 	}
 
 	/**
@@ -145,7 +152,6 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		return props;
 	}
 
-	
 	/**
 	 * Classify the an edge and target as a human readable string for further processing.
 	 * 
@@ -184,7 +190,6 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		return retval;
 	}
 
-	
 	/**
 	 * Add a set of edges, as ancestors to x in OWLShuntGraph g.
 	 * This is reflexive.
@@ -661,7 +666,6 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	 * @see #getRelationClosureMap(OWLObject, List)
 	 */
 	public Map<String,String> getRelationClosureMapEngine(OWLObject obj, List<String> relation_ids){
-
 		final Map<String,String> relation_map = new HashMap<String,String>(); // capture labels/ids
 		
 		// reflexive
@@ -671,26 +675,56 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		
 		// Our relation collection.
 		final Set<OWLObjectProperty> props = relationshipIDsToPropertySet(relation_ids);
-		
-		if (obj instanceof OWLClass) {
+		if (obj instanceof OWLClass)
 			addIdLabelClosure((OWLClass) obj, true, props, relation_map);
-		}
-		else if (obj instanceof OWLObjectProperty) {
+		else if (obj instanceof OWLObjectProperty)
 			addIdLabelClosure((OWLObjectProperty) obj, true, relation_map);
-		}
+		
 		return relation_map;
 	}
 	
 	private void addIdLabelClosure(OWLClass c, boolean reflexive, 
 			final Set<OWLObjectProperty> props, final Map<String,String> relation_map) {
-		addPropertiesForMaterialization(props);
-		ExpressionMaterializingReasoner materializingReasoner = getMaterializingReasoner();
-		Set<OWLClassExpression> classExpressions = materializingReasoner.getSuperClassExpressions(c, false);
-		OWLEntity owlThing = this.getManager().getOWLDataFactory().getOWLThing();
 		
+		Set<OWLClassExpression> classExpressions = Sets.newHashSet();
+		try {
+			addPropertiesForMaterialization((Iterable<OWLObjectProperty>) SerializationUtils.clone((Serializable) props));
+			getMaterializingReasoner();
+
+			// The following block of codes are built based on the ones in ExpressionMaterializingReasoner's 
+			// getSuperClassExpressions. The original codes use that method to get all super class expressions for a given class c,  
+			// but those codes had memory leaks while those codes are in the separate external library (ExpressionMateiralizingReasoner's jar), 
+			// thus it was difficult to fix those codes. As a temporary measure, I copied and extended the codes here.
+			Field cxMapField = ExpressionMaterializingReasoner.class.getDeclaredField("cxMap");
+			cxMapField.setAccessible(true);
+			Map<OWLClass,OWLObjectSomeValuesFrom> cxMap = (Map<OWLClass, OWLObjectSomeValuesFrom>) cxMapField.get(reasoner);
+			OWLReasoner wrappedReasoner = (OWLReasoner) SerializationUtils.clone((Serializable) reasoner.getWrappedReasoner());
+			OWLClassExpression cClone = (OWLClassExpression) SerializationUtils.clone(c);
+			Set<OWLClass> ocSet = wrappedReasoner.getSuperClasses(cClone, false).getFlattened();
+			Iterator<OWLClass> ocSetIter = ocSet.iterator();
+			while (ocSetIter.hasNext()) {
+				OWLClass ocClone = (OWLClass) SerializationUtils.clone(ocSetIter.next());
+				if (cxMap.containsKey(ocClone)) {
+					OWLObjectSomeValuesFrom osvfClone = (OWLObjectSomeValuesFrom) SerializationUtils.clone(cxMap.get(ocClone));
+					classExpressions.add(osvfClone);
+				} else {
+					classExpressions.add(ocClone);
+				}
+			}
+
+			ocSet.clear();
+			wrappedReasoner.flush();
+			wrappedReasoner.dispose();
+			wrappedReasoner = null;
+		} catch (Exception e) {
+			LOG.error(e.getMessage());
+		}
+
 		// remove owl:Thing - although logically valid, it is not of use to the consumer
 		// see https://github.com/geneontology/amigo/issues/395
+		OWLClass owlThing = this.getManager().getOWLDataFactory().getOWLThing();
 		classExpressions = classExpressions.stream().filter(x -> !x.getSignature().contains(owlThing)).collect(Collectors.toSet());
+
 		for (OWLClassExpression ce : classExpressions) {
 			ce.accept(new OWLClassExpressionVisitorAdapter(){
 
@@ -714,12 +748,13 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 							relation_map.put(id, label);
 						}
 					}
-				}
-				
+				}				
 			});
 		}
+		
+		classExpressions.clear();
 	}
-	
+
 	private void addIdLabelClosure(OWLObjectProperty p, boolean reflexive,
 			final Map<String,String> relation_map) {
 		// using the graph walker instead of a reasoner: ELK does not implement getSuperProperties()
@@ -753,6 +788,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 				}
 			});
 		}
+		closure.clear();
 	}
 	
 	/**
