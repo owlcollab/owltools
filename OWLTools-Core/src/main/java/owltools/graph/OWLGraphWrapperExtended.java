@@ -11,6 +11,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
+import org.apache.commons.lang.SerializationUtils;
+import org.apache.log4j.Logger;
 import org.geneontology.obographs.io.OgJsonGenerator;
 import org.geneontology.obographs.model.GraphDocument;
 import org.geneontology.obographs.owlapi.FromOwl;
@@ -47,6 +49,7 @@ import org.semanticweb.owlapi.model.OWLReflexiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.parameters.Imports;
+import org.semanticweb.owlapi.search.EntitySearcher;
 import org.semanticweb.owlapi.util.OWLObjectVisitorExAdapter;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
@@ -65,7 +68,7 @@ import owltools.util.OwlHelper;
  * @see OWLGraphWrapperBasic
  */
 public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
-
+	private static final Logger LOG = Logger.getLogger(OWLGraphWrapperExtended.class);
 	private Map<String,OWLObject> altIdMap = null;
 
 	protected OWLGraphWrapperExtended(OWLOntology ontology) {
@@ -878,19 +881,48 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		return getIdentifier(owlObject);
 	}
 
-
 	/**
-	 * gets the OBO-style ID of the specified object. E.g. "GO:0008150"
+	 * gets the OBO-style ID of the specified object. e.g., "GO:0008150"
+	 * SerializationUtils.clone is used to avoid memory leaks.
 	 * 
 	 * @param iriId
-	 * @return OBO-style identifier, using obo2owl mapping
+	 * @return OBO-style identifier, using obo2owl mappings or the literals extracted from oboInowl#id.
 	 */
 	public String getIdentifier(IRI iriId) {
-		return Owl2Obo.getIdentifier(iriId);
+		if (iriId.toString().startsWith(Obo2OWLConstants.DEFAULT_IRI_PREFIX))
+			return (String) SerializationUtils.clone(Owl2Obo.getIdentifier(iriId));
+
+		final OWLAnnotationProperty oboIdInOwl = getDataFactory().getOWLAnnotationProperty(Obo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
+		OWLClass oc = getOWLClass(iriId);
+		for (OWLOntology o : getAllOntologies()) {
+			for (OWLAnnotation oa: EntitySearcher.getAnnotations(oc.getIRI(), o)) {
+				if (oa.getProperty().equals(oboIdInOwl) != true) 
+					continue;
+
+				OWLAnnotationValue objValue = oa.getValue();
+				if (objValue.isLiteral() != true) {
+					LOG.warn(objValue + " is supposed to be an literal, but it is not?!");
+					continue;
+				}
+
+				Optional<OWLLiteral> literalOpt = objValue.asLiteral();
+				if (literalOpt.isPresent() != true) {
+					LOG.warn("Is the literal value of oboInOw#id, " + objValue + ", null?");
+					continue;
+				}
+
+				OWLLiteral literal = literalOpt.get();
+				return (String) SerializationUtils.clone(literal.getLiteral().trim());
+			}
+		} 
+
+		throw new RuntimeException("The IRI " + iriId + " does not start with the obolib prefix nor have any oboInOw#id?!");
 	}
+
 	public IRI getIRIByIdentifier(String id) {
 		return getIRIByIdentifier(id, false);
 	}
+
 	public IRI getIRIByIdentifier(String id, boolean isAutoResolve) {
 		if (isAutoResolve) {
 			OWLObject obj = this.getObjectByAltId(id);
