@@ -912,7 +912,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 				}
 
 				OWLLiteral literal = literalOpt.get();
-				return (String) SerializationUtils.clone(literal.getLiteral().trim());
+				return (String) SerializationUtils.clone(literal.getLiteral());
 			}
 		} 
 
