@@ -3090,7 +3090,7 @@ public class CommandRunner extends CommandRunnerBase {
                 cp.remintOntologyIds(g.getSourceOntology(), prefix, true);
             }
             else if (opts.nextEq("--copy-axioms")) {
-                opts.info("[-m MAPONT] [-s SRCONT] [-n] [-l] [--no-strict]",
+                opts.info("[-m MAPONT] [-s SRCONT] [-n] [-l] [-I] [-D] [-x] [--no-strict]",
                         "copies axioms from SRC to current (target) ontology");
                 AxiomCopier copier = new AxiomCopier();
                 OWLOntology mapOnt = null;
@@ -3101,11 +3101,11 @@ public class CommandRunner extends CommandRunnerBase {
                 boolean isNew = false;
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-m|--map-ontology")) {
-                        opts.info("ONTPATH", "REQUIRED");
+                        opts.info("ONTPATH", "REQUIRED - the ontology containing equiv axioms");
                         mapOnt = pw.parse( opts.nextOpt() );
                     }
                     else if (opts.nextEq("-s|--source-ontology")) {
-                        opts.info("ONTPATH", "REQUIRED");
+                        opts.info("ONTPATH", "REQUIRED - copy axioms from here");
                         sourceOnt = pw.parse( opts.nextOpt() );
                     }
                     else if (opts.nextEq("-n|--new")) {
@@ -3135,6 +3135,15 @@ public class CommandRunner extends CommandRunnerBase {
                     else if (opts.nextEq("-d|--copy-duplicates")) {
                         opts.info("", "if true, copy axioms that already exist");
                         isCopyDuplicates = true;
+                    }
+                    else if (opts.nextEq("-I|--infer")) {
+                        opts.info("", "if true, include inferred axioms from source");
+                        copier.isIncludeInferred = true;
+                    }
+                    else if (opts.nextEq("-D|--copy-duplicates-only")) {
+                        opts.info("", "if true, only copy axioms if they are also in target "+
+                                "-- this can be used to add axiom annotations");
+                       copier.isCopyDuplicatesOnly = true;
                     }
                     else {
                         break;
