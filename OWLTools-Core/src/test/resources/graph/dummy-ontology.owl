@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://purl.obolibrary.org/obo/mondo.owl#"
+     xml:base="http://purl.obolibrary.org/obo/mondo.owl"
+     xmlns:mondo="http://purl.obolibrary.org/obo/mondo#"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#"
+     xmlns:obo1="http://purl.obolibrary.org/obo/"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:ncbitaxon="http://purl.obolibrary.org/obo/ncbitaxon#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:terms="http://purl.org/dc/terms/"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:ace_lexicon="http://attempto.ifi.uzh.ch/ace_lexicon#"
+     xmlns:obo="http://purl.obolibrary.org/obo/"
+     xmlns:foaf="http://xmlns.com/foaf/0.1/"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+
+    <owl:AnnotationProperty rdf:about="http://www.geneontology.org/formats/oboInOwl#id"/>
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/GO_0000001">
+    </owl:Class>
+
+    <owl:Class rdf:about="http://purl.obolibrary.org/obo/GO_0000002">
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">FAKE:1234</oboInOwl:id>
+    </owl:Class>
+
+    <owl:Class rdf:about="http://example.com/X_005">
+        <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">X:5</oboInOwl:id>
+    </owl:Class>
+</rdf:RDF>
