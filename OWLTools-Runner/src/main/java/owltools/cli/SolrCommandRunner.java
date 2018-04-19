@@ -19,14 +19,13 @@ import java.util.regex.Pattern;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
-import org.apache.solr.common.SolrException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
@@ -40,6 +39,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
@@ -71,13 +71,12 @@ import owltools.solrj.OptimizeSolrDocumentLoader;
 import owltools.solrj.PANTHERGeneralSolrDocumentLoader;
 import owltools.solrj.PANTHERSolrDocumentLoader;
 import owltools.solrj.loader.MockSolrDocumentLoader;
-import owltools.util.HeapInfo;
 import owltools.solrj.loader.MockFlexSolrDocumentLoader;
 import owltools.solrj.loader.MockGafSolrDocumentLoader;
 import owltools.solrj.loader.MockModelAnnotationSolrDocumentLoader;
-import owltools.solrj.loader.MockSolrDocumentCollection;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.SolrSchemaXMLWriter;
+import owltools.util.HeapInfo;
 
 /**
  *  Solr/GOlr loading.
@@ -573,79 +572,98 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 		}else{
 			LOG.warn("Start Loading models, count: "+legoFiles.size());
 			// Ready the environment for every pass.
-			ParserWrapper pw = new ParserWrapper();
+			ParserWrapper pwr = new ParserWrapper();
 			// Add all of the catalogs; possibly none.
-			for( File legoCatalog : legoCatalogs ){
-				pw.addIRIMapper(new CatalogXmlIRIMapper(legoCatalog));
+			for(File legoCatalog : legoCatalogs){
+				pwr.addIRIMapper(new CatalogXmlIRIMapper(legoCatalog));
 			}
-			OWLOntologyManager manager = pw.getManager();
-			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
-			for( File legoFile : legoFiles ){
-				String fname = legoFile.getName();
-				OWLReasoner currentReasoner = null;
-				OWLOntology model = null;
-				try {
-					model = pw.parseOWL(IRI.create(legoFile));
 
-					//skip deprecated models
-					boolean isDeprecated = isDeprecated(model);
-					if (isDeprecated) {
-						LOG.warn("Skipping deprecated model: "+fname);
-						continue;
-					}
-
-					// Some sanity checks--some of the generated ones are problematic.
-					currentReasoner = reasonerFactory.createReasoner(model);
-					boolean consistent = currentReasoner.isConsistent();
-					if(consistent == false){
-						// we need a consistent ontology for the closure calculations!
-						LOG.warn("Skip since inconsistent: " + fname);
-						continue;
-					}
-
-					ModelAnnotationSolrDocumentLoader loader = null;
-					try {
-						LOG.info("Trying complex annotation load of: " + fname);
-						boolean isMock = false;
-						String modelUrl = legoModelPrefix + fname;
-						if (url.equals("mock")) {
-							loader = new MockModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl, 
-									modelStateFilter, removeDeprecatedModels, removeTemplateModels);
-							isMock = true;
-						}
-						else {
-							loader = new ModelAnnotationSolrDocumentLoader(url, model, currentReasoner, modelUrl, 
-									modelStateFilter, removeDeprecatedModels, removeTemplateModels);
-						}
-
-						loader.load();
-
-						if (isMock) {
-							showMockDocs((MockModelAnnotationSolrDocumentLoader) loader);
-						}
-					} catch (SolrServerException e) {
-						LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
-						e.printStackTrace();
-						
-						if (exitIfLoadFails)
-							System.exit(1);
-					}
-					finally {
-						if (loader != null)
-							loader.close();
-					}
-
-					HeapInfo.showHeapStatus();
-				} finally {
-					// Cleanup reasoner and ontology.
-					if (currentReasoner != null)
-						currentReasoner.dispose();
-
-					if (model != null)
-						manager.removeOntology(model);
-				}
+			for(File legoFile : legoFiles){
+				loadEachModelAnnotation (pwr, legoFile, url, modelStateFilter, removeDeprecatedModels, 
+						removeTemplateModels, removeUnsatisfiableModels, exitIfUnsatisfiable, exitIfLoadFails);
+				HeapInfo.showHeapStatus();
 			}
+
 			LOG.info("Finished loading models.");
+		}
+	}
+
+	private void loadEachModelAnnotation(ParserWrapper pwr, File legoFile, String url, Set<String> modelStateFilter,
+			boolean removeDeprecatedModels, boolean removeTemplateModels, boolean removeUnsatisfiableModels,
+			boolean exitIfUnsatisfiable, boolean exitIfLoadFails) throws IOException {
+		String fname = legoFile.getName();
+		OWLReasoner currentReasoner = null;
+		OWLOntologyManager manager = pwr.getManager();
+
+		OWLOntology model = null;
+		ModelAnnotationSolrDocumentLoader loader = null;
+
+		try {
+			model = pwr.parseOWL(IRI.create(legoFile));
+
+			// Skip deprecated models
+			boolean isDeprecated = isDeprecated(model);
+			if (isDeprecated) {
+				LOG.warn("Skipping deprecated model: " + fname);
+				return;
+			}
+
+			/**
+			 * DEEP-COPIES OWLOntology instance.
+			 * Note that most serialization libraries such as Kryo or Cloner DO NOT work for
+			 * copying OWLOntology or reasoner instance. In other words, deep-copying ontology 
+			 * should be done via "copyOntology" method. This allows preventing memory leaks, i.e., 
+			 * running reasoners affects the model (OWLOntology instance) but the changes only happen 
+			 * over copied instance, which can be safely disposed without blowing out of memory.
+			 */
+			OWLOntologyManager tempOWLManager = OWLManager.createOWLOntologyManager();
+			OWLOntology tModel = tempOWLManager.copyOntology(model, OntologyCopy.DEEP);
+
+			// Some sanity checks--some of the generated ones are problematic.
+			// We need a consistent ontology for the closure calculations!
+			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+			currentReasoner = reasonerFactory.createReasoner(tModel);
+			boolean consistent = currentReasoner.isConsistent();
+			if(consistent == false){
+				LOG.warn("Skip since inconsistent: " + fname);
+				return;
+			}
+
+			LOG.info("Trying complex annotation load of: " + fname);
+			boolean isMock = false;
+			String modelUrl = legoModelPrefix + fname;
+
+			if (url.equals("mock")) {
+				loader = new MockModelAnnotationSolrDocumentLoader(url, tModel, currentReasoner, modelUrl, 
+						modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+				isMock = true;
+			}
+			else {
+				loader = new ModelAnnotationSolrDocumentLoader(url, tModel, currentReasoner, modelUrl, 
+						modelStateFilter, removeDeprecatedModels, removeTemplateModels);
+			}
+
+			loader.load();
+
+			if (isMock) {
+				showMockDocs((MockModelAnnotationSolrDocumentLoader) loader);
+			}
+
+			currentReasoner.dispose();
+			tempOWLManager.removeOntology(tModel);
+		} catch (Exception e) {
+			LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
+			e.printStackTrace();
+
+			if (exitIfLoadFails)
+				System.exit(1);
+		} finally {
+			manager.removeOntology(model);
+			if (loader != null) {
+				loader.close();
+				loader = null;
+				LOG.info("Closing the current loader...");
+			}
 		}
 	}
 
@@ -734,6 +752,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 
 					Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature();
 					Set<OWLAnnotation> modelAnnotations = ontology.getAnnotations();
+
 					OWLGraphWrapper currentGraph = new OWLGraphWrapper(ontology);						
 					try {
 						LOG.info("Trying complex annotation load of: " + fname);

@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
@@ -57,7 +56,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
 	int current_doc_number;
 
-	private final OWLReasoner reasoner;
+	private OWLReasoner reasoner;
 	private final OWLOntology model;
 	private final String modelUrl;
 
@@ -77,10 +76,10 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	private final OWLAnnotationProperty layoutHintX;
 	private final OWLAnnotationProperty layoutHintY;
 	private final OWLAnnotationProperty templatestate;
-
+	
 	private final OWLAnnotationProperty displayLabelProp;
 	private final OWLAnnotationProperty shortIdProp;
-
+	
 	private final OWLAnnotationProperty jsonProp;
 
 	private final Set<OWLClass> bpSet;
@@ -92,7 +91,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			Set<String> modelFilter, boolean skipDeprecatedModels, boolean skipTemplateModels) throws MalformedURLException {
 		this(createDefaultServer(golrUrl), model, r, modelUrl, modelFilter, skipDeprecatedModels, skipTemplateModels);
 	}
-
+	
 	public ModelAnnotationSolrDocumentLoader(SolrServer server, OWLOntology model, OWLReasoner r, String modelUrl, 
 			Set<String> modelFilter, boolean skipDeprecatedModels, boolean skipTemplateModels) {
 		super(server);
@@ -107,12 +106,12 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		OWLDataFactory df = graph.getDataFactory();
 		partOf = OBOUpperVocabulary.BFO_part_of.getObjectProperty(df);
 		occursIn = OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(df);
-
+		
 		defaultClosureRelations = new ArrayList<String>(1);
 		defaultClosureRelations.add(graph.getIdentifier(partOf));
-
+		
 		enabledBy = OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(df);
-
+		
 		title = df.getOWLAnnotationProperty(IRI.create("http://purl.org/dc/elements/1.1/title"));
 		source = df.getOWLAnnotationProperty(IRI.create("http://purl.org/dc/elements/1.1/source"));
 		contributor = df.getOWLAnnotationProperty(IRI.create("http://purl.org/dc/elements/1.1/contributor"));
@@ -124,12 +123,12 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		layoutHintX = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/hint/layout/x"));
 		layoutHintY = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/hint/layout/y"));
 		templatestate = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/templatestate"));
-
+		
 		displayLabelProp = df.getRDFSLabel();
 		shortIdProp = df.getOWLAnnotationProperty(IRI.create(Obo2OWLConstants.OIOVOCAB_IRI_PREFIX+"id"));
-
+		
 		jsonProp = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/json-model"));
-
+		
 		bpSet = getAspect(graph, "biological_process");
 	}
 
@@ -153,18 +152,21 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 
 	@Override
 	public void close() throws IOException {
-		graph.close();
 		if (reasoner != null) {
+			reasoner.flush();
 			reasoner.dispose();
+			reasoner = null;
 		}
-
+		
+		graph.close();
+		graph = null;
 	}
 
 	@Override
 	public void load() throws SolrServerException, IOException {
 		LOG.info("Loading complex annotation document...");
 		final OWLShuntGraph shuntGraph = createShuntGraph(graph);
-
+		
 		String modelId = null;
 		String modelDate = null;
 		String title = null;
@@ -215,7 +217,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			// fallback
 			modelId = model.getOntologyID().getOntologyIRI().get().toString();
 		}
-
+		
 		if (requiredModelStates != null && state != null) {
 			boolean contains = requiredModelStates.contains(state);
 			if (contains == false) {
@@ -283,7 +285,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		addAllAndCommit();
 		LOG.info("Done.");
 	}
-
+	
 	private void addDoc(SolrInputDocument doc) throws SolrServerException, IOException {
 		if( doc != null ){
 			add(doc);
@@ -295,7 +297,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			}
 		}
 	}
-
+	
 	private Set<OWLAnnotation> getAnnotations(OWLAxiom ax, OWLNamedIndividual i) {
 		Set<OWLAnnotation> all = new HashSet<OWLAnnotation>();
 		if (ax != null) {
@@ -331,7 +333,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		}
 		return result;
 	}
-
+	
 	private Map<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> findLocations(OWLNamedIndividual mf) {
 		Map<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> result = new HashMap<OWLClass, Pair<OWLNamedIndividual,Set<OWLAnnotation>>>();
 		Set<OWLObjectPropertyAssertionAxiom> axioms = model.getObjectPropertyAssertionAxioms(mf);
@@ -350,7 +352,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		}
 		return result;
 	}
-
+	
 	private Set<OWLClass> getTypes(OWLNamedIndividual i) {
 		final Set<OWLClass> results = new HashSet<OWLClass>();
 		if (reasoner != null && reasoner.isConsistent()) {
@@ -373,7 +375,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				}
 			}
 		}
-
+		
 		return results;
 	}
 
@@ -411,7 +413,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		return result;
 	}
 
-	private static String getLiteralValue(OWLAnnotationValue v) {		
+	private static String getLiteralValue(OWLAnnotationValue v) {
 		String literal = v.accept(new OWLAnnotationValueVisitorEx<String>() {
 			@Override
 			public String visit(IRI iri) {
@@ -428,21 +430,19 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				return literal.getLiteral();
 			}
 		});
-
-		// Cloning is made for avoiding memory leaks.
-		return (String) SerializationUtils.clone(literal);
+		return literal;
 	}
 
 	private OWLShuntGraph createShuntGraph(OWLGraphWrapper graph) {
 		// Assemble the group shunt graph from available information.
 		// Most of the interesting stuff is happening with the meta-information.
 		OWLShuntGraph shuntGraph = new OWLShuntGraph();
-
+		
 		OWLOntology source = graph.getSourceOntology();
 		OWLPrettyPrinter pp = new OWLPrettyPrinter(graph);
-
+		
 		Set<OWLNamedIndividual> relevant = new HashSet<OWLNamedIndividual>();
-
+		
 		// links
 		Set<OWLObjectPropertyAssertionAxiom> objectPropertyAxioms = source.getAxioms(AxiomType.OBJECT_PROPERTY_ASSERTION);
 		for(OWLObjectPropertyAssertionAxiom ax : objectPropertyAxioms) {
@@ -457,7 +457,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				String objectId = objectNamed.getIRI().toString();
 				relevant.add(objectNamed);
 				String propId = graph.getIdentifier(property.asOWLObjectProperty());
-
+				
 				OWLShuntEdge shuntEdge = new OWLShuntEdge(subjectId, objectId, propId);
 				shuntEdge.setMetadata(renderAnnotations(ax.getAnnotations()));
 				shuntGraph.addEdge(shuntEdge);
@@ -467,7 +467,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		// nodes
 		for(OWLNamedIndividual individual : relevant) {
 			String nodeId = individual.getIRI().toString();
-
+			
 			final StringBuilder sb = new StringBuilder();
 			Set<OWLClassAssertionAxiom> declaredTypes = source.getClassAssertionAxioms(individual);
 			for (OWLClassAssertionAxiom ax : declaredTypes) {
@@ -478,7 +478,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 				sb.append(pp.render(classExpression));
 			}
 			OWLShuntNode shuntNode = new OWLShuntNode(nodeId, sb.toString());
-
+			
 			Set<OWLAnnotationAssertionAxiom> annotationAxioms = source.getAnnotationAssertionAxioms(individual.getIRI());
 			shuntNode.setMetadata(renderAnnotationAxioms(annotationAxioms));
 			shuntGraph.addNode(shuntNode);
@@ -487,26 +487,28 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	}
 
 	private String getLabel(OWLObject oc, OWLGraphWrapper graph){
-		String label; 
-		if( oc == null ) return "???";
-
-		label = graph.getAnnotationValue(oc, displayLabelProp);
-		if( label == null )
-			label = getId(oc, graph);
-
+		String label = "???";
+		if( oc != null ){
+			label = graph.getAnnotationValue(oc, displayLabelProp);
+			if( label == null ){
+				label = getId(oc, graph);
+			}
+		}
+		
 		return label;
 	}
 
 	private String getId(OWLObject cls, OWLGraphWrapper graph) {
-		String shortId;
-		if (cls == null) return "???";
-
-		shortId = graph.getAnnotationValue(cls, shortIdProp);
-		if (shortId == null)
-			shortId = graph.getIdentifier(cls);
+		String shortId = "???";
+		if (cls != null) {
+			shortId = graph.getAnnotationValue(cls, shortIdProp);
+			if (shortId == null) {
+				shortId = graph.getIdentifier(cls);
+			}
+		}
 		return shortId;
 	}
-
+	
 	static void addField(SolrInputDocument doc, String field, Object value) {
 		if (value != null && field != null) {
 			doc.addField(field, value);
@@ -547,6 +549,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			String modelId, String title, String state, String modelDate, String modelUrl, 
 			Set<String> modelAnnotations, String modelComment, OWLShuntGraph shuntGraph,
 			String jsonModel) {
+
 		final Set<String> allComments = new HashSet<String>(); // unused until schema can be fixed
 		if (modelComment != null) {
 			allComments.add(modelComment);
@@ -556,13 +559,13 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		OWLClass ecoClass = null; // Why do we only have one eco class, we have multiple annotations?
 		final Set<String> allReferences = new HashSet<String>();
 		final Set<String> allWiths = new HashSet<String>();
-
+		
 		ecoClass = processAnnotations(gpAnnotations, ecoClass, allReferences, allWiths, allComments, allContributors, allOtherAnnotationValues);
 		ecoClass = processAnnotations(mfAnnotations, ecoClass, allReferences, allWiths, allComments, allContributors, allOtherAnnotationValues);
 		ecoClass = processAnnotations(bpAnnotations, ecoClass, allReferences, allWiths, allComments, allContributors, allOtherAnnotationValues);
-
+		
 		final SolrInputDocument doc = new SolrInputDocument();
-
+		
 		final String gpId = getId(gpType, graph);
 		final String gpLabel = getLabel(gpType, graph);
 		final String mfId = getId(mfType, graph);
@@ -571,8 +574,9 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		final Set<String> mfClosure = mfClosureMap.keySet();
 		final Set<String> mfClosureLabel = new HashSet<String>(mfClosureMap.values());
 
-		doc.addField("document_category", "model_annotation");
 
+		doc.addField("document_category", "model_annotation");
+		
 		StringBuilder unitIdBuilder = new StringBuilder(modelId);
 		unitIdBuilder.append('|').append(gp.getIRI()).append('|').append(gpId).append('|').append(mfId).append('|');
 		if (bpType != null) {
@@ -588,7 +592,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//  - id: id
 		//    description: A unique (and internal) thing.
 		doc.addField("id", unitId);
-
+		
 		//  - id: annotation_unit
 		//    type: string
 		doc.addField("annotation_unit", unitId);
@@ -701,7 +705,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    searchable: true
 		addField(doc, "function_class_closure_label", mfClosureLabel);
 		addField(doc, "function_class_closure_label_searchable", mfClosureLabel);
-
+		
 		addField(doc, "function_class_closure_map", mfClosureMap);
 
 		//## Process
@@ -716,7 +720,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    display_name: Process
 			//    type: string
 			addField(doc, "process_class", bpId);
-
+	
 			//  - id: process_class_label
 			//    description: Common process name.
 			//    display_name: Process
@@ -724,13 +728,13 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    searchable: true
 			addField(doc, "process_class_label", bpLabel);
 			addField(doc, "process_class_label_searchable", bpLabel);
-
+	
 			//  - id: process_class_closure
 			//    display_name: Process
 			//    type: string
 			//    cardinality: multi
 			addField(doc, "process_class_closure", bpClosure);
-
+	
 			//  - id: process_class_closure_label
 			//    display_name: Process
 			//    type: string
@@ -738,7 +742,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    searchable: true
 			addField(doc, "process_class_closure_label", bpClosureLabels);
 			addField(doc, "process_class_closure_label_searchable", bpClosureLabels);
-
+			
 			addField(doc, "process_class_closure_map", bpClosureMap);
 		}
 
@@ -781,17 +785,17 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    type: string
 			//    cardinality: multi
 			addField(doc, "location_list_closure_label", locationClosureLabels);
-
+			
 			addField(doc, "location_list_closure_map", locationClosureMap);
 		}
-
+		
 		//  - id: owl_blob_json
 		//    type: string
 		//    indexed: false
 		if (jsonModel != null) {
 			addField(doc, "owl_blob_json", jsonModel);
 		}
-
+		
 		//## Topology
 		//  - id: topology_graph_json
 		//    description: JSON blob form of the local stepwise topology graph.
@@ -799,7 +803,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    type: string
 		//    indexed: false
 		addField(doc, "topology_graph_json", shuntGraph.toJSON());
-		
+
 		//## Evidence and related
 		if (ecoClass != null) {
 			String evidenceId = getId(ecoClass, graph);
@@ -807,29 +811,29 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			Map<String, String> evidenceClosureMap = graph.getRelationClosureMap(ecoClass, defaultClosureRelations);
 			Set<String> evidenceClosure = evidenceClosureMap.keySet();
 			Set<String> evidenceClosureLabels = new HashSet<String>(evidenceClosureMap.values());
-
+			
 			//  - id: evidence_type
 			//    description: "Evidence type."
 			//    display_name: Evidence
 			//    type: string
 			addField(doc, "evidence_type", evidenceId);
-
+			
 			//label
 			addField(doc, "evidence_type_label", evidenceLabel);
 			addField(doc, "evidence_type_label_searchable", evidenceLabel);
-
+			
 			//  - id: evidence_type_closure
 			//    description: "All evidence (evidence closure) for this annotation"
 			//    display_name: Evidence type
 			//    type: string
 			//    cardinality: multi
 			addField(doc, "evidence_type_closure", evidenceClosure);
-
+			
 			addField(doc, "evidence_type_closure_label", evidenceClosureLabels);
 			addField(doc, "evidence_type_closure_label_searchable", evidenceClosureLabels);
-
+			
 			addField(doc, "evidence_type_closure_map", evidenceClosureMap);
-
+			
 			//  - id: evidence_with
 			//    description: "Evidence with/from."
 			//    display_name: Evidence with
@@ -837,7 +841,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			//    cardinality: multi
 			addField(doc, "evidence_with", allWiths);
 			addField(doc, "evidence_with_searchable", allWiths);
-
+			
 			//  - id: reference
 			//    description: "Database reference."
 			//    display_name: Reference
@@ -847,7 +851,6 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			addField(doc, "reference_searchable", allReferences);
 		}
 
-		
 		//  - id: comment
 		//    display_name: comment
 		//    type: string
@@ -855,7 +858,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		//    searchable: true
 		addField(doc, "comment", modelComment);
 		addField(doc, "comment_searchable", modelComment);
-
+		
 		//  - id: contributor
 		//    display_name: contributor
 		//    type: string
@@ -872,7 +875,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		addField(doc, "annotation_value", allOtherAnnotationValues);
 		return doc;
 	}
-
+	
 	OWLClass processAnnotations(final Set<OWLAnnotation> annotations, OWLClass eco, 
 			final Set<String> allReferences, final Set<String> allWiths, final Set<String> allComments,
 			final Set<String> allContributors, final Set<String> allOtherAnnotationValues) {
@@ -981,4 +984,5 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			}
 		});
 	}
+
 }

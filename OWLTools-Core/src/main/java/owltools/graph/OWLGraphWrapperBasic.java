@@ -15,7 +15,6 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
-import org.semanticweb.owlapi.model.OWLAnnotationValue;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -40,7 +39,7 @@ import owltools.io.ParserWrapper;
  * @see OWLGraphWrapper
  */
 public class OWLGraphWrapperBasic {
-	
+
 	private static final Logger LOG = Logger.getLogger(OWLGraphWrapperBasic.class);
 
 	protected OWLOntology sourceOntology; // graph is seeded from this ontology.
@@ -51,7 +50,7 @@ public class OWLGraphWrapperBasic {
 		super();
 		sourceOntology = ontology;
 	}
-	
+
 	protected OWLGraphWrapperBasic(String iri) throws OWLOntologyCreationException {
 		super();
 		ParserWrapper pw = new ParserWrapper();
@@ -86,9 +85,9 @@ public class OWLGraphWrapperBasic {
 	}
 
 	public enum LabelPolicy {
-	    ALLOW_DUPLICATES,
-	    PRESERVE_SOURCE,
-	    PRESERVE_EXT
+		ALLOW_DUPLICATES,
+		PRESERVE_SOURCE,
+		PRESERVE_EXT
 	}
 	/**
 	 * Adds all axioms from extOnt into source ontology
@@ -96,39 +95,39 @@ public class OWLGraphWrapperBasic {
 	 * @param extOnt
 	 * @throws OWLOntologyCreationException
 	 */
-    public void mergeOntology(OWLOntology extOnt) throws OWLOntologyCreationException {
-        mergeOntology(extOnt, LabelPolicy.ALLOW_DUPLICATES);
-    }
+	public void mergeOntology(OWLOntology extOnt) throws OWLOntologyCreationException {
+		mergeOntology(extOnt, LabelPolicy.ALLOW_DUPLICATES);
+	}
 	public void mergeOntology(OWLOntology extOnt, LabelPolicy labelPolicy) throws OWLOntologyCreationException {
 		OWLOntologyManager manager = getManager();
 		LOG.info("Merging "+extOnt+" policy: "+labelPolicy);
 		for (OWLAxiom axiom : extOnt.getAxioms()) {
-		    if (labelPolicy != LabelPolicy.ALLOW_DUPLICATES) {
-		        if (axiom instanceof OWLAnnotationAssertionAxiom) {
-		            OWLAnnotationAssertionAxiom aa = (OWLAnnotationAssertionAxiom)axiom;
-		            if (aa.getProperty().isLabel()) {
-		                OWLAnnotationSubject subj = aa.getSubject();
-		                if (subj instanceof IRI) {
-		                    Optional<OWLLiteral> label = null;
-		                    for (OWLAnnotationAssertionAxiom a1 : sourceOntology.getAnnotationAssertionAxioms(subj)) {
-		                        if (a1.getProperty().isLabel()) {
-		                            label = a1.getValue().asLiteral();
-		                        }
-		                    }
-		                    if (label != null && label.isPresent()) {
-                                if (labelPolicy == LabelPolicy.PRESERVE_SOURCE) {
-                                    LOG.info("Preserving existing label:" +subj+" "+label+" // ditching: "+axiom);
-                                    continue;
-                                }
-                                if (labelPolicy == LabelPolicy.PRESERVE_EXT) {
-                                    LOG.info("Replacing:" +subj+" "+label+" with: "+axiom);
-                                    LOG.error("NOT IMPLEMENTED");
-                                }
-		                    }
-		                }
-		            }
-		        }
-		    }
+			if (labelPolicy != LabelPolicy.ALLOW_DUPLICATES) {
+				if (axiom instanceof OWLAnnotationAssertionAxiom) {
+					OWLAnnotationAssertionAxiom aa = (OWLAnnotationAssertionAxiom)axiom;
+					if (aa.getProperty().isLabel()) {
+						OWLAnnotationSubject subj = aa.getSubject();
+						if (subj instanceof IRI) {
+							Optional<OWLLiteral> label = null;
+							for (OWLAnnotationAssertionAxiom a1 : sourceOntology.getAnnotationAssertionAxioms(subj)) {
+								if (a1.getProperty().isLabel()) {
+									label = a1.getValue().asLiteral();
+								}
+							}
+							if (label != null && label.isPresent()) {
+								if (labelPolicy == LabelPolicy.PRESERVE_SOURCE) {
+									LOG.info("Preserving existing label:" +subj+" "+label+" // ditching: "+axiom);
+									continue;
+								}
+								if (labelPolicy == LabelPolicy.PRESERVE_EXT) {
+									LOG.info("Replacing:" +subj+" "+label+" with: "+axiom);
+									LOG.error("NOT IMPLEMENTED");
+								}
+							}
+						}
+					}
+				}
+			}
 			manager.applyChange(new AddAxiom(sourceOntology, axiom));
 		}
 		for (OWLImportsDeclaration oid: extOnt.getImportsDeclarations()) {
@@ -144,18 +143,18 @@ public class OWLGraphWrapperBasic {
 			this.supportOntologySet.remove(extOnt);
 		}
 	}
-	
+
 	static CharSequence summarizeOntology(OWLOntology ontology) {
-	    StringBuilder sb = new StringBuilder();
-	    sb.append("Ontology(");
-	    sb.append(ontology.getOntologyID());
-	    sb.append(") [Axioms: ");
-	    int axiomCount = ontology.getAxiomCount();
-	    sb.append(axiomCount);
-	    sb.append(" Logical Axioms: ");
-	    sb.append(ontology.getLogicalAxiomCount());
-	    sb.append("]");
-	    return sb;
+		StringBuilder sb = new StringBuilder();
+		sb.append("Ontology(");
+		sb.append(ontology.getOntologyID());
+		sb.append(") [Axioms: ");
+		int axiomCount = ontology.getAxiomCount();
+		sb.append(axiomCount);
+		sb.append(" Logical Axioms: ");
+		sb.append(ontology.getLogicalAxiomCount());
+		sb.append("]");
+		return sb;
 	}
 
 
@@ -172,7 +171,7 @@ public class OWLGraphWrapperBasic {
 			mergeSupportOntology(IRI.create(ontologyIRI), isRemoveFromSupportList);
 		}
 	}
-	
+
 	public void mergeSupportOntology(IRI ontologyIRI, boolean isRemoveFromSupportList) throws OWLOntologyCreationException {
 		OWLOntology extOnt = null;
 		for (OWLOntology ont : this.supportOntologySet) {
@@ -199,7 +198,7 @@ public class OWLGraphWrapperBasic {
 	public void mergeSupportOntology(String ontologyIRI) throws OWLOntologyCreationException {
 		mergeSupportOntology(ontologyIRI, true);
 	}
-	
+
 	public void mergeSupportOntology(IRI ontologyIRI) throws OWLOntologyCreationException {
 		mergeSupportOntology(ontologyIRI, true);
 	}
@@ -259,7 +258,7 @@ public class OWLGraphWrapperBasic {
 	public void addSupportOntologiesFromImportsClosure(boolean doForAllSupportOntologies) {
 		Set<OWLOntology> ios = new HashSet<OWLOntology>();
 		ios.add(sourceOntology);
-		
+
 		if (doForAllSupportOntologies) {
 			ios.addAll(getSupportOntologySet());
 		}
@@ -271,7 +270,7 @@ public class OWLGraphWrapperBasic {
 			}
 		}
 	}
-	
+
 	public void addImportsFromSupportOntologies() {
 		OWLOntology sourceOntology = getSourceOntology();
 		OWLDataFactory factory = getDataFactory();
@@ -315,11 +314,11 @@ public class OWLGraphWrapperBasic {
 		for (OWLOntology o : imports) {
 			if (o.equals(sourceOntology))
 				continue;
-			
+
 			String comment = "Includes "+summarizeOntology(o);
 			LOG.info(comment);
 			addCommentToOntology(sourceOntology, comment);
-			
+
 			manager.addAxioms(sourceOntology, o.getAxioms());
 		}
 		Set<OWLImportsDeclaration> oids = sourceOntology.getImportsDeclarations();
@@ -328,7 +327,7 @@ public class OWLGraphWrapperBasic {
 			getManager().applyChange(ri);
 		}
 	}
-	
+
 	/**
 	 * Merge a specific ontology from the import closure into the main ontology.
 	 * Removes the import statement.
@@ -396,8 +395,8 @@ public class OWLGraphWrapperBasic {
 			obs.addAll(o.getIndividualsInSignature());
 			obs.addAll(o.getObjectPropertiesInSignature());
 		}
-        obs.remove(getDataFactory().getOWLThing());
-        obs.remove(getDataFactory().getOWLNothing());
+		obs.remove(getDataFactory().getOWLThing());
+		obs.remove(getDataFactory().getOWLNothing());
 		return obs;
 	}
 
@@ -414,7 +413,7 @@ public class OWLGraphWrapperBasic {
 		}
 		return owlClasses;
 	}
-	
+
 	/**
 	 * Fetch all {@link OWLSubClassOfAxiom} axioms for a given subClass
 	 * ({@link OWLClass}) from all ontologies. This set is a copy. Changes are
@@ -430,7 +429,7 @@ public class OWLGraphWrapperBasic {
 		}
 		return axioms;
 	}
-	
+
 	/**
 	 * Fetch all {@link OWLSubClassOfAxiom} axioms for a given superClass
 	 * ({@link OWLClass}) from all ontologies. This set is a copy. Changes are
