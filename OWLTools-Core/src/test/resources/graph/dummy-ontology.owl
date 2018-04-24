@@ -28,4 +28,8 @@
     <owl:Class rdf:about="http://example.com/X_005">
         <oboInOwl:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">X:5</oboInOwl:id>
     </owl:Class>
+
+    <owl:Class rdf:about="http://example.com/X_010">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string">test4</rdfs:label>
+    </owl:Class>
 </rdf:RDF>

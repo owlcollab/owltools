@@ -43,9 +43,11 @@ public class OWLGraphWrapperExtendedTest  extends OWLToolsTestBasics {
 		String id1 = wrapper.getIdentifier(IRI.create("http://purl.obolibrary.org/obo/GO_0000001"));
 		String id2 = wrapper.getIdentifier(IRI.create("http://purl.obolibrary.org/obo/GO_0000002"));
 		String id3 = wrapper.getIdentifier(IRI.create("http://example.com/X_005"));
+		String id4 = wrapper.getIdentifier(IRI.create("http://example.com/X_010"));
 
 		assertEquals(id1, "GO:0000001");
 		assertEquals(id2, "GO:0000002");
 		assertEquals(id3, "X:5");
+		assertEquals(id4, "http://example.com/X_010");
 	}
 }

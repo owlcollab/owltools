@@ -1,6 +1,7 @@
 package owltools.graph;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -893,30 +894,36 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 			return (String) SerializationUtils.clone(Owl2Obo.getIdentifier(iriId));
 
 		final OWLAnnotationProperty oboIdInOwl = getDataFactory().getOWLAnnotationProperty(Obo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
-		OWLClass oc = getOWLClass(iriId);
 		for (OWLOntology o : getAllOntologies()) {
-			for (OWLAnnotation oa: EntitySearcher.getAnnotations(oc.getIRI(), o)) {
-				if (oa.getProperty().equals(oboIdInOwl) != true) 
+			Collection<OWLAnnotation> oas = EntitySearcher.getAnnotations(iriId, o);
+			if (oas == null) continue;
+
+			for (OWLAnnotation oa: oas) {
+				// We specifically look for the annotation property, oboInOwl:id; ignore others.
+				if (oa.getProperty().equals(oboIdInOwl) != true)
 					continue;
 
+				// We then get the object value of this property, which is supposed to be a literal.
 				OWLAnnotationValue objValue = oa.getValue();
 				if (objValue.isLiteral() != true) {
-					LOG.warn(objValue + " is supposed to be an literal, but it is not?!");
+					LOG.warn("Odd. " + objValue + " of oboInOw#id for "+ iriId + ", is supposed to be an literal, but it is not.");
 					continue;
 				}
 
 				Optional<OWLLiteral> literalOpt = objValue.asLiteral();
 				if (literalOpt.isPresent() != true) {
-					LOG.warn("Is the literal value of oboInOw#id, " + objValue + ", null?");
+					LOG.warn("Odd. " + objValue + " of oboInOw#id for "+ iriId + ", does not exist.");
 					continue;
 				}
 
 				OWLLiteral literal = literalOpt.get();
 				return (String) SerializationUtils.clone(literal.getLiteral());
 			}
-		} 
+		}
 
-		throw new RuntimeException("The IRI " + iriId + " does not start with the obolib prefix nor have any oboInOw#id?!");
+		// In the case where the input class does not have oboInOwl#id, we return its original URL.
+		LOG.warn("Unable to retrieve the value of oboInOw#id as the identifier for " + iriId + "; we will use an original iri as the identifier.");
+		return (String) SerializationUtils.clone(iriId.toString());
 	}
 
 	public IRI getIRIByIdentifier(String id) {
