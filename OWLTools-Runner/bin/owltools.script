@@ -1,8 +1,22 @@
 #!/bin/bash
-# Path to this script/jar
-PATH_TO_SELF=`which $0`
-MY_NAME=`basename $0`
-MY_DIR=`dirname $0`
+
+IS_MAC="FALSE"
+if uname | grep -iq Darwin; then
+	IS_MAC="TRUE"
+fi
+	
+if [ $IS_MAC = "TRUE" ]
+then
+	# Path to this script/jar
+	PATH_TO_SELF=`which "$0"`
+	MY_NAME=`basename "$0"`
+	MY_DIR=`dirname "$0"`
+else
+	# Path to this script/jar
+	PATH_TO_SELF=`which $0`
+	MY_NAME=`basename $0`
+	MY_DIR=`dirname $0`
+fi	
 
 # Add possibly existing java args from $MY_NAME.vmoptions file or env var
 if [ -e "$PATH_TO_SELF.vmoptions" ]
@@ -21,7 +35,12 @@ fi
 JAVA=`which java`
 
 # full command
-CMD="$JAVA -Xms2G $JVM_OPTIONS -DentityExmpansionLimit=4086000 -Djava.awt.headless=true -classpath $PATH_TO_SELF owltools.cli.CommandLineInterface"
+if [ $IS_MAC = "TRUE" ]
+then
+	CMD="$JAVA -Xms2G $JVM_OPTIONS -DentityExmpansionLimit=4086000 -Djava.awt.headless=true -classpath \"$MY_DIR/owltools-oort-all.jar:$MY_DIR/owltools-runner-all.jar\" owltools.cli.CommandLineInterface"
+else
+	CMD="$JAVA -Xms2G $JVM_OPTIONS -DentityExmpansionLimit=4086000 -Djava.awt.headless=true -classpath $PATH_TO_SELF owltools.cli.CommandLineInterface"
+fi
 
 if [ $DEBUG ]
 then
@@ -29,6 +48,11 @@ then
 fi
 
 # Run
-exec "$JAVA" -Xms2G $JVM_OPTIONS -DentityExmpansionLimit=4086000 -Djava.awt.headless=true -classpath $PATH_TO_SELF owltools.cli.CommandLineInterface "$@"
+if [ $IS_MAC = "TRUE" ]
+then
+	exec "$JAVA" -Xms2G $JVM_OPTIONS -DentityExmpansionLimit=4086000 -Djava.awt.headless=true -classpath "$MY_DIR/owltools-oort-all.jar:$MY_DIR/owltools-runner-all.jar" owltools.cli.CommandLineInterface "$@"
+else
+	exec "$JAVA" -Xms2G $JVM_OPTIONS -DentityExmpansionLimit=4086000 -Djava.awt.headless=true -classpath $PATH_TO_SELF owltools.cli.CommandLineInterface "$@"
+fi
 
 exit 1
