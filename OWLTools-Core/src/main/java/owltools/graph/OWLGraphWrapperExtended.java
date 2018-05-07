@@ -848,8 +848,14 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return OBO-style identifier, using obo2owl mapping
 	 */
 	public String getIdentifier(OWLObject owlObject) {
-		String identifier = Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
-		return (String) SerializationUtils.clone(identifier);
+	    if (owlObject instanceof OWLNamedObject) {
+	        // https://github.com/owlcollab/owltools/pull/247
+	        IRI iri = ((OWLNamedObject)owlObject).getIRI();
+	        return getIdentifier(iri);
+	    }
+    
+    	String identifier = Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
+		  return (String) SerializationUtils.clone(identifier);
 	}
 
 	/**
