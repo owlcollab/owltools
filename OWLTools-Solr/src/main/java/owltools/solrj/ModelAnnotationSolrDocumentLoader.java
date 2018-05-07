@@ -56,7 +56,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
 	int current_doc_number;
 
-	private final OWLReasoner reasoner;
+	private OWLReasoner reasoner;
 	private final OWLOntology model;
 	private final String modelUrl;
 
@@ -149,14 +149,17 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		}
 		return result;
 	}
-	
+
 	@Override
 	public void close() throws IOException {
+		if (reasoner != null) {
+			reasoner.flush();
+			reasoner.dispose();
+			reasoner = null;
+		}
+		
 		graph.close();
-        if (reasoner != null) {
-            reasoner.dispose();
-        }
-
+		graph = null;
 	}
 
 	@Override

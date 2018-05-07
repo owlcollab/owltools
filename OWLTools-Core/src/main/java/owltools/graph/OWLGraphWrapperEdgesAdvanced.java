@@ -1350,4 +1350,3 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		}
 	}
 }
-
