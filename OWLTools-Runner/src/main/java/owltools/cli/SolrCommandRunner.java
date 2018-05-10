@@ -593,8 +593,6 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			boolean exitIfUnsatisfiable, boolean exitIfLoadFails) throws IOException {
 		String fname = legoFile.getName();
 		OWLReasoner currentReasoner = null;
-		OWLOntologyManager manager = pwr.getManager();
-
 		OWLOntology model = null;
 		ModelAnnotationSolrDocumentLoader loader = null;
 
@@ -609,7 +607,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			}
 
 			/**
-			 * DEEP-COPIES OWLOntology instance.
+			 * DEEP-COPIES ALL OWLOntology instances in the manager of the model.
 			 * Note that most serialization libraries such as Kryo or Cloner DO NOT work for
 			 * copying OWLOntology or reasoner instance. In other words, deep-copying ontology 
 			 * should be done via "copyOntology" method. This allows preventing memory leaks, i.e., 
@@ -617,12 +615,15 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			 * over copied instance, which can be safely disposed without blowing out of memory.
 			 */
 			OWLOntologyManager tempOWLManager = OWLManager.createOWLOntologyManager();
-			OWLOntology tModel = tempOWLManager.copyOntology(model, OntologyCopy.DEEP);
+			for(OWLOntology o: model.getOWLOntologyManager().getOntologies())
+				tempOWLManager.copyOntology(o, OntologyCopy.DEEP);
+
+			OWLOntology dcpModel = tempOWLManager.getOntology(model.getOntologyID());
 
 			// Some sanity checks--some of the generated ones are problematic.
 			// We need a consistent ontology for the closure calculations!
 			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
-			currentReasoner = reasonerFactory.createReasoner(tModel);
+			currentReasoner = reasonerFactory.createReasoner(dcpModel);
 			boolean consistent = currentReasoner.isConsistent();
 			if(consistent == false){
 				LOG.warn("Skip since inconsistent: " + fname);
@@ -634,12 +635,12 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			String modelUrl = legoModelPrefix + fname;
 
 			if (url.equals("mock")) {
-				loader = new MockModelAnnotationSolrDocumentLoader(url, tModel, currentReasoner, modelUrl, 
+				loader = new MockModelAnnotationSolrDocumentLoader(url, dcpModel, currentReasoner, modelUrl,
 						modelStateFilter, removeDeprecatedModels, removeTemplateModels);
 				isMock = true;
 			}
 			else {
-				loader = new ModelAnnotationSolrDocumentLoader(url, tModel, currentReasoner, modelUrl, 
+				loader = new ModelAnnotationSolrDocumentLoader(url, dcpModel, currentReasoner, modelUrl,
 						modelStateFilter, removeDeprecatedModels, removeTemplateModels);
 			}
 
@@ -650,7 +651,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			}
 
 			currentReasoner.dispose();
-			tempOWLManager.removeOntology(tModel);
+			tempOWLManager.removeOntology(dcpModel);
 		} catch (Exception e) {
 			LOG.info("Complex annotation load of " + fname + " at " + url + " failed!");
 			e.printStackTrace();
@@ -658,11 +659,10 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			if (exitIfLoadFails)
 				System.exit(1);
 		} finally {
-			manager.removeOntology(model);
 			if (loader != null) {
+				LOG.info("Finalizing the current loader...");
 				loader.close();
 				loader = null;
-				LOG.info("Closing the current loader...");
 			}
 		}
 	}

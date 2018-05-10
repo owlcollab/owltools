@@ -680,12 +680,13 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		}
 		return relation_map;
 	}
-	
+
 	private void addIdLabelClosure(OWLClass c, boolean reflexive, 
-			final Set<OWLObjectProperty> props, final Map<String,String> relation_map) {
+			final Set<OWLObjectProperty> props, final Map<String,String> relation_map) {		
 		addPropertiesForMaterialization(props);
 		ExpressionMaterializingReasoner materializingReasoner = getMaterializingReasoner();
 		Set<OWLClassExpression> classExpressions = materializingReasoner.getSuperClassExpressions(c, false);
+
 		OWLEntity owlThing = this.getManager().getOWLDataFactory().getOWLThing();
 		
 		// remove owl:Thing - although logically valid, it is not of use to the consumer

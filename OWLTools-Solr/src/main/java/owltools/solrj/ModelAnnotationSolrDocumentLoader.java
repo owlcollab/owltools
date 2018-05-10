@@ -87,12 +87,12 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	private boolean skipDeprecatedModels;
 	private boolean skipTemplateModels;
 
-	public ModelAnnotationSolrDocumentLoader(String golrUrl, OWLOntology model, OWLReasoner r, String modelUrl, 
+	public ModelAnnotationSolrDocumentLoader(String golrUrl, OWLOntology model, OWLReasoner r, String modelUrl,
 			Set<String> modelFilter, boolean skipDeprecatedModels, boolean skipTemplateModels) throws MalformedURLException {
 		this(createDefaultServer(golrUrl), model, r, modelUrl, modelFilter, skipDeprecatedModels, skipTemplateModels);
 	}
-	
-	public ModelAnnotationSolrDocumentLoader(SolrServer server, OWLOntology model, OWLReasoner r, String modelUrl, 
+
+	public ModelAnnotationSolrDocumentLoader(SolrServer server, OWLOntology model, OWLReasoner r, String modelUrl,
 			Set<String> modelFilter, boolean skipDeprecatedModels, boolean skipTemplateModels) {
 		super(server);
 		this.model = model;
@@ -106,12 +106,12 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		OWLDataFactory df = graph.getDataFactory();
 		partOf = OBOUpperVocabulary.BFO_part_of.getObjectProperty(df);
 		occursIn = OBOUpperVocabulary.BFO_occurs_in.getObjectProperty(df);
-		
+
 		defaultClosureRelations = new ArrayList<String>(1);
 		defaultClosureRelations.add(graph.getIdentifier(partOf));
-		
+
 		enabledBy = OBOUpperVocabulary.GOREL_enabled_by.getObjectProperty(df);
-		
+
 		title = df.getOWLAnnotationProperty(IRI.create("http://purl.org/dc/elements/1.1/title"));
 		source = df.getOWLAnnotationProperty(IRI.create("http://purl.org/dc/elements/1.1/source"));
 		contributor = df.getOWLAnnotationProperty(IRI.create("http://purl.org/dc/elements/1.1/contributor"));
@@ -123,29 +123,31 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 		layoutHintX = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/hint/layout/x"));
 		layoutHintY = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/hint/layout/y"));
 		templatestate = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/templatestate"));
-		
+
 		displayLabelProp = df.getRDFSLabel();
 		shortIdProp = df.getOWLAnnotationProperty(IRI.create(Obo2OWLConstants.OIOVOCAB_IRI_PREFIX+"id"));
-		
 		jsonProp = df.getOWLAnnotationProperty(IRI.create("http://geneontology.org/lego/json-model"));
-		
+
 		bpSet = getAspect(graph, "biological_process");
 	}
 
-	static Set<OWLClass> getAspect(OWLGraphWrapper graph, String aspect) {
+	Set<OWLClass> getAspect(OWLGraphWrapper graph, String aspect) {
 		Set<OWLClass> result = new HashSet<OWLClass>();
+
+		// Literally computing all subclasses of the root class labeled with "biological process"
+		OWLClass c = model.getOWLOntologyManager().getOWLDataFactory().getOWLClass(IRI.create("http://purl.obolibrary.org/obo/GO_0008150"));
+		Set<OWLClass> subClassBPSet = reasoner.getSubClasses(c, false).getFlattened();
+
 		for(OWLClass cls : graph.getAllOWLClasses()) {
-			if (cls.isBuiltIn()) {
+			if (cls.isBuiltIn())
 				continue;
-			}
+
 			String id = graph.getIdentifier(cls);
-			if (id.startsWith("GO:") == false) {
+			if (id.startsWith("GO:") == false) 
 				continue;
-			}
-			String namespace = graph.getNamespace(cls);
-			if (namespace != null && namespace.equals(aspect)) {
+
+			if (subClassBPSet.contains(cls))
 				result.add(cls);
-			}
 		}
 		return result;
 	}
@@ -166,7 +168,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 	public void load() throws SolrServerException, IOException {
 		LOG.info("Loading complex annotation document...");
 		final OWLShuntGraph shuntGraph = createShuntGraph(graph);
-		
+
 		String modelId = null;
 		String modelDate = null;
 		String title = null;
@@ -217,7 +219,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 			// fallback
 			modelId = model.getOntologyID().getOntologyIRI().get().toString();
 		}
-		
+
 		if (requiredModelStates != null && state != null) {
 			boolean contains = requiredModelStates.contains(state);
 			if (contains == false) {
@@ -249,6 +251,7 @@ public class ModelAnnotationSolrDocumentLoader extends AbstractSolrLoader implem
 					final Set<OWLAnnotation> mfAnnotations = getAnnotations(null, mfNamed);
 					Map<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> processes = findProcesses(mfNamed);
 					Map<OWLClass, Pair<OWLNamedIndividual, Set<OWLAnnotation>>> locations = findLocations(mfNamed);
+
 					for(OWLClass gpType : gpTypes) {
 						for(OWLClass mfType : mfTypes) {
 							if (processes.isEmpty() == false) {
