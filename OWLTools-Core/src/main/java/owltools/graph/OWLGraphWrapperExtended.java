@@ -624,7 +624,6 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 */
 	public String getNamespace(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_NAMESPACE.getTag());
-		System.out.println("c: "+ c + " lap: " + lap);
 		return getAnnotationValue(c, lap);
 	}
 
