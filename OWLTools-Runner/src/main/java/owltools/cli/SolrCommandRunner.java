@@ -613,6 +613,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			 * should be done via "copyOntology" method. This allows preventing memory leaks, i.e., 
 			 * running reasoners affects the model (OWLOntology instance) but the changes only happen 
 			 * over copied instance, which can be safely disposed without blowing out of memory.
+			 * See also: https://github.com/owlcollab/owltools/issues/253#issuecomment-388415035
 			 */
 			OWLOntologyManager tempOWLManager = OWLManager.createOWLOntologyManager();
 			for(OWLOntology o: model.getOWLOntologyManager().getOntologies())
