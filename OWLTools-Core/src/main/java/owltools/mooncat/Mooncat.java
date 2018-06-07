@@ -1188,6 +1188,8 @@ public class Mooncat {
 	 * given an ontology *ont* and a set of object properties *filterProps*, remove all axioms from ontology that
 	 * have an object property P in their signature where P is not in *filterProps*
 	 * 
+	 * use basic reasoning to map up more specific relationships
+	 * 
 	 * @param ont
 	 * @param filterProps
 	 * @param reasoner

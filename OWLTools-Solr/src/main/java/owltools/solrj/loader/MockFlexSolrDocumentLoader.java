@@ -2,6 +2,7 @@ package owltools.solrj.loader;
 
 import java.net.MalformedURLException;
 
+import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.common.SolrInputDocument;
 
@@ -10,6 +11,8 @@ import owltools.solrj.FlexSolrDocumentLoader;
 
 public class MockFlexSolrDocumentLoader extends FlexSolrDocumentLoader implements MockSolrDocumentLoader {
     
+    private static Logger LOG = Logger.getLogger(MockFlexSolrDocumentLoader.class);
+
     public MockFlexSolrDocumentLoader(FlexCollection c) throws MalformedURLException {
         super((SolrServer)null, c);
     }
@@ -17,6 +20,7 @@ public class MockFlexSolrDocumentLoader extends FlexSolrDocumentLoader implement
     final MockSolrDocumentCollection documentCollection = new MockSolrDocumentCollection();
     @Override
     public void add(SolrInputDocument doc) {
+        LOG.info("Adding: "+doc);
         documentCollection.add(doc);
     }
     
