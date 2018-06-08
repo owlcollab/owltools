@@ -34,4 +34,22 @@ public class MockSolrLoadCommandRunnerTest extends AbstractCommandRunnerTest {
 		System.setOut(out);
 	}
 	
+	@Test
+	public void testRunnerOboIds() throws Exception {
+
+	    PrintStream out = System.out;
+	    System.setOut(new PrintStream(new BufferedOutputStream(new FileOutputStream("target/oboids.json"))));
+
+	    String confpath  = getResource("ont-config.yaml").getAbsolutePath();
+	    
+	    init();    
+	    load("obo-ids-test.owl");
+	    run("--reasoner elk");
+	    run("--solr-url mock");
+        run("--solr-config "+ confpath);
+        run("--solr-load-ontology");
+	    System.setOut(out);
+	    System.out.println("Done!");
+	}
+	
 }

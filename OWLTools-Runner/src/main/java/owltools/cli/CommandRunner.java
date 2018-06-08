@@ -36,8 +36,6 @@ import java.util.UUID;
 import java.util.Vector;
 import java.util.stream.Collectors;
 
-import javax.annotation.processing.SupportedOptions;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
@@ -45,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
-import org.forester.phylogeny.data.Annotation;
 import org.geneontology.reasoner.ExpressionMaterializingReasoner;
 import org.geneontology.reasoner.ExpressionMaterializingReasonerFactory;
 import org.geneontology.reasoner.OWLExtendedReasoner;
@@ -130,6 +127,21 @@ import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
+import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
+import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+
+import de.derivo.sparqldlapi.Query;
+import de.derivo.sparqldlapi.QueryArgument;
+import de.derivo.sparqldlapi.QueryBinding;
+import de.derivo.sparqldlapi.QueryEngine;
+import de.derivo.sparqldlapi.QueryResult;
+import de.derivo.sparqldlapi.exceptions.QueryEngineException;
+import de.derivo.sparqldlapi.exceptions.QueryParserException;
+import de.derivo.sparqldlapi.types.QueryArgumentType;
 import owltools.InferenceBuilder.OWLClassFilter;
 import owltools.RedundantInferences;
 import owltools.RedundantInferences.RedundantAxiom;
@@ -178,6 +190,7 @@ import owltools.mooncat.PropertyExtractor;
 import owltools.mooncat.PropertyViewOntologyBuilder;
 import owltools.mooncat.ProvenanceReasonerWrapper;
 import owltools.mooncat.QuerySubsetGenerator;
+import owltools.mooncat.RedundantAxiomTagger;
 import owltools.mooncat.SpeciesMergeUtil;
 import owltools.mooncat.SpeciesSubsetterUtil;
 import owltools.mooncat.TransformationUtils;
@@ -197,23 +210,6 @@ import owltools.util.OwlHelper;
 import owltools.web.OWLServer;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
-
-import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
-import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.common.collect.Sets.SetView;
-
-import de.derivo.sparqldlapi.Query;
-import de.derivo.sparqldlapi.QueryArgument;
-import de.derivo.sparqldlapi.QueryBinding;
-import de.derivo.sparqldlapi.QueryEngine;
-import de.derivo.sparqldlapi.QueryResult;
-import de.derivo.sparqldlapi.exceptions.QueryEngineException;
-import de.derivo.sparqldlapi.exceptions.QueryParserException;
-import de.derivo.sparqldlapi.types.QueryArgumentType;
 
 /**
  * An instance of this class can execute owltools commands in sequence.
@@ -709,7 +705,7 @@ public class CommandRunner extends CommandRunnerBase {
                 g.getManager().removeAxioms(g.getSourceOntology(), rmAxioms);
             }
             else if (opts.nextEq("--make-subset-by-properties")) {
-                opts.info("PROPERTY-LIST",
+                opts.info("[-n] [-f] PROPERTY-LIST",
                         "make an ontology subset that excludes axioms that use properties not in the specified set.\n"+
                                 " Note the ontology should be relaxed e.g. X=A and R some B ==> X SubClassOf A" +
                                 "  A property list is a space-separated list of object property OBO-IDs, shorthands, URIs, or labels.\n"+
@@ -720,9 +716,11 @@ public class CommandRunner extends CommandRunnerBase {
                 boolean isSuppressRemoveDangling = false;
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-f|--force")) {
+                        opts.info("", "do not removing dangling");
                         isForceRemoveDangling = true;
                     }
                     else if (opts.nextEq("-n|--no-remove-dangling")) {
+                        opts.info("", "do not removing dangling");
                         isSuppressRemoveDangling = true;
                     }
                     else {
@@ -3930,7 +3928,7 @@ public class CommandRunner extends CommandRunnerBase {
                             OWLClass c = g.getDataFactory().getOWLClass((IRI)sub);
                             OWLDeclarationAxiom ax = g.getDataFactory().getOWLDeclarationAxiom(c);
                             g.getManager().addAxiom(g.getSourceOntology(), ax);
-                        }						
+                        }                       
                     }
                 }
             }
@@ -5108,6 +5106,10 @@ public class CommandRunner extends CommandRunnerBase {
         mgr.addAxioms(g.getSourceOntology(), newAxioms);
     }
 
+    @CLIMethod("--tag-entailed-axioms")
+    public void tagEntailedAxioms(Opts opts) throws Exception {
+        RedundantAxiomTagger.tagRedundantAxioms(reasoner);
+    }
     @CLIMethod("--assert-inferred-subclass-axioms")
     public void assertInferredSubClassAxioms(Opts opts) throws Exception {
         opts.info("[--removeRedundant] [--keepRedundant] [--always-assert-super-classes] [--markIsInferred] [--useIsInferred] [--ignoreNonInferredForRemove] [--allowEquivalencies] [--reportProfile]",
