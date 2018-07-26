@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
+import org.semanticweb.owlapi.util.PriorityCollection;
 
 import owltools.OWLToolsTestBasics;
 import owltools.io.CatalogXmlIRIMapper;
@@ -23,7 +25,9 @@ public class ProvenanceReasonerWrapperTest extends OWLToolsTestBasics {
 	@Test
 	public void testReason() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
-		pw.getManager().getIRIMappers().add(new CatalogXmlIRIMapper(getResource("mooncat/eq-lattice/catalog-v001.xml")));
+		CatalogXmlIRIMapper cm = new CatalogXmlIRIMapper(getResource("mooncat/eq-lattice/catalog-v001.xml"));
+		PriorityCollection<OWLOntologyIRIMapper> im = pw.getManager().getIRIMappers();
+		im.add(cm);
 
 		OWLOntology o = pw.parseOWL(getResourceIRIString("mooncat/eq-lattice/eq-with-imports.owl"));
 		
