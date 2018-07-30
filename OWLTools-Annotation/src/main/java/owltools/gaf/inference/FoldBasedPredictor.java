@@ -171,6 +171,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			// step 2: reasoner
 			reasoner = new ExpressionMaterializingReasonerFactory(new ElkReasonerFactory()).createReasoner(generatedContainer);
 			reasoner.setIncludeImports(true);
+			LOG.info("Materializing expressions for props: "+defaultProperties);
 			reasoner.materializeExpressions(defaultProperties);
 			
 			

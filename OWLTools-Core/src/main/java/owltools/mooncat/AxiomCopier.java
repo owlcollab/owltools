@@ -1,11 +1,14 @@
 package owltools.mooncat;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -22,12 +25,14 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyChange;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
@@ -47,12 +52,22 @@ import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
  */
 public class AxiomCopier {
     
+    private static Logger LOG = Logger.getLogger(AxiomCopier.class);
+    
     /**
      * If true, copy axiom over even if it exists in target.
      * We may want to do this if we want to annotate an axiom with all sources
      */
     public boolean isCopyDuplicates = false;
-    
+
+    public boolean isCopyDuplicatesOnly = false;
+
+    /**
+     * If true, exclude annotation axiom if we already have seen the literal
+     * (regardless of axiom)
+     */
+    public boolean isFreshLiteralsOnly = false;
+
     /**
      * If true, check all incoming axioms to ensure they do not cause
      * incoherency
@@ -63,9 +78,15 @@ public class AxiomCopier {
      * We have 2 strategies; see below
      */
     public boolean isUseConservative = true;
+    
+    public boolean isIncludeUnmapped = false;
+    
     public OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
     
-    
+    public boolean isCopyLabelToExactSynonym = false;
+
+    public boolean isIncludeInferred = false;
+        
     
     /**
      * Simple IRI-value pairs representing an Annotation minus property
@@ -157,6 +178,7 @@ public class AxiomCopier {
      * @throws OWLOntologyCreationException 
      */
     public Set<OWLAxiom> copyAxioms(OWLOntology sourceOnt, OWLOntology targetOnt, OWLOntology mapOnt) throws OWLOntologyCreationException {
+        LOG.info("Copying axioms...");
         
         // axioms in targetOnt (minus annotations)
         Set<OWLAxiom> axiomsExisting  = new HashSet<>();
@@ -169,6 +191,11 @@ public class AxiomCopier {
         
         // reflexive mappings of classes S->T
         Map<OWLClass, OWLClass> eqMap = new HashMap<>();
+        
+        // all literals encountered
+        Set<String> literals = new HashSet<String>();
+        
+        
         
         OWLDataFactory df = targetOnt.getOWLOntologyManager().getOWLDataFactory();
         
@@ -195,6 +222,15 @@ public class AxiomCopier {
                 OWLAnnotationAssertionAxiom aax = (OWLAnnotationAssertionAxiom)ax;
                 AnnTuple tup = getAnnTuple(aax);
                 annTuples.add(tup);
+                literals.add(tup.val);
+            }
+        }
+        LOG.info("AnnTuples = "+annTuples.size());
+        
+        if (isIncludeUnmapped) {
+            // seed with reflexive mappings
+            for (OWLClass c : sourceOnt.getClassesInSignature(Imports.EXCLUDED)) {
+                eqMap.put(c, c);
             }
         }
         
@@ -213,12 +249,42 @@ public class AxiomCopier {
                 }
             }
         }        
+        LOG.info("eqMap = "+eqMap.size());
         
         Set<OWLAxiom> axiomsToAdd  = new HashSet<>();
         
         Set<OWLAxiom> srcAxioms = sourceOnt.getAxioms(Imports.EXCLUDED);
         
+        Set<OWLAxiom> inferredSrcAxioms = new HashSet<>();
+        if (isIncludeInferred) {
+            
+            LOG.info("computing inferred source axioms; orig = "+srcAxioms.size());
+            OWLReasoner reasoner = reasonerFactory.createReasoner(sourceOnt);
+            for (OWLClass c : sourceOnt.getClassesInSignature()) {
+                
+                Set<OWLClass> ancs = new HashSet<>(reasoner.getSuperClasses(c, false).getFlattened());
+                ancs.removeAll(reasoner.getSuperClasses(c, true).getFlattened());
+                LOG.info("C= "+c +" ancs = "+ancs.size());
+                for (OWLClass a : ancs) {
+                    String id = c.getIRI().toString();
+                    id = id.replaceAll(".*/", "");
+                    id = id.replaceAll("_", ":");
+
+                    OWLAnnotationProperty p = 
+                            df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#source"));
+                    OWLAnnotation ann = df.getOWLAnnotation(p, df.getOWLLiteral(id+"/inferred"));
+                    OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(c, a, Collections.singleton(ann));
+                    srcAxioms.add(ax);
+                    inferredSrcAxioms.add(ax);
+                }
+                
+            }
+            LOG.info("computed inferred source axioms; total = "+srcAxioms.size());
+        }
+        
         if (isTestForCoherency) {
+            LOG.info("testing for coherency");
+            
             Set<OWLAxiom> badAxioms = findIncoherentAxioms(reasonerFactory, sourceOnt, targetOnt, mapOnt);
             System.out.println("ORIG:"+srcAxioms.size());
             System.out.println("INCOHERENCY-CAUSING AXIOMS:"+badAxioms.size());
@@ -253,9 +319,24 @@ public class AxiomCopier {
                                     eqMap.get(supc), 
                                     anns(df, srcClass, false));
                             
+                            // preserve original annotations for inferred
+                            // (we previously stamp these)
+                            if (inferredSrcAxioms.contains(ax)) {
+                                newAxiom = df.getOWLSubClassOfAxiom(eqMap.get(srcClass), 
+                                        eqMap.get(supc), 
+                                        ax.getAnnotations());
+                            }
+                            
+                            boolean isAdd = false;
                             // add copy to list
                             if (isCopyDuplicates ||
                                     !axiomsExisting.contains(newAxiom.getAxiomWithoutAnnotations())) {
+                                isAdd = true;
+                            }
+                            if (isCopyDuplicatesOnly) {
+                                isAdd = axiomsExisting.contains(newAxiom.getAxiomWithoutAnnotations());
+                            }
+                            if (isAdd) {
                                 axiomsToAdd.add(newAxiom);
                             }
                         }
@@ -276,11 +357,19 @@ public class AxiomCopier {
                                             df.getOWLObjectSomeValuesFrom(x.getProperty(), eqMap.get(supc)),
                                             anns(df, srcClass, false));
 
+                                    boolean isAdd = false;
                                     // add copy to list
                                     if (isCopyDuplicates ||
                                             !axiomsExisting.contains(newAxiom.getAxiomWithoutAnnotations())) {
+                                        isAdd = true;
+                                    }
+                                    if (isCopyDuplicatesOnly) {
+                                        isAdd = axiomsExisting.contains(newAxiom.getAxiomWithoutAnnotations());
+                                    }
+                                    if (isAdd) {
                                         axiomsToAdd.add(newAxiom);
                                     }
+
                                 }
                             }
                         }
@@ -305,19 +394,36 @@ public class AxiomCopier {
                     
                     // OBO convention: xref annotations are treated differently for
                     // axiom annotations (as are defs)
-                    boolean isXrefAnn = aax.getProperty().getIRI().toString().contains("Synonym");
-                    
-                    OWLAnnotationAssertionAxiom newAxiom = df.getOWLAnnotationAssertionAxiom(aax.getProperty(), 
-                            eqMap.get(srcClass).getIRI(),
-                            aax.getValue(),
-                            anns(df, srcClass, isXrefAnn));
-                    AnnTuple tup = getAnnTuple(newAxiom);
+                    boolean isXrefAnn = 
+                            aax.getProperty().getIRI().toString().contains("Synonym") || 
+                            aax.getProperty().getIRI().toString().equals("http://purl.obolibrary.org/obo/IAO_0000115");
+                    OWLAnnotationProperty ap1 = aax.getProperty();
+                    Set<OWLAnnotationProperty> aps = new HashSet<>();
+                    aps.add(ap1);
+                    if (ap1.isLabel()) {
+                        if (isCopyLabelToExactSynonym) {
+                            OWLAnnotationProperty sp = 
+                                    df.getOWLAnnotationProperty(IRI.create("http://www.geneontology.org/formats/oboInOwl#hasExactSynonym"));
 
-                    boolean isDupe = annTuples.contains(tup) || 
-                            axiomsExisting.contains(newAxiom.getAxiomWithoutAnnotations());
-                    if (isCopyDuplicates || !isDupe) {
-                            axiomsToAdd.add(newAxiom);
+                            aps.add(sp);
+                        }
                     }
+                    for (OWLAnnotationProperty ap: aps) {
+                        OWLAnnotationAssertionAxiom newAxiom = df.getOWLAnnotationAssertionAxiom(ap, 
+                                eqMap.get(srcClass).getIRI(),
+                                aax.getValue(),
+                                anns(df, srcClass, isXrefAnn));
+                        AnnTuple tup = getAnnTuple(newAxiom);
+
+                        boolean isDupe = annTuples.contains(tup) || 
+                                axiomsExisting.contains(newAxiom.getAxiomWithoutAnnotations());
+                        if (isFreshLiteralsOnly && literals.contains(tup.val))
+                            isDupe = true;
+                        if (isCopyDuplicates || !isDupe) {
+                            axiomsToAdd.add(newAxiom);
+                        }
+                    }
+                    axiomsToAdd.add(df.getOWLDeclarationAxiom(eqMap.get(srcClass)));
                 }
             }
             else {
@@ -325,6 +431,7 @@ public class AxiomCopier {
 
             }
         }
+        LOG.info("Axioms to add = "+axiomsToAdd.size());
         return axiomsToAdd;
     }
 
@@ -359,6 +466,7 @@ public class AxiomCopier {
             v = av.toString();
         }
         v = v.toLowerCase();
+        v = v.replaceAll("^ +", "").replaceAll(" +$", "");
         return new AnnTuple((IRI)aax.getSubject(), v);
     }
 
@@ -440,6 +548,93 @@ public class AxiomCopier {
         return badAxioms;
         
     }
- 
+    
+    public class IdAssigner {
+        public OWLOntology ontology;
+        public String prefix;
+        Integer lastId = 0;
+        Set<String> taken = null;
+    }
+    
+    public IRI getNextId(IdAssigner ida) {
+        //int id = ida.lastId;
+        Set<String> taken = ida.taken;
+        
+        if (taken == null) {
+            taken = new HashSet<>();
+            for (OWLClass cls : ida.ontology.getClassesInSignature()) {
+                String frag = cls.getIRI().getFragment();
+                String[] parts = frag.split("_");
+                if (parts.length == 2) {
+                    String id = parts[0] + ":" + parts[1];
+                    taken.add(id);
+                    String prefix = parts[0];
+                    if (ida.prefix == null)
+                        ida.prefix = prefix;
+                    if (ida.prefix.equals(prefix)) {
 
+                    }
+                    else {
+                        //
+                    }
+                }
+                else {
+                    // warn
+                }
+            }
+        }
+        String id = null;
+        while (id == null) {
+            ida.lastId ++;
+            String nextid = ida.prefix + String.format(":%07d", ida.lastId);
+            if (!taken.contains(nextid)) {
+                id = nextid;
+            }
+        }
+        
+        return IRI.create(id);
+        
+    }
+    
+    public void remintOntologyIds(OWLOntology ontology, String prefix, boolean isCreateLabels) {
+        IdAssigner ida = new IdAssigner();
+        ida.ontology = ontology;
+        ida.prefix = prefix;
+        remintOntologyIds(ontology, ida, isCreateLabels);
+    }
+ 
+    /**
+     * Mint new IDs for all classes in an ontology
+     * 
+     * @param ontology
+     * @param ida
+     */
+    public void remintOntologyIds(OWLOntology ontology, IdAssigner ida, boolean isCreateLabels) {
+        if (ida == null) {
+            ida = new IdAssigner();
+            ida.ontology = ontology;
+        }
+        OWLOntologyManager m = ontology.getOWLOntologyManager();
+        OWLDataFactory df = m.getOWLDataFactory();
+        Map<IRI, IRI> iriMap = new HashMap<>();
+        OWLEntityRenamer renamer = new OWLEntityRenamer(m, 
+                ontology.getImportsClosure());
+        List<OWLOntologyChange> changes = new ArrayList<OWLOntologyChange> ();
+        for (OWLClass c : ontology.getClassesInSignature()) {
+            IRI id = getNextId(ida);
+            iriMap.put(c.getIRI(), id);
+            List<OWLOntologyChange> ch = 
+                    renamer.changeIRI(c.getIRI(), id);
+            changes.addAll(ch);
+            if (isCreateLabels) {
+                String label = c.getIRI().getFragment();
+                label = label.replaceAll("_", " ");
+                OWLAnnotationValue value = df.getOWLLiteral(label);
+                OWLAnnotationAssertionAxiom ax = 
+                        df.getOWLAnnotationAssertionAxiom(df.getRDFSLabel(), id, value);
+                m.addAxiom(ontology, ax);
+            }
+        }
+        m.applyChanges(changes);
+    }
 }
