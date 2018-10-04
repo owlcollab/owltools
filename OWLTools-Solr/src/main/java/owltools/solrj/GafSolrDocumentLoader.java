@@ -48,20 +48,20 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	PANTHERForest pset = null;
 	String taxonSubsetName = "model_slim";
 	String ecoSubsetName = null;
-	
+
 
 	GafDocument gafDocument;
 	int doc_limit_trigger = 1000; // the number of documents to add before pushing out to solr
 	//int doc_limit_trigger = 1; // the number of documents to add before pushing out to solr
 	int current_doc_number = 0;
-	
+
 	public GafSolrDocumentLoader(String url) throws MalformedURLException {
 		super(url);
 	}
-	
+
 	/**
 	 * Use for test purposes.
-	 * 
+	 *
 	 * @param server
 	 * @param triggerLimit
 	 */
@@ -81,7 +81,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	public void setEcoTools(EcoTools inEco) {
 		this.eco = inEco;
 	}
-	
+
 	public void setTaxonTools(TaxonTools inTaxo) {
 		this.taxo = inTaxo;
 	}
@@ -89,15 +89,15 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	public void setPANTHERSet(PANTHERForest inPSet) {
 		this.pset = inPSet;
 	}
-	
+
 	public void setTaxonSubsetName(String taxonSubsetName) {
 		this.taxonSubsetName = taxonSubsetName;
 	}
-	
+
 	public void clearTaxonSubsetName() {
 		this.taxonSubsetName = null;
 	}
-	
+
 	public void setEcoSubsetName(String ecoSubsetName) {
 		this.ecoSubsetName = ecoSubsetName;
 	}
@@ -111,7 +111,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		gafDocument.index();
 		LOG.info("Iteratively loading: " + gafDocument.getDocumentPath());
 		Collection<Bioentity> bioentities = gafDocument.getBioentities();
-		final int bioentityCount = bioentities.size(); 
+		final int bioentityCount = bioentities.size();
 		for (Bioentity e : bioentities) {
 			add(e);
 			current_doc_number++;
@@ -129,30 +129,30 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	 * Helper class to hold taxon specific information.
 	 */
 	private class TaxonDetails {
-		
+
 		final String taxId;
 		String taxLbl = null;
-		
+
 		List<String> taxIDClosure = new ArrayList<String>();
 		List<String> taxLabelClosure = new ArrayList<String>();
 		Map<String,String> taxonClosureMap = new HashMap<String,String>();
-		
+
 		// subset reflexive closure
 		List<String> taxSubsetIDClosure = new ArrayList<String>();
 		List<String> taxSubsetLabelClosure = new ArrayList<String>();
 		Map<String,String> taxonSubsetClosureMap = new HashMap<String,String>();
-		
+
 		private TaxonDetails(String taxId) {
 			this.taxId = taxId;
 		}
-		
+
 		private void addToSolrDocument(SolrInputDocument bioentity_doc) {
 			bioentity_doc.addField("taxon", taxId);
-			
+
 			if(taxLbl != null) {
 				bioentity_doc.addField("taxon_label", taxLbl);
 			}
-			
+
 			if (taxonClosureMap.isEmpty() == false) {
 				bioentity_doc.addField("taxon_closure", taxIDClosure);
 				bioentity_doc.addField("taxon_closure_label", taxLabelClosure);
@@ -166,7 +166,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			}
 		}
 	}
-	
+
 	/**
 	 * This method will create one or two closures for any given taxon id:
 	 * <ol>
@@ -174,13 +174,13 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 	 * <li>IF {@link #taxonSubsetName} not null: intersection of the closure
 	 * with the subset, plus the taxon itself</li>
 	 * </ol>
-	 * 
+	 *
 	 * @param taxonId
 	 * @return details
 	 */
 	private TaxonDetails createTaxonDetails(final String taxonId) {
 		final TaxonDetails details = new TaxonDetails(taxonId);
-		
+
 		// Add taxon_closure and taxon_closure_label.
 		final OWLClass taxCls = graph.getOWLClassByIdentifier(taxonId);
 		if (taxCls == null) {
@@ -193,9 +193,9 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		String taxonLbl = graph.getLabel(taxCls);
 		details.taxLbl = taxonLbl;
 		Set<OWLClass> taxAncestors = taxo.getAncestors(taxCls, false); // make non-reflexive on purpose
-		
+
 		// Collect information: ids, labels, and mapping for full taxon and subset
-		
+
 		// handle self (aka reflexive)
 		details.taxIDClosure.add(taxonId);
 		details.taxLabelClosure.add(taxonLbl);
@@ -210,7 +210,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			details.taxIDClosure.add(tid);
 			details.taxLabelClosure.add(tlbl);
 			details.taxonClosureMap.put(tid, tlbl);
-			
+
 			List<String> subsets = graph.getSubsets(ts);
 			if (taxonSubsetName != null && subsets.contains(taxonSubsetName)) {
 				taxonSubsetUsed = true;
@@ -219,7 +219,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				details.taxonSubsetClosureMap.put(tid, tlbl);
 			}
 		}
-		
+
 		// only add self, if taxon subset was ever used!
 		if (taxonSubsetUsed) {
 			details.taxSubsetIDClosure.add(taxonId);
@@ -227,10 +227,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			details.taxonSubsetClosureMap.put(taxonId, taxonLbl);
 		}
 
-		
+
 		return details;
 	}
-	
+
 	// Main wrapping for adding non-ontology documents to GOlr.
 	// Also see OntologySolrLoader.
 	private void add(Bioentity e) {
@@ -242,9 +242,9 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		String ename = e.getFullName();
 		String edbid = e.getDBID();
 		//LOG.info("Adding: " + eid + " " + esym);
-		
+
 		SolrInputDocument bioentity_doc = new SolrInputDocument();
-		
+
 		// Bioentity document base.
 		bioentity_doc.addField("document_category", "bioentity");
 		bioentity_doc.addField("id", eid);
@@ -260,7 +260,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		if( ! esynonyms.isEmpty() ){
 			bioentity_doc.addField("synonym", esynonyms);
 		}
-		
+
 		// Various taxon and taxon closure calculations, including map.
 		String etaxid = e.getNcbiTaxonId();
 		TaxonDetails taxonDetails = null;
@@ -290,8 +290,8 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					//pantherTreeAnnDescendants = new ArrayList<String>(ptree.getDescendantAnnotations(eid));
 					if( pcnt > 1 ){ // DEBUG
 						LOG.info("Belongs to multiple families (" + eid + "): " + StringUtils.join(pantherFamilyIDs, ", "));
-					}					
-					
+					}
+
 					// Store that we saw this for later use in the tree.
 					ptree.addAssociatedGeneProduct(eid, esym);
 				}
@@ -304,7 +304,10 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// family (eg something with fly in PTHR10919 PTHR10032), so we block it and just choose the first.
 			bioentity_doc.addField("panther_family", pantherFamilyIDs.get(0));
 			bioentity_doc.addField("panther_family_label", pantherFamilyLabels.get(0));
-			bioentity_doc.addField("phylo_graph_json", pantherTreeGraphs.get(0));
+			// No longer load this field due to increased
+			// size or use:
+			// https://github.com/geneontology/amigo/issues/542
+			//bioentity_doc.addField("phylo_graph_json", pantherTreeGraphs.get(0));
 			//if( ! pantherTreeAnnAncestors.isEmpty() ){
 			//	bioentity_doc.addField("phylo_ancestor_closure", pantherTreeAnnAncestors);
 			//}
@@ -318,12 +321,12 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		// the annotation loop. We'll add to the document on the other side.
 		// Collect information: ids and labels.
 		Map<String,String> direct_list_map = new HashMap<String,String>();
-		
+
 		// Something that we'll need for the annotation evidence aggregate later.
 		Map<String,SolrInputDocument> evAggDocMap = new HashMap<String,SolrInputDocument>();
-		
+
 		// Annotation doc.
-		// We'll also need to be collecting some aggregate information, like for the GP term closures, which will be 
+		// We'll also need to be collecting some aggregate information, like for the GP term closures, which will be
 		// added at the end of this section.
 		Map<String, String> isap_map = new HashMap<String, String>();
 		Map<String, String> reg_map = new HashMap<String, String>();
@@ -355,7 +358,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("assigned_by", assgnb); // Col. 15
 			// NOTE: Col. generation is 16 below...
 			annotation_doc.addField("bioentity_isoform", a.getGeneProductForm()); // Col. 17
-			
+
 			// Optionally, if there is enough taxon for a map, add the collections to the document.
 			if( taxonDetails != null ){
 				taxonDetails.addToSolrDocument(annotation_doc);
@@ -401,7 +404,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					annotation_doc.addField("qualifier", "cut");
 				}
 			}
-			
+
 			// Drag in the reference (col 6)
 			List<String> refIds = a.getReferenceIds();
 			String refIdList = ""; // used to help make unique ID.
@@ -417,11 +420,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 				annotation_doc.addField("evidence_with", wi);
 				withList = withList + "_" + wi;
 			}
-			
+
 			///
 			/// isa_partof_closure
 			///
-			
+
 			OWLObject cls = graph.getOWLObjectByIdentifier(clsId);
 			// TODO: This may be a bug workaround, or it may be the way things are.
 			// getOWLObjectByIdentifier returns null on alt_ids, so skip them for now.
@@ -452,31 +455,31 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			ArrayList<String> aecc_rels = new ArrayList<String>();
 			aecc_rels.add("BFO:0000050");
 			// And capture the label and ID mappings for when we're done the loop.
-			Map<String,String> ann_ext_map = new HashMap<String,String>(); // capture labels/ids			
+			Map<String,String> ann_ext_map = new HashMap<String,String>(); // capture labels/ids
 			for (List<ExtensionExpression> groups : a.getExtensionExpressions()) {
 				// TODO handle extension expression groups
 				for (ExtensionExpression ee : groups) {
 					String eeid = ee.getCls();
 					OWLObject eObj = graph.getOWLObjectByIdentifier(eeid);
-					annotation_doc.addField("annotation_extension_class", eeid);	
+					annotation_doc.addField("annotation_extension_class", eeid);
 					String eLabel = addLabelField(annotation_doc, "annotation_extension_class_label", eeid);
 					if( eLabel == null ) eLabel = eeid; // ensure the label
-					
+
 					///////////////
 					// New
 					///////////////
-					
+
 					// Get the closure maps.
 					if (eObj != null) {
 						Map<String, String> aecc_cmap = graph.getRelationClosureMap(eObj, aecc_rels);
 						if( ! aecc_cmap.isEmpty() ){
 							for( String aecc_id : aecc_cmap.keySet() ){
 								String aecc_lbl = aecc_cmap.get(aecc_id);
-							
+
 								// Add all items to the document.
 								annotation_doc.addField("annotation_extension_class_closure", aecc_id);
 								annotation_doc.addField("annotation_extension_class_closure_label", aecc_lbl);
-	
+
 								// And make sure that both id and label are in the per-term map.
 								ann_ext_map.put(aecc_lbl, aecc_id);
 								ann_ext_map.put(aecc_id, aecc_lbl);
@@ -490,7 +493,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 					if( complicated_c16r != null ){
 						List<OWLObjectProperty> relations = graph.getRelationOrChain(complicated_c16r);
 						if( relations != null ){
-	
+
 							ArrayList<String> relChunk = new ArrayList<String>();
 							for( OWLObjectProperty rel : relations ){
 								// Use the IRI to get the BFO:0000050 as ID for the part_of OWLObjectProperty
@@ -500,12 +503,12 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 								relChunk.add("{\"id\": \"" + rID + "\", \"label\": \"" + rLabel + "\"}");
 							}
 							String finalSpan = StringUtils.join(relChunk, ", ");
-						
+
 							// Assemble final JSON blob.
-							String aeJSON = "{\"relationship\": {\"relation\": [" + 
+							String aeJSON = "{\"relationship\": {\"relation\": [" +
 									finalSpan +
 									"], \"id\": \"" + eeid + "\", \"label\": \"" + eLabel + "\"}}";
-						
+
 							annotation_doc.addField("annotation_extension_json", aeJSON);
 							//LOG.info("added complicated c16: (" + eeid + ", " + eLabel + ") " + aeJSON);
 						}else{
@@ -529,11 +532,11 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			// doing here pre-20150930, which was assembling out own unique line manually.
 			String id = Hex.encodeHexString(a.toString().getBytes());
 			annotation_doc.addField("id", id);
-			
+
 			// Finally add doc.
 			add(annotation_doc);
 		}
-		
+
 		// Add the necessary aggregates to the bio doc. These cannot be done incrementally like the multi-valued closures
 		// sonce there can only be a single map.
 		if( ! isap_map.isEmpty() ){
@@ -559,13 +562,13 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			bioentity_doc.addField("annotation_class_list_label", directLabelList);
 			bioentity_doc.addField("annotation_class_list_map", jsonized_direct_map);
 		}
-		
+
 		add(bioentity_doc);
 
 		for (SolrInputDocument ev_agg_doc : evAggDocMap.values()) {
 			add(ev_agg_doc);
 		}
-		
+
 		// Now repeat some of the same to help populate the "general" index for bioentities.
 		SolrInputDocument general_doc = new SolrInputDocument();
 		// Watch out for "id" collision!
@@ -578,22 +581,22 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		add(general_doc);
 	}
 
-	/*	
+	/*
 	 * Add specified closure of OWLObject to annotation and bioentity docs.
 	 * Not the map for bio.
 	 */
 	private Map<String, String> addClosureToAnnAndBio(List<String> relations, String closureName, String closureNameLabel, String closureMap,
 			OWLObject cls, OWLGraphWrapper graph, SolrInputDocument ann_doc, SolrInputDocument bio_doc, boolean isNegated){
-		
+
 		// Add closures to doc; label and id.
 		graph.addPropertyIdsForMaterialization(relations);
 		final Map<String, String> cmap = graph.getRelationClosureMap(cls, relations);
 		List<String> idClosure = new ArrayList<String>(cmap.keySet());
 		List<String> labelClosure = new ArrayList<String>(cmap.values());
-		
+
 		ann_doc.addField(closureName, idClosure);
 		ann_doc.addField(closureNameLabel, labelClosure);
-		
+
 		// WARNING this is a side effect for the bio-entity
 		// only add the class and closure, if it is a non-negated annotation
 		if (isNegated == false) {
@@ -620,7 +623,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		}
 		return cmap;
 	}
-	
+
 	private void addLegacyEcoDetails(String shortEvidence, SolrInputDocument annotation_doc) {
 		// handle legacy fields
 		Set<OWLClass> ecoClasses = eco.getClassesForGoCode(shortEvidence);
@@ -633,7 +636,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 		annotation_doc.addField("evidence_type", shortEvidence);
 		addLabelFields(annotation_doc, "evidence_type_closure", ecoIDClosure);
 	}
-	
+
 	/**
 	 * @param evidence
 	 * @param annotation_doc
@@ -658,12 +661,12 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			}
 			ecoCls = ecoClasses.iterator().next();
 		}
-		
+
 		if (ecoCls == null) {
 			LOG.error("Could not find class for evidence: "+evidence);
 			return;
 		}
-		
+
 		// prepare data
 		final String ecoId = graph.getIdentifier(ecoCls.getIRI());
 		final String ecoLbl = graph.getLabel(ecoCls);
@@ -685,7 +688,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			ecoIDClosure.add(currentId);
 			ecoLabelClosure.add(currentLbl);
 			ecoClosureMap.put(currentId, currentLbl);
-			
+
 			List<String> subsets = graph.getSubsets(cls);
 			if (ecoSubsetName != null && subsets.contains(ecoSubsetName)) {
 				ecoSubsetIDClosure.add(currentId);
@@ -699,14 +702,14 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			ecoSubsetLabelClosure.add(ecoLbl);
 			ecoSubsetClosureMap.put(ecoId, ecoLbl);
 		}
-		
+
 		// add to doc
 		annotation_doc.addField("evidence", ecoId);
-		
+
 		if(ecoLbl != null) {
 			annotation_doc.addField("evidence_label", ecoLbl);
 		}
-		
+
 		if (ecoClosureMap.isEmpty() == false) {
 			annotation_doc.addField("evidence_closure", ecoIDClosure);
 			annotation_doc.addField("evidence_closure_label", ecoLabelClosure);
@@ -718,7 +721,7 @@ public class GafSolrDocumentLoader extends AbstractSolrLoader {
 			annotation_doc.addField("evidence_subset_closure_label", ecoSubsetLabelClosure);
 			annotation_doc.addField("evidence_subset_closure_map", gson.toJson(ecoSubsetClosureMap));
 		}
-		
+
 	}
 
 }
