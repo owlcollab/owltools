@@ -282,6 +282,9 @@ public class EquivalenceSetMergeUtil {
 		}
 		
 		if (!badClasses.isEmpty()) {
+		    for (OWLClass c : badClasses) {
+		        LOG.error("MERGED: "+owlpp.render(c));
+		    }
 		    LOG.error("The following classes would be merged: "+badClasses);
             throw new IncoherentOntologyException(badClasses);
 		}
