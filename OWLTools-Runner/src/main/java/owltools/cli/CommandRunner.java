@@ -763,7 +763,8 @@ public class CommandRunner extends CommandRunnerBase {
                 OWLObjectProperty viewProperty = null;
                 OWLClass taxClass = null;
                 String suffix = null;
-                SpeciesSubsetterUtil smu = new SpeciesSubsetterUtil(g);
+                OWLClass rootClass = null;
+                boolean performMacroExpansion = true;
                 while (opts.hasOpts()) {
                     if (opts.nextEq("-t|--taxon")) {
                         taxClass = this.resolveClass(opts.nextOpt());
@@ -772,11 +773,16 @@ public class CommandRunner extends CommandRunnerBase {
                         viewProperty = this.resolveObjectProperty(opts.nextOpt());
                     }
                     else if (opts.nextEq("-r|--root")) {
-                        smu.rootClass = this.resolveClass(opts.nextOpt());
+                        rootClass = this.resolveClass(opts.nextOpt());
+                    }
+                    else if (opts.nextEq("--perform-macro-expansion")) {
+                        performMacroExpansion = Boolean.valueOf(opts.nextOpt());
                     }
                     else
                         break;
                 }
+                SpeciesSubsetterUtil smu = new SpeciesSubsetterUtil(g, performMacroExpansion);
+                smu.rootClass = rootClass;
                 smu.viewProperty = viewProperty;
                 smu.taxClass = taxClass;
                 smu.reasoner = reasoner;
