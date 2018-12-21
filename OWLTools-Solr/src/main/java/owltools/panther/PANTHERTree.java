@@ -27,10 +27,10 @@ import owltools.graph.shunt.OWLShuntNode;
 import com.google.gson.Gson;
 
 /**
- * Methods to simplify the work with the Newick-ish output we get from PANTHER. 
+ * Methods to simplify the work with the Newick-ish output we get from PANTHER.
  */
 public class PANTHERTree {
-	
+
 	private static final Logger LOG = Logger.getLogger(PANTHERTree.class);
 
 	private String treeStr = "n/a";
@@ -57,27 +57,27 @@ public class PANTHERTree {
 	// with our data.
 //	private Map<String,String> associated_terms = new HashMap <String,String>();
 	private Map<String,String> associated_gps = new HashMap <String,String>();
-	
+
 	/**
 	 * Create an instance for the given path
-	 * 
+	 *
 	 * @param pFile path
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public PANTHERTree (File pFile) throws IOException {
 
 		if( pFile == null ){ throw new Error("No file was specified..."); }
-		
+
 		//
 		String fileAsStr = FileUtils.readFileToString(pFile);
 		String[] lines = StringUtils.split(fileAsStr, "\n");
-		
+
 		// The first line is the tree in Newick-ish form, the rest is the annotation info
 		// that needs to be parsed later on.
 		if( lines.length < 3 ){
 			throw new Error("Does not look like a usable PANTHER tree file: " + pFile.getName());
 		}else{
-			
+
 			// The human tree name.
 			//treeLabel = StringUtils.lowerCase(StringUtils.removeStart(lines[0], "NAME="));
 			treeLabel = StringUtils.removeStart(lines[0], "NAME=");
@@ -87,7 +87,7 @@ public class PANTHERTree {
 
 			// The raw annotations associated with the tree.
 			treeAnns = Arrays.copyOfRange(lines, 2, lines.length);
-			
+
 			if( treeAnns == null || treeStr == null || treeLabel == null || treeStr.equals("") || treeLabel.equals("") || treeAnns.length < 1 ){
 				throw new Error("It looks like a bad PANTHER tree file.");
 			}else{
@@ -95,62 +95,62 @@ public class PANTHERTree {
 				treeID = StringUtils.substringBefore(filename, ".");
 			}
 		}
-		
+
 		//LOG.info("Processing: " + getTreeName() + " with " + lines.length + " lines.");
 		annotationSet = new HashSet<String>();
 		generateGraph(); // this must come before annotation processing
 		readyAnnotationDataCache();
 		matchAnnotationsIntoGraph();
 	}
-	
+
 	/**
 	 * Add an associated id/label for a term in this tree.
-	 * 
+	 *
 	 * @param bid the id
 	 * @param blabel the label
 	 */
 	public void addAssociatedGeneProduct(String bid, String blabel){
-		associated_gps.put(bid, blabel);		
+		associated_gps.put(bid, blabel);
 	}
-	
+
 	/**
 	 * Return the associated gene/product ids for this tree.
-	 * 
+	 *
 	 * @return list of IDs
 	 */
 	public List<String> getAssociatedGeneProductIDs(){
 		return new ArrayList<String>(associated_gps.keySet());
 	}
-	
+
 	/**
 	 * Return the associated gene/product labels for this tree.
-	 * 
+	 *
 	 * @return list of labels
 	 */
 	public List<String> getAssociatedGeneProductLabels(){
 		return new ArrayList<String>(associated_gps.values());
 	}
-	
+
 	/**
 	 * Return the mapping of associated gene/product ids to labels for this tree.
-	 * 
+	 *
 	 * @return JSON string map
 	 */
 	public String getAssociatedGeneProductJSONMap(){
 
 		String jsonized_map = null;
-	
+
 		if( ! associated_gps.isEmpty() ){
 			jsonized_map = gson.toJson(associated_gps);
 		}
 
 		return jsonized_map;
 	}
-	
+
 	/**
 	 * Return the raw Newick-type input string.
-	 * 
-	 * @return string 
+	 *
+	 * @return string
 	 */
 	public String getNHXString(){
 		return treeStr;
@@ -158,9 +158,9 @@ public class PANTHERTree {
 
 	/**
 	 * Return the tree label.
-	 * The tree label has the ID appended to prevent conflation of upstream IDs. 
+	 * The tree label has the ID appended to prevent conflation of upstream IDs.
 	 *
-	 * @return label 
+	 * @return label
 	 */
 	public String getTreeLabel(){
 		String new_lbl = treeID;
@@ -180,34 +180,34 @@ public class PANTHERTree {
 
 	/**
 	 * Return the tree internal identifier.
-	 * 
-	 * @return tree id 
+	 *
+	 * @return tree id
 	 */
 	public String getTreeID(){
 		return treeID;
 	}
-	
+
 	/**
 	 * Return the tree public (PANTHER) identifier.
-	 * 
-	 * @return panther id 
+	 *
+	 * @return panther id
 	 */
 	public String getPANTHERID(){
 		return panther_prefix + treeID;
 	}
-	
+
 	/**
 	 * Generate graph information for the tree as it currently stands.
-	 * 
-	 * @return graph 
+	 *
+	 * @return graph
 	 */
 	@SuppressWarnings("unchecked")
 	private OWLShuntGraph generateGraph(){
-		
+
 		if( g == null ){
-		
+
 		g = new OWLShuntGraph();
-		
+
 		// Parse the Newick tree down to something usable.
 		NHXParser p = new NHXParser();
 		Phylogeny[] phys = null;
@@ -217,7 +217,7 @@ public class PANTHERTree {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}		
+		}
 		try {
 			phys = p.parse();
 		} catch (NHXFormatException e) {
@@ -228,15 +228,15 @@ public class PANTHERTree {
 		if( phys == null ){
 			throw new Error("error while parsing newick tree");
 		}
-		
-//		// Okay, now here, since the PANTHER data is bad and we can't actually get access to the 
-//		// spec/dupe stuff through the normal API, we're going to try and wring that data out with 
+
+//		// Okay, now here, since the PANTHER data is bad and we can't actually get access to the
+//		// spec/dupe stuff through the normal API, we're going to try and wring that data out with
 //		// a regexp on the raw input string. We'll then match those ids to the ones in the loop below.
 //		String raw = getNHXString();
-//		// The spec is :Ev=duplications>speciations>gene losses>event type>duplication type 
+//		// The spec is :Ev=duplications>speciations>gene losses>event type>duplication type
 //		// But PANTHER only implements :Ev=duplications>speciations,
-//		// 
-		
+//		//
+
 		// Assemble the graph(s, whence the for loop) from the parser.
 		//Gson gson = new Gson(); // I'll be doing this a bunch
 		for( Phylogeny phy : phys ){
@@ -256,7 +256,7 @@ public class PANTHERTree {
 				}
 				OWLShuntNode n = new OWLShuntNode(id_str);
 				n.setLabel(lbl);
-				
+
 				// Grab dup/spec and layout(?) data.
 				boolean dupP = pNode.isDuplication(); // these two seem to do nothing
 				boolean specP = pNode.isSpeciation();
@@ -271,14 +271,14 @@ public class PANTHERTree {
 				mmap.put("speciation_p", Boolean.toString(specP));
 				mmap.put("layout_index", Integer.toString(ind));
 				n.setMetadata(mmap);
-				
+
 //				if( specP ){
 //					LOG.info("spec: " + Boolean.toString(specP));
 //				}
 //				if( dupP ){
 //					LOG.info("dup: " + Boolean.toString(dupP));
 //				}
-				
+
 //				// TODO: Try and grab some stuff more directly.
 //				NodeData ndata = pNode.getNodeData();
 //				//String foo = ndata.asText().toString();
@@ -287,10 +287,10 @@ public class PANTHERTree {
 //				if( nprops != null ){
 //					bar = nprops.toString();
 //				}
-				
+
 				// Add the new node to the graph.
 				g.addNode(n);
-				
+
 				// Next, gather the edge information and add it to the graph.
 				List<PhylogenyNode> children = pNode.getDescendants();
 				for( PhylogenyNode kid : children ){
@@ -314,7 +314,7 @@ public class PANTHERTree {
 //		// transfer the info immediately.
 //		// Note that we're keeping track of the visitation order--
 //		// we'll use that later.
-//		ancestorClosureSet = new HashMap<String,Set<String>>(); 
+//		ancestorClosureSet = new HashMap<String,Set<String>>();
 //		Iterator<String> i = g.iteratorDF();
 //		List<String> nodeOrder = new ArrayList<String>();
 //		while( i.hasNext() ){
@@ -323,7 +323,7 @@ public class PANTHERTree {
 //
 //			// Ready the closure for ourselves.
 //			Set<String> close = new HashSet<String>();
-//			
+//
 //			// Add the information of our parents to ourselves.
 //			//LOG.info("node (anc): " + nid);
 //			Set<String> parents = g.getParents(nid);
@@ -337,20 +337,20 @@ public class PANTHERTree {
 //			}
 //			// Add ourselves to the set as well.
 //			close.add(nid);
-//			
+//
 //			// Add the set to the closure.
 //			ancestorClosureSet.put(nid, close);
 //		}
-//		
+//
 //		// Now play the visitation order backwards and
 //		// collect the transitive descendant information.
-//		descendantClosureSet = new HashMap<String,Set<String>>(); 
+//		descendantClosureSet = new HashMap<String,Set<String>>();
 //		for( int in = (nodeOrder.size() -1); in >= 0; in-- ){
 //			  String nid = nodeOrder.get(in);
-//			  
+//
 //			// Ready the closure for ourselves.
 //			Set<String> close = new HashSet<String>();
-//				
+//
 //			// Add the information of our children to ourselves.
 //			//LOG.info("node (desc): " + nid);
 //			Set<String> kids = g.getChildren(nid);
@@ -363,20 +363,20 @@ public class PANTHERTree {
 //			}
 //			// Add ourselves to the set.
 //			close.add(nid);
-//				
+//
 //			// Add the set to the closure.
 //			descendantClosureSet.put(nid, close);
 //		}
-		
+
 		return g;
 	}
-	
+
 	/**
 	 * Return the complete OWL shunt graph representation of the phylogenic tree.
-	 * 
+	 *
 	 * @return graph
 	 */
-	public OWLShuntGraph getOWLShuntGraph(){		
+	public OWLShuntGraph getOWLShuntGraph(){
 		return g;
 	}
 
@@ -384,46 +384,46 @@ public class PANTHERTree {
 	 * Return the ancestors of this node as an ID set.
 	 * Includes this node.
 	 * null if nothing is in the graph.
-	 * 
+	 *
 	 * @param nodeID node id
 	 * @return all ancestors (inclusive)
 	 */
 	public Set<String> getAncestors(String nodeID){
 
 		Set<String> retset = ancestorClosureSet.get(nodeID);
-		
+
 		return retset;
 	}
-		
+
 	/**
 	 * Return the descendants of this node as an ID set.
 	 * Includes this node.
 	 * null if nothing is in the graph.
-	 * 
+	 *
 	 * @param nodeID node id
 	 * @return all ancestors (inclusive)
 	 */
 	public Set<String> getDescendants(String nodeID){
 
 		Set<String> retset = descendantClosureSet.get(nodeID);
-		
+
 		return retset;
 	}
-		
+
 	/**
 	 * Return all annotations to ancestor nodes.
-	 * 
+	 *
 	 * @param baseGpID gene product id
 	 * @return all ancestor annotations (inclusive)
 	 */
 	public Set<String> getAncestorAnnotations(String baseGpID){
 
 		Set<String> retset = new HashSet<String>();
-		
+
 		// Look to see if that is a known node.
 		String nodeID = gpToNodeMap.get(baseGpID);
 		if( nodeID != null){
-			
+
 			// We found a node ID, so now we get the ancestor closure.
 			// For each of the ancestors, look at the map to GPs and collect them.
 			Set<String> ancs = getAncestors(nodeID);
@@ -431,30 +431,30 @@ public class PANTHERTree {
 				Set<String> gps = nodeToGpMap.get(ancID);
 				if( gps != null && ! gps.isEmpty() ){
 					for( String gp : gps ){
-						retset.add(gp);						
+						retset.add(gp);
 					}
 				}
 			}
 		}
-				
+
 		return retset;
 	}
 
 	/**
 	 * Return all annotations to descendant nodes.
-	 * 
+	 *
 	 * @param baseGpID gene product id
 	 * @return all descendant annotations (inclusive)
 	 */
 	public Set<String> getDescendantAnnotations(String baseGpID){
 
 		Set<String> retset = new HashSet<String>();
-		
+
 		// Look to see if that is a known node.
 		String nodeID = gpToNodeMap.get(baseGpID);
 		if( nodeID != null){
 			//LOG.info("node: " + nodeID);
-			
+
 			// We found a node ID, so now we get the descendant closure.
 			// For each of the descendants, look at the map to GPs and collect them.
 			Set<String> descs = getDescendants(nodeID);
@@ -462,22 +462,22 @@ public class PANTHERTree {
 				Set<String> gps = nodeToGpMap.get(descID);
 				if( gps != null && ! gps.isEmpty() ){
 					for( String gp : gps ){
-						retset.add(gp);						
+						retset.add(gp);
 					}
 				}
 			}
 		}
-				
+
 		return retset;
 	}
 
 	/**
-	 * Return a globally "unique" identifier for an internal ID. 
+	 * Return a globally "unique" identifier for an internal ID.
 	 * <p>
 	 * Technically, in our case, the labels should be unique if defined.
-	 * 
-	 * @param pNode 
-	 * @return id 
+	 *
+	 * @param pNode
+	 * @return id
 	 */
 	private String uuidInternal(PhylogenyNode pNode){
 
@@ -485,7 +485,7 @@ public class PANTHERTree {
 		String id_str = Integer.toString(id_int);
 		//String id_str = Integer.toString(id_int);
 		//id_int++;
-		
+
 		String try_id = pNode.getName();
 		if( try_id == null || try_id == "" ){
 			try_id = id_str;
@@ -493,36 +493,36 @@ public class PANTHERTree {
 
 		return uuidInternal(try_id);
 	}
-	
+
 	/**
-	 * Return a globally "unique" identifier for an internal ID. 
+	 * Return a globally "unique" identifier for an internal ID.
 	 * <p>
 	 * Technically, in our case, the labels should be unique if defined.
-	 * 
-	 * @param nodeIdentifier 
-	 * @return id 
+	 *
+	 * @param nodeIdentifier
+	 * @return id
 	 */
 	private String uuidInternal(String nodeIdentifier){
 		return getTreeID() + ":" + nodeIdentifier;
 	}
-	
+
 	/**
-	 * Return a Set of 
+	 * Return a Set of
 	 */
 	private void readyAnnotationDataCache(){
-		
+
 		//Map<String,String> idToInit = new HashMap<String,String>();
 		//Map<String,Set<String>> initToId = new HashMap<String,Set<String>>();
-		
+
 		// Parse down every annotation line.
 		//for( String aLine : treeAnns. ){
-		for( int ti = 0; ti < treeAnns.length -1; ti++){
+		for( int ti = 0; ti < treeAnns.length; ti++){
 
 			String aLine = treeAnns[ti];
-			
+
 			// First, get rid of the terminal semicolon.
-			String cleanALine = StringUtils.chop(aLine);			
-			
+			String cleanALine = StringUtils.chop(aLine);
+
 			// Split out the sections.
 			String[] sections = StringUtils.split(cleanALine, "|");
 			if( sections.length != 3 ) throw new Error("Expected three sections in " + treeID);
@@ -531,7 +531,7 @@ public class PANTHERTree {
 			String initSection = sections[0];
 			String rawNodeID = StringUtils.substringBefore(initSection, ":");
 			String nodeID = uuidInternal(rawNodeID);
-			
+
 			// Isolate and convert the rest. This is done as individuals
 			// And not a loop for now to higlight the fact that I think this will become
 			// rather more complicated later on.
@@ -541,7 +541,7 @@ public class PANTHERTree {
 			String twoID = StringUtils.replaceChars(rawIdentifierTwo, '=', ':');
 
 			// // Now make a map from the initial identitifer to the other two, the other
-			// two to the identifier, and a batch Set for the existence of just the 
+			// two to the identifier, and a batch Set for the existence of just the
 			// other two.
 			//
 			// String finalInitID = uuidInternal(initID);
@@ -550,7 +550,7 @@ public class PANTHERTree {
 			annotationSet.add(twoID);
 			//LOG.info("groupSet in: " + oneID);
 			//LOG.info("groupSet in: " + twoID);
-			
+
 			// Create the gp -> node map.
 			gpToNodeMap.put(oneID, nodeID);
 			gpToNodeMap.put(twoID, nodeID);
@@ -566,19 +566,19 @@ public class PANTHERTree {
 			gps.add(twoID);
 			nodeToGpMap.put(nodeID, gps);
 		}
-		
+
 		//LOG.info("N->GP" + StringUtils.join(nodeToGpMap, ", "));
 		//LOG.info("GP->N" + StringUtils.join(gpToNodeMap, ", "));
-	}		
+	}
 
 	/**
 	 * Return a set of all identifiers associated with this family.
-	 * 
+	 *
 	 * @return set of ids
 	 */
 	public Set<String> associatedIdentifierSet(){
 		return annotationSet;
-	}		
+	}
 
 	/**
 	 * Cycle through the nodes and try to add annotation metadata by matching on the label.
@@ -592,8 +592,8 @@ public class PANTHERTree {
 			if( nodeToGpMap.containsKey(maybeID) ){
 
 				Map<String, Object> md = n.getMetadata();
-				
-				Set<String> gpSet = nodeToGpMap.get(maybeID);				
+
+				Set<String> gpSet = nodeToGpMap.get(maybeID);
 				md.put("annotations", StringUtils.join(gpSet, "|"));
 
 				n.setMetadata(md);
@@ -602,4 +602,3 @@ public class PANTHERTree {
 	}
 
 }
-
