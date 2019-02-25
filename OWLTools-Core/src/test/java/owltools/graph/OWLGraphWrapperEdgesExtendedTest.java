@@ -1182,7 +1182,7 @@ public class OWLGraphWrapperEdgesExtendedTest
         String json = wrapper.getOboGraphJSONString(obj);
         assertTrue(json.contains("\"xrefs\" : [ \"NIF_Subcellular:nlx_subcell_100315\" ]"));
         json = wrapper.getOboGraphJSONString(wrapper.getOWLClassByIdentifier("GO:0044464"));
-        System.out.println(json);
+		log.debug(json);
         assertTrue(json.contains("\"obj\" : \"http://purl.obolibrary.org/obo/GO_0005575\""));
      
     }

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import org.apache.log4j.Logger;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -22,6 +23,8 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 
 public class OWLGsonRendererTest extends OWLToolsTestBasics {
+
+	private static Logger LOG = Logger.getLogger(OWLGsonRendererTest.class);
 	
 	@Rule
 	public TemporaryFolder folder= new TemporaryFolder();
@@ -38,7 +41,7 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 			gr.render(a);
 		}
 		if (RENDER_FLAG) {
-			System.out.println(stringWriter.toString());
+			LOG.debug(stringWriter.toString());
 		}
 	}
 
@@ -54,7 +57,7 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 			}
 		}
 		if (RENDER_FLAG) {
-			System.out.println(stringWriter.toString());
+			LOG.debug(stringWriter.toString());
 		}
 	}
 
@@ -65,7 +68,7 @@ public class OWLGsonRendererTest extends OWLToolsTestBasics {
 		OWLGsonRenderer gr = new OWLGsonRenderer(new PrintWriter(stringWriter));
 		gr.render(wrapper.getSourceOntology());
 		if (RENDER_FLAG) {
-			System.out.println(stringWriter.toString());
+			LOG.debug(stringWriter.toString());
 			ParserWrapper pw = new ParserWrapper();
 			OWLDocumentFormat owlFormat = new OWLJSONFormat();
 			File foo = folder.newFile("foo.json");

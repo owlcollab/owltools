@@ -1,5 +1,6 @@
 package owltools;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLIndividual;
@@ -12,6 +13,8 @@ import owltools.io.ParserWrapper;
 
 public class CAROLCSTest extends OWLToolsTestBasics {
 
+	private static Logger LOG = Logger.getLogger(CAROLCSTest.class);
+
 	@Test
 	public void testConvertXPs() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
@@ -19,15 +22,15 @@ public class CAROLCSTest extends OWLToolsTestBasics {
 			pw.parseToOWLGraph(getResourceIRIString("lcstest1.owl"));
 		OWLOntology ont = g.getSourceOntology();
 		OWLObject o2 = g.getOWLObject("http://example.org#o2");
-		
-		System.out.println("getting ancestors for: "+o2);
+
+		LOG.debug("getting ancestors for: "+o2);
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosure(o2)) {
-			System.out.println(e);
+			LOG.debug(e);
 		}
 		for (OWLClass c : ont.getClassesInSignature()) {
-			System.out.println("getting individuals for "+c+" "+g.getLabel(c));
+			LOG.debug("getting individuals for "+c+" "+g.getLabel(c));
 			for (OWLIndividual i : g.getInstancesFromClosure(c)) {
-				System.out.println("  "+i);
+				LOG.debug("  "+i);
 			}
 		}
 

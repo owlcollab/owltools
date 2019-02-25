@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
 import org.obolibrary.obo2owl.Obo2Owl;
@@ -21,12 +22,13 @@ import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLGraphWrapper;
 
 public class TaxonGraphTest extends OWLToolsTestBasics {
-	
+
+	private static Logger LOG = Logger.getLogger(TaxonGraphTest.class);
 	OWLGraphWrapper gw = null;
 	
 	@Before
 	public void before() throws Exception {
-		System.out.println("Setting up: " + this);
+		LOG.debug("Setting up: " + this);
 		List<String> files = new Vector<String>();
 		//files.add(getResource("cell_prolif_placenta.obo").getAbsolutePath());
 		files.add(getResource("ncbi_taxon_slim.obo").getAbsolutePath());
@@ -58,10 +60,10 @@ public class TaxonGraphTest extends OWLToolsTestBasics {
 		// TODO - test includes union
 		boolean ok = false;
 		for (OWLGraphEdge e : edges) {
-			System.out.println(e);
+			LOG.debug(e);
 			OWLObject t = e.getTarget();
 			String tid = gw.getIdentifier(t);
-			System.out.println(" "+tid);
+			LOG.debug(" "+tid);
 			// Nematoda or Protostomia
 			if ("NCBITaxon_Union:0000005".equals(tid)) {
 				ok = true;
