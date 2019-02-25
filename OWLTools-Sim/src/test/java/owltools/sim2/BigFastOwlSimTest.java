@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.owlapi.model.IRI;
@@ -35,42 +36,51 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 	OwlSim owlsim;
 	
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testWorm() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
 		t("wbphenotype", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException, UnknownOWLClassException {
 		t("mp", 2000);
 	}
 
 	@Test
+	@Ignore("This test is too slow to run in continuous integration.")
 	public void testMouse10Individuals() throws Exception {
 		testIndividuals("mp", 10);
 	}
 
 	@Test
+	@Ignore("This test is too slow to run in continuous integration.")
 	public void testMouseIndividuals() throws Exception {
 		testIndividuals("mp", 100);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testMouseRandomIndividuals() throws Exception {
 		testIndividualsRandom("mp", 1000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testMammalRandomIndividuals() throws Exception {
 		testIndividualsRandom("mammal-merged", 1000);
 	}
 	
 	// benchmarking old vs new
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testWormRandomIndividuals() throws Exception {
 		testIndividualsRandom("wbphenotype", 1000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testWormRandomIndividualsSOS() throws Exception {
 		testIndividualsRandom("wbphenotype", 1000, new SimpleOwlSimFactory());
 	}
 	@Test
+	@Ignore("This test is too slow to run in continuous integration.")
 	public void testMouseRandomIndividualsSOS() throws Exception {
 		testIndividualsRandom("mp", 1000, new SimpleOwlSimFactory());
 	}

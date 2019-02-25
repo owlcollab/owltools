@@ -9,6 +9,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -70,6 +71,7 @@ public class GafSolrDocumentLoaderTest {
 	}
 
 	@Test
+	@Ignore("This test is too slow to run in continuous integration.")
 	public void test() throws Exception {
 		assertNotNull(graph);
 		assertNotNull(loader);

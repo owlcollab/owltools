@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -14,6 +15,7 @@ import owltools.io.ParserWrapper;
 public class PKBTest extends OWLToolsTestBasics {
 
 	@Test
+	@Ignore("This test requires a missing resource.")
 	public void testAnc() throws Exception {
 		OWLGraphWrapper  g =  getOntologyWrapper();
 		OWLObject obj = g.getOWLObject("http://ccdb.ucsd.edu/PKB/1.0/PKB.owl#PATO_0001555_251");

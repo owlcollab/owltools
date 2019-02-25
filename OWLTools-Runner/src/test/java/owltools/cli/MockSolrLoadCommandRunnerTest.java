@@ -4,6 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -35,6 +36,7 @@ public class MockSolrLoadCommandRunnerTest extends AbstractCommandRunnerTest {
 	}
 	
 	@Test
+	@Ignore("This test requires a missing resource.")
 	public void testRunnerOboIds() throws Exception {
 
 	    PrintStream out = System.out;

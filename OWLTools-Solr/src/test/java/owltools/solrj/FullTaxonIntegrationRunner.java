@@ -11,6 +11,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import owltools.flex.FlexCollection;
@@ -42,6 +43,7 @@ public class FullTaxonIntegrationRunner {
 	}
 	
 	@Test
+	@Ignore("This test requires a missing resource.")
 	public void testLoadFullTaxon() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		final OWLGraphWrapper g = pw.parseToOWLGraph(taxonFile);

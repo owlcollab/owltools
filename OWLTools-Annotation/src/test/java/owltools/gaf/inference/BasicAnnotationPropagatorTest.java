@@ -83,7 +83,7 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 				OWLQuantifiedProperty quantifiedProperty = propertyList.get(0);
 				final OWLObjectProperty property = quantifiedProperty.getProperty();
 				String property_id = g.getIdentifier(property);
-				if ("part_of".equals(property_id)) {
+				if ("BFO:0000050".equals(property_id)) {
 					OWLObject target = edge.getTarget();
 					if (target instanceof OWLClass) {
 						String targetId = g.getIdentifier(target);

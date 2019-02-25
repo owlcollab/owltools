@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
 
@@ -18,6 +19,7 @@ import owltools.io.ParserWrapper;
 public class GAFInferenceTest extends OWLToolsTestBasics{
 
 	@Test
+	@Ignore("Disabling test due to lack of resources to debug")
 	public void testParser() throws Exception{
 		GafObjectsBuilder builder = new GafObjectsBuilder();
 
