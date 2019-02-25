@@ -71,12 +71,12 @@ public class EnrichmentTest extends AbstractOWLSimTest {
 			owlsim.createElementAttributeMapFromOntology();
 
 			for (OWLNamedIndividual ind : sourceOntol.getIndividualsInSignature()) {
-				System.out.println(ind);
+				LOG.debug(ind);
 				for (OWLClass c : owlsim.getReasoner().getTypes(ind, true).getFlattened()) {
-					System.out.println("  T:"+c);
+					LOG.debug("  T:"+c);
 				}
 				for (OWLClassExpression c : OwlHelper.getTypes(ind, sourceOntol)) {
-					System.out.println("  T(Asserted):"+c);
+					LOG.debug("  T(Asserted):"+c);
 
 				}
 			}
@@ -99,9 +99,9 @@ public class EnrichmentTest extends AbstractOWLSimTest {
 			OWLClass vc2 = qmap.get(rc2);
 			int n = 0;
 			List<EnrichmentResult> results = owlsim.calculateAllByAllEnrichment(pc, vc1, vc2);
-			System.out.println("Results: "+rc1+" "+rc2);
+			LOG.debug("Results: "+rc1+" "+rc2);
 			for (EnrichmentResult result : results) {
-				System.out.println("R="+render(result,pp));
+				LOG.debug("R="+render(result,pp));
 				n++;
 			}
 			assertTrue(n > 0);

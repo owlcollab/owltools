@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
@@ -17,6 +18,8 @@ import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 
 public class StanzaToOWLConverterTest extends OWLToolsTestBasics {
+
+	private static Logger LOG = Logger.getLogger(StanzaToOWLConverterTest.class);
 
 
 	@Test
@@ -30,7 +33,7 @@ public class StanzaToOWLConverterTest extends OWLToolsTestBasics {
 		sc.parse(f);
 		assertTrue(tgt.getAxiomCount() > 0);
 		for (OWLAxiom ax : tgt.getAxioms()) {
-			System.out.println(ax);
+			LOG.debug(ax);
 		}
 		
 	}

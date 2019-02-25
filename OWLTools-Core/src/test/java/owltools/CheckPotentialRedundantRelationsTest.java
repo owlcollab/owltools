@@ -26,7 +26,7 @@ public class CheckPotentialRedundantRelationsTest extends OWLToolsTestBasics {
 		assertNotNull(potentialRedundant.getClassA());
 		assertEquals("TEST:0004", graph.getIdentifier(potentialRedundant.getClassA()));
 		assertNotNull(potentialRedundant.getProperty());
-		assertEquals("part_of", graph.getIdentifier(potentialRedundant.getProperty()));
+		assertEquals("BFO:0000050", graph.getIdentifier(potentialRedundant.getProperty()));
 		assertNotNull(potentialRedundant.getClassB());
 		assertEquals("TEST:0002", graph.getIdentifier(potentialRedundant.getClassB()));
 	}
@@ -45,7 +45,7 @@ public class CheckPotentialRedundantRelationsTest extends OWLToolsTestBasics {
 		assertNotNull(potentialRedundant.getClassA());
 		assertEquals("TEST:0004", graph.getIdentifier(potentialRedundant.getClassA()));
 		assertNotNull(potentialRedundant.getProperty());
-		assertEquals("part_of", graph.getIdentifier(potentialRedundant.getProperty()));
+		assertEquals("BFO:0000050", graph.getIdentifier(potentialRedundant.getProperty()));
 		assertNotNull(potentialRedundant.getClassB());
 		assertEquals("TEST:0002", graph.getIdentifier(potentialRedundant.getClassB()));
 	}

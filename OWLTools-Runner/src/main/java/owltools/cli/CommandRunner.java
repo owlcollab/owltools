@@ -2541,7 +2541,7 @@ public class CommandRunner extends CommandRunnerBase {
                             for (OWLClassExpression x : eca.getClassExpressionsMinus(nothing)) {
                                 if (x instanceof OWLObjectIntersectionOf) {
                                     dPairs.add((OWLObjectIntersectionOf) x);
-                                    System.out.println("TRANSLATED:"+x);
+                                    LOG.info("TRANSLATED:"+x);
                                 }
 
                             }
@@ -2569,7 +2569,7 @@ public class CommandRunner extends CommandRunnerBase {
                     for (Node<OWLClass> v : reasoner.getSubClasses(x, false)) {
                         if (v.contains(nothing))
                             continue;
-                        System.out.println("VIOLATION: "+owlpp.render(v.getRepresentativeElement())+" SubClassOf "+owlpp.render(x));
+                        LOG.error("VIOLATION: "+owlpp.render(v.getRepresentativeElement())+" SubClassOf "+owlpp.render(x));
                     }
                 }
 
@@ -2733,12 +2733,12 @@ public class CommandRunner extends CommandRunnerBase {
                     g.getManager().addAxioms(ont, iAxioms);
                 }
                 if (isAddToCurrentOntology) {
-                    System.out.println("Adding "+iAxioms.size()+" axioms");
+                    LOG.warn("Adding "+iAxioms.size()+" axioms");
                     g.getManager().addAxioms(ont, iAxioms);
                 }
                 rmAxioms.retainAll(ont.getAxioms());
                 if (rmAxioms.size() > 0) {
-                    System.out.println("Removing "+rmAxioms.size()+" axioms");
+                    LOG.warn("Removing "+rmAxioms.size()+" axioms");
                     g.getManager().removeAxioms(ont, rmAxioms);
                 }
             }

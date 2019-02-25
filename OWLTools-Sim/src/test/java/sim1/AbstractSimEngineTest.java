@@ -3,6 +3,7 @@ package sim1;
 import java.io.IOException;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -18,10 +19,12 @@ import owltools.sim.Similarity;
 
 public abstract class AbstractSimEngineTest extends OWLToolsTestBasics {
 
+	private static Logger LOG = Logger.getLogger(AbstractSimEngineTest.class);
+
 	protected void run(OWLGraphWrapper  wrapper, Similarity sim, OWLObject a, OWLObject b) throws Exception{
 		OWLPrettyPrinter pp = new OWLPrettyPrinter(wrapper);
 		SimEngine se = new SimEngine(wrapper);
-		System.out.println("Comparing "+pp.render(a)+" -vs- "+pp.render(b));
+		LOG.debug("Comparing "+pp.render(a)+" -vs- "+pp.render(b));
 		/*
 		for (OWLObject x : wrapper.getDescendantsReflexive(a)) {
 			System.out.println("d="+x);
@@ -30,14 +33,14 @@ public abstract class AbstractSimEngineTest extends OWLToolsTestBasics {
 		
 		OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);
 		if (lcs != null) {
-			System.out.println(" LCS: "+pp.render(lcs));			
+			LOG.debug(" LCS: "+pp.render(lcs));
 		}
 		
 		se.calculateSimilarity(sim, a, b);
-		
-		System.out.println(sim);
+
+		LOG.debug(sim);
 		for (OWLAxiom ax : sim.translateResultsToOWLAxioms()) {
-			System.out.println("  Ax: "+pp.render(ax));
+			LOG.debug("  Ax: "+pp.render(ax));
 		}
 		
 	}
@@ -45,7 +48,7 @@ public abstract class AbstractSimEngineTest extends OWLToolsTestBasics {
 	protected void runAll(OWLGraphWrapper  wrapper, OWLObject a, OWLObject b) throws Exception{
 		OWLPrettyPrinter pp = new OWLPrettyPrinter(wrapper);
 		SimEngine se = new SimEngine(wrapper);
-		System.out.println("Comparing "+pp.render(a)+" -vs- "+pp.render(b));
+		LOG.debug("Comparing "+pp.render(a)+" -vs- "+pp.render(b));
 		/*
 		for (OWLObject x : wrapper.getDescendantsReflexive(a)) {
 			System.out.println("d="+x);
@@ -54,15 +57,15 @@ public abstract class AbstractSimEngineTest extends OWLToolsTestBasics {
 		
 		OWLClassExpression lcs = se.getLeastCommonSubsumerSimpleClassExpression(a, b);
 		if (lcs != null) {
-			System.out.println(" LCS: "+pp.render(lcs));			
+			LOG.debug(" LCS: "+pp.render(lcs));
 		}
 		
 		Set<Similarity> r = se.calculateAllSimilarity(a, b);
 		for (Similarity sim : r) {
 
-			System.out.println(sim);
+			LOG.debug(sim);
 			for (OWLAxiom ax : sim.translateResultsToOWLAxioms()) {
-				System.out.println("  Ax: "+pp.render(ax));
+				LOG.debug("  Ax: "+pp.render(ax));
 			}
 		}
 		

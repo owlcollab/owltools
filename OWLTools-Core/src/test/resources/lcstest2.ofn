@@ -1,0 +1,536 @@
+Prefix(:=<http://example.org#phenotype#>)
+Prefix(ns1:=<http://example.org#>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)
+Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)
+Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+
+
+Ontology(<http://example.org#phenotype>
+
+Declaration(Class(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/alpha_syn>))
+Declaration(Class(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/decreased>))
+Declaration(Class(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/dopaminergic_neuron>))
+Declaration(Class(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/foo>))
+Declaration(Class(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/head>))
+Declaration(Class(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/increased>))
+Declaration(Class(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/membrane>))
+Declaration(Class(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/mitochondrion_membrane>))
+Declaration(Class(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/ubq>))
+Declaration(Class(ns1:atrophied))
+Declaration(Class(ns1:atrophied_ca2))
+Declaration(Class(ns1:atrophied_hippocampus))
+Declaration(Class(ns1:axon))
+Declaration(Class(ns1:axon_degenerated_in_hippocampus))
+Declaration(Class(ns1:axon_terminal))
+Declaration(Class(ns1:axon_terminals_degenerated))
+Declaration(Class(ns1:axon_terminals_degenerated_in_ca2))
+Declaration(Class(ns1:axon_terminals_degenerated_in_ca3))
+Declaration(Class(ns1:axon_terminals_degenerated_in_sn))
+Declaration(Class(ns1:big))
+Declaration(Class(ns1:big_left_ear))
+Declaration(Class(ns1:blue))
+Declaration(Class(ns1:brain))
+Declaration(Class(ns1:ca2))
+Declaration(Class(ns1:ca3))
+Declaration(Class(ns1:cell))
+Declaration(Class(ns1:color))
+Declaration(Class(ns1:decreased_volume))
+Declaration(Class(ns1:deformed))
+Declaration(Class(ns1:deformed_blue_right_eye))
+Declaration(Class(ns1:deformed_ca2))
+Declaration(Class(ns1:deformed_hippocampus))
+Declaration(Class(ns1:deformed_right_ear))
+Declaration(Class(ns1:degenerated))
+Declaration(Class(ns1:dentate_gyrus))
+Declaration(Class(ns1:dopamine))
+Declaration(Class(ns1:dopmainergic_neuron))
+Declaration(Class(ns1:ear))
+Declaration(Class(ns1:eye))
+Declaration(Class(ns1:foo_receiving_neuron))
+Declaration(Class(ns1:foo_transmitting_neuron))
+Declaration(Class(ns1:green))
+Declaration(Class(ns1:hippocampus))
+Declaration(Class(ns1:inclusion))
+Declaration(Class(ns1:interneuron))
+Declaration(Class(ns1:laterality))
+Declaration(Class(ns1:lb_in_ns))
+Declaration(Class(ns1:left))
+Declaration(Class(ns1:left_ear))
+Declaration(Class(ns1:left_eye))
+Declaration(Class(ns1:lewy_bodies_in_sn))
+Declaration(Class(ns1:lewy_bodies_in_sn2))
+Declaration(Class(ns1:lewy_body))
+Declaration(Class(ns1:mitochondrial_membrane))
+Declaration(Class(ns1:mitochondrion))
+Declaration(Class(ns1:morphology))
+Declaration(Class(ns1:neostriatum))
+Declaration(Class(ns1:nervous_system))
+Declaration(Class(ns1:neuron))
+Declaration(Class(ns1:neurotransmitter))
+Declaration(Class(ns1:o1_x))
+Declaration(Class(ns1:o2_x))
+Declaration(Class(ns1:o3_x))
+Declaration(Class(ns1:o4_x))
+Declaration(Class(ns1:organ))
+Declaration(Class(ns1:organism))
+Declaration(Class(ns1:pb_in_dg))
+Declaration(Class(ns1:physical_quality))
+Declaration(Class(ns1:pick_body))
+Declaration(Class(ns1:probe_1))
+Declaration(Class(ns1:probe_2))
+Declaration(Class(ns1:probe_2b))
+Declaration(Class(ns1:probe_3))
+Declaration(Class(ns1:probe_4))
+Declaration(Class(ns1:quality))
+Declaration(Class(ns1:red))
+Declaration(Class(ns1:retina))
+Declaration(Class(ns1:retina_degenerates))
+Declaration(Class(ns1:right))
+Declaration(Class(ns1:right_ear))
+Declaration(Class(ns1:right_eye))
+Declaration(Class(ns1:size))
+Declaration(Class(ns1:small))
+Declaration(Class(ns1:small_green_left_eye))
+Declaration(Class(ns1:sn))
+Declaration(Class(ns1:system))
+Declaration(Class(ns1:thin))
+Declaration(Class(ns1:thin_mm_in_axon_of_dn_of_sn))
+Declaration(Class(ns1:volume))
+Declaration(ObjectProperty(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/outputs>))
+Declaration(ObjectProperty(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/receives>))
+Declaration(ObjectProperty(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/transmits>))
+Declaration(ObjectProperty(ns1:has))
+Declaration(ObjectProperty(ns1:has_laterality))
+Declaration(ObjectProperty(ns1:has_part))
+Declaration(ObjectProperty(ns1:has_quality))
+Declaration(ObjectProperty(ns1:has_value))
+Declaration(ObjectProperty(ns1:overlaps))
+Declaration(ObjectProperty(ns1:part_of))
+Declaration(NamedIndividual(ns1:o1))
+Declaration(NamedIndividual(ns1:o1p1))
+Declaration(NamedIndividual(ns1:o1p2))
+Declaration(NamedIndividual(ns1:o1p3))
+Declaration(NamedIndividual(ns1:o1p4))
+Declaration(NamedIndividual(ns1:o1p5))
+Declaration(NamedIndividual(ns1:o1p6))
+Declaration(NamedIndividual(ns1:o2))
+Declaration(NamedIndividual(ns1:o2p1))
+Declaration(NamedIndividual(ns1:o2p2))
+Declaration(NamedIndividual(ns1:o2p3))
+Declaration(NamedIndividual(ns1:o2p4))
+Declaration(NamedIndividual(ns1:o2p5))
+Declaration(NamedIndividual(ns1:o2p6))
+Declaration(NamedIndividual(ns1:o3p1))
+Declaration(NamedIndividual(ns1:o4p1))
+############################
+#   Object Properties
+############################
+
+# Object Property: ns1:has_part (ns1:has_part)
+
+InverseObjectProperties(ns1:has_part ns1:part_of)
+TransitiveObjectProperty(ns1:has_part)
+
+# Object Property: ns1:part_of (ns1:part_of)
+
+TransitiveObjectProperty(ns1:part_of)
+
+
+############################
+#   Classes
+############################
+
+# Class: ns1:atrophied (ns1:atrophied)
+
+SubClassOf(ns1:atrophied ns1:degenerated)
+SubClassOf(ns1:atrophied ns1:small)
+
+# Class: ns1:atrophied_ca2 (ns1:atrophied_ca2)
+
+EquivalentClasses(ns1:atrophied_ca2 ObjectIntersectionOf(ns1:ca2 ObjectSomeValuesFrom(ns1:has_quality ns1:atrophied)))
+
+# Class: ns1:atrophied_hippocampus (ns1:atrophied_hippocampus)
+
+EquivalentClasses(ns1:atrophied_hippocampus ObjectIntersectionOf(ns1:hippocampus ObjectSomeValuesFrom(ns1:has_quality ns1:atrophied)))
+
+# Class: ns1:axon (ns1:axon)
+
+SubClassOf(ns1:axon ObjectSomeValuesFrom(ns1:part_of ns1:neuron))
+
+# Class: ns1:axon_degenerated_in_hippocampus (ns1:axon_degenerated_in_hippocampus)
+
+EquivalentClasses(ns1:axon_degenerated_in_hippocampus ObjectIntersectionOf(ns1:hippocampus ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))))
+
+# Class: ns1:axon_terminal (ns1:axon_terminal)
+
+SubClassOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:part_of ns1:axon))
+
+# Class: ns1:axon_terminals_degenerated (ns1:axon_terminals_degenerated)
+
+EquivalentClasses(ns1:axon_terminals_degenerated ObjectIntersectionOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))
+
+# Class: ns1:axon_terminals_degenerated_in_ca2 (ns1:axon_terminals_degenerated_in_ca2)
+
+EquivalentClasses(ns1:axon_terminals_degenerated_in_ca2 ObjectIntersectionOf(ns1:ca2 ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))))
+
+# Class: ns1:axon_terminals_degenerated_in_ca3 (ns1:axon_terminals_degenerated_in_ca3)
+
+EquivalentClasses(ns1:axon_terminals_degenerated_in_ca3 ObjectIntersectionOf(ns1:ca3 ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))))
+
+# Class: ns1:axon_terminals_degenerated_in_sn (ns1:axon_terminals_degenerated_in_sn)
+
+EquivalentClasses(ns1:axon_terminals_degenerated_in_sn ObjectIntersectionOf(ns1:sn ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))))
+
+# Class: ns1:big (ns1:big)
+
+EquivalentClasses(ns1:big ObjectIntersectionOf(ns1:size ObjectSomeValuesFrom(ns1:has_value <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/increased>)))
+
+# Class: ns1:big_left_ear (ns1:big_left_ear)
+
+EquivalentClasses(ns1:big_left_ear ObjectIntersectionOf(ns1:left_ear ObjectSomeValuesFrom(ns1:has_quality ns1:big)))
+
+# Class: ns1:blue (ns1:blue)
+
+SubClassOf(ns1:blue ns1:color)
+
+# Class: ns1:brain (ns1:brain)
+
+SubClassOf(ns1:brain ns1:organ)
+SubClassOf(ns1:brain ObjectSomeValuesFrom(ns1:part_of ns1:nervous_system))
+
+# Class: ns1:ca2 (ns1:ca2)
+
+SubClassOf(ns1:ca2 ObjectSomeValuesFrom(ns1:part_of ns1:hippocampus))
+
+# Class: ns1:ca3 (ns1:ca3)
+
+SubClassOf(ns1:ca3 ObjectSomeValuesFrom(ns1:part_of ns1:hippocampus))
+
+# Class: ns1:cell (ns1:cell)
+
+SubClassOf(ns1:cell ObjectSomeValuesFrom(ns1:part_of ns1:organism))
+
+# Class: ns1:color (ns1:color)
+
+SubClassOf(ns1:color ns1:quality)
+
+# Class: ns1:decreased_volume (ns1:decreased_volume)
+
+EquivalentClasses(ns1:decreased_volume ObjectIntersectionOf(ns1:volume ObjectSomeValuesFrom(ns1:has_value <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/decreased>)))
+
+# Class: ns1:deformed (ns1:deformed)
+
+SubClassOf(ns1:deformed ns1:morphology)
+
+# Class: ns1:deformed_blue_right_eye (ns1:deformed_blue_right_eye)
+
+EquivalentClasses(ns1:deformed_blue_right_eye ObjectIntersectionOf(ns1:right_eye ObjectSomeValuesFrom(ns1:has_quality ns1:blue) ObjectSomeValuesFrom(ns1:has_quality ns1:deformed)))
+
+# Class: ns1:deformed_ca2 (ns1:deformed_ca2)
+
+EquivalentClasses(ns1:deformed_ca2 ObjectIntersectionOf(ns1:ca2 ObjectSomeValuesFrom(ns1:has_quality ns1:deformed)))
+
+# Class: ns1:deformed_hippocampus (ns1:deformed_hippocampus)
+
+EquivalentClasses(ns1:deformed_hippocampus ObjectIntersectionOf(ns1:hippocampus ObjectSomeValuesFrom(ns1:has_quality ns1:deformed)))
+
+# Class: ns1:deformed_right_ear (ns1:deformed_right_ear)
+
+EquivalentClasses(ns1:deformed_right_ear ObjectIntersectionOf(ns1:right_ear ObjectSomeValuesFrom(ns1:has_quality ns1:deformed)))
+
+# Class: ns1:degenerated (ns1:degenerated)
+
+SubClassOf(ns1:degenerated ns1:morphology)
+
+# Class: ns1:dentate_gyrus (ns1:dentate_gyrus)
+
+SubClassOf(ns1:dentate_gyrus ObjectSomeValuesFrom(ns1:part_of ns1:hippocampus))
+
+# Class: ns1:dopamine (ns1:dopamine)
+
+SubClassOf(ns1:dopamine ns1:neurotransmitter)
+
+# Class: ns1:dopmainergic_neuron (ns1:dopmainergic_neuron)
+
+EquivalentClasses(ns1:dopmainergic_neuron ObjectIntersectionOf(ns1:neuron ObjectSomeValuesFrom(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/outputs> ns1:dopamine)))
+
+# Class: ns1:ear (ns1:ear)
+
+SubClassOf(ns1:ear ns1:organ)
+SubClassOf(ns1:ear ObjectSomeValuesFrom(ns1:part_of <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/head>))
+
+# Class: ns1:eye (ns1:eye)
+
+SubClassOf(ns1:eye ObjectSomeValuesFrom(ns1:part_of <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/head>))
+
+# Class: ns1:foo_receiving_neuron (ns1:foo_receiving_neuron)
+
+EquivalentClasses(ns1:foo_receiving_neuron ObjectIntersectionOf(ns1:neuron ObjectSomeValuesFrom(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/receives> <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/foo>)))
+
+# Class: ns1:foo_transmitting_neuron (ns1:foo_transmitting_neuron)
+
+EquivalentClasses(ns1:foo_transmitting_neuron ObjectIntersectionOf(ns1:neuron ObjectSomeValuesFrom(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/transmits> <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/foo>)))
+
+# Class: ns1:green (ns1:green)
+
+SubClassOf(ns1:green ns1:color)
+
+# Class: ns1:hippocampus (ns1:hippocampus)
+
+SubClassOf(ns1:hippocampus ObjectSomeValuesFrom(ns1:part_of ns1:brain))
+
+# Class: ns1:interneuron (ns1:interneuron)
+
+SubClassOf(ns1:interneuron ns1:neuron)
+
+# Class: ns1:lb_in_ns (ns1:lb_in_ns)
+
+EquivalentClasses(ns1:lb_in_ns ObjectIntersectionOf(ns1:neostriatum ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:foo_receiving_neuron ObjectSomeValuesFrom(ns1:has_part ns1:lewy_body) ObjectSomeValuesFrom(ns1:has_quality ns1:atrophied)))))
+
+# Class: ns1:left (ns1:left)
+
+SubClassOf(ns1:left ns1:laterality)
+
+# Class: ns1:left_ear (ns1:left_ear)
+
+EquivalentClasses(ns1:left_ear ObjectIntersectionOf(ns1:ear ObjectSomeValuesFrom(ns1:has_laterality ns1:left)))
+
+# Class: ns1:left_eye (ns1:left_eye)
+
+EquivalentClasses(ns1:left_eye ObjectIntersectionOf(ns1:eye ObjectSomeValuesFrom(ns1:has_laterality ns1:left)))
+
+# Class: ns1:lewy_bodies_in_sn (ns1:lewy_bodies_in_sn)
+
+EquivalentClasses(ns1:lewy_bodies_in_sn ObjectIntersectionOf(ns1:sn ObjectSomeValuesFrom(ns1:has_part ns1:lewy_body)))
+
+# Class: ns1:lewy_bodies_in_sn2 (ns1:lewy_bodies_in_sn2)
+
+EquivalentClasses(ns1:lewy_bodies_in_sn2 ObjectIntersectionOf(ns1:lewy_body ObjectSomeValuesFrom(ns1:part_of ns1:sn)))
+
+# Class: ns1:lewy_body (ns1:lewy_body)
+
+SubClassOf(ns1:lewy_body ns1:inclusion)
+SubClassOf(ns1:lewy_body ObjectSomeValuesFrom(ns1:has_part <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/alpha_syn>))
+SubClassOf(ns1:lewy_body ObjectSomeValuesFrom(ns1:has_part <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/ubq>))
+
+# Class: ns1:mitochondrial_membrane (ns1:mitochondrial_membrane)
+
+EquivalentClasses(ns1:mitochondrial_membrane ObjectIntersectionOf(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/membrane> ObjectSomeValuesFrom(ns1:part_of ns1:mitochondrion)))
+
+# Class: ns1:mitochondrion (ns1:mitochondrion)
+
+SubClassOf(ns1:mitochondrion ObjectSomeValuesFrom(ns1:part_of ns1:cell))
+
+# Class: ns1:morphology (ns1:morphology)
+
+SubClassOf(ns1:morphology ns1:quality)
+
+# Class: ns1:neostriatum (ns1:neostriatum)
+
+SubClassOf(ns1:neostriatum ObjectSomeValuesFrom(ns1:part_of ns1:brain))
+
+# Class: ns1:nervous_system (ns1:nervous_system)
+
+SubClassOf(ns1:nervous_system ns1:system)
+
+# Class: ns1:neuron (ns1:neuron)
+
+SubClassOf(ns1:neuron ns1:cell)
+SubClassOf(ns1:neuron ObjectSomeValuesFrom(ns1:part_of ns1:nervous_system))
+
+# Class: ns1:o1_x (ns1:o1_x)
+
+SubClassOf(ns1:o1_x ObjectIntersectionOf(ns1:organism ObjectSomeValuesFrom(ns1:has_part ns1:thin_mm_in_axon_of_dn_of_sn)))
+
+# Class: ns1:o2_x (ns1:o2_x)
+
+SubClassOf(ns1:o2_x ObjectIntersectionOf(ns1:organism ObjectSomeValuesFrom(ns1:has_part ns1:axon_terminals_degenerated_in_ca3)))
+
+# Class: ns1:o3_x (ns1:o3_x)
+
+SubClassOf(ns1:o3_x ObjectIntersectionOf(ns1:organism ObjectSomeValuesFrom(ns1:has_part ns1:axon_degenerated_in_hippocampus)))
+
+# Class: ns1:o4_x (ns1:o4_x)
+
+SubClassOf(ns1:o4_x ObjectIntersectionOf(ns1:organism ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))))
+
+# Class: ns1:organ (ns1:organ)
+
+SubClassOf(ns1:organ ObjectSomeValuesFrom(ns1:part_of ns1:organism))
+
+# Class: ns1:pb_in_dg (ns1:pb_in_dg)
+
+EquivalentClasses(ns1:pb_in_dg ObjectIntersectionOf(ns1:dentate_gyrus ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:foo_transmitting_neuron ObjectSomeValuesFrom(ns1:has_part ns1:pick_body) ObjectSomeValuesFrom(ns1:has_quality ns1:decreased_volume)))))
+
+# Class: ns1:physical_quality (ns1:physical_quality)
+
+SubClassOf(ns1:physical_quality ns1:quality)
+
+# Class: ns1:pick_body (ns1:pick_body)
+
+SubClassOf(ns1:pick_body ns1:inclusion)
+SubClassOf(ns1:pick_body ObjectSomeValuesFrom(ns1:has_part <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/alpha_syn>))
+SubClassOf(ns1:pick_body ObjectSomeValuesFrom(ns1:has_part <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/ubq>))
+
+# Class: ns1:probe_1 (ns1:probe_1)
+
+EquivalentClasses(ns1:probe_1 ObjectIntersectionOf(ns1:organism ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:hippocampus ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:ca2 ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))))))))))
+
+# Class: ns1:probe_2 (ns1:probe_2)
+
+EquivalentClasses(ns1:probe_2 ObjectIntersectionOf(ns1:organism ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:hippocampus ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:ca3 ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))))))))))
+
+# Class: ns1:probe_2b (ns1:probe_2b)
+
+EquivalentClasses(ns1:probe_2b ObjectIntersectionOf(ns1:organism ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:hippocampus ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:ca2 ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated))))))) ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:ca3 ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))))))))))
+
+# Class: ns1:probe_3 (ns1:probe_3)
+
+EquivalentClasses(ns1:probe_3 ObjectIntersectionOf(ns1:organism ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated) ObjectSomeValuesFrom(ns1:part_of ns1:hippocampus)))))
+
+# Class: ns1:probe_4 (ns1:probe_4)
+
+EquivalentClasses(ns1:probe_4 ObjectIntersectionOf(ns1:organism ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon ObjectSomeValuesFrom(ns1:has_part ObjectIntersectionOf(ns1:axon_terminal ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))))))
+
+# Class: ns1:red (ns1:red)
+
+SubClassOf(ns1:red ns1:color)
+
+# Class: ns1:retina (ns1:retina)
+
+SubClassOf(ns1:retina ObjectSomeValuesFrom(ns1:part_of ns1:brain))
+SubClassOf(ns1:retina ObjectSomeValuesFrom(ns1:part_of ns1:eye))
+
+# Class: ns1:retina_degenerates (ns1:retina_degenerates)
+
+EquivalentClasses(ns1:retina_degenerates ObjectIntersectionOf(ns1:retina ObjectSomeValuesFrom(ns1:has_quality ns1:degenerated)))
+
+# Class: ns1:right (ns1:right)
+
+SubClassOf(ns1:right ns1:laterality)
+
+# Class: ns1:right_ear (ns1:right_ear)
+
+EquivalentClasses(ns1:right_ear ObjectIntersectionOf(ns1:ear ObjectSomeValuesFrom(ns1:has_laterality ns1:right)))
+
+# Class: ns1:right_eye (ns1:right_eye)
+
+EquivalentClasses(ns1:right_eye ObjectIntersectionOf(ns1:eye ObjectSomeValuesFrom(ns1:has_laterality ns1:right)))
+
+# Class: ns1:size (ns1:size)
+
+SubClassOf(ns1:size ns1:morphology)
+
+# Class: ns1:small (ns1:small)
+
+EquivalentClasses(ns1:small ObjectIntersectionOf(ns1:size ObjectSomeValuesFrom(ns1:has_value <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/decreased>)))
+
+# Class: ns1:small_green_left_eye (ns1:small_green_left_eye)
+
+EquivalentClasses(ns1:small_green_left_eye ObjectIntersectionOf(ns1:left_eye ObjectSomeValuesFrom(ns1:has_quality ns1:green) ObjectSomeValuesFrom(ns1:has_quality ns1:small)))
+
+# Class: ns1:sn (ns1:sn)
+
+SubClassOf(ns1:sn ObjectSomeValuesFrom(ns1:part_of ns1:brain))
+
+# Class: ns1:system (ns1:system)
+
+SubClassOf(ns1:system ObjectSomeValuesFrom(ns1:part_of ns1:organism))
+
+# Class: ns1:thin (ns1:thin)
+
+SubClassOf(ns1:thin ObjectIntersectionOf(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/decreased> ns1:morphology))
+
+# Class: ns1:thin_mm_in_axon_of_dn_of_sn (ns1:thin_mm_in_axon_of_dn_of_sn)
+
+EquivalentClasses(ns1:thin_mm_in_axon_of_dn_of_sn ObjectIntersectionOf(<file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/mitochondrion_membrane> ObjectSomeValuesFrom(ns1:has_quality ns1:thin) ObjectSomeValuesFrom(ns1:part_of <file:/Users/jim/Documents/Eclipse/owltools/OWLTools-Core/src/test/resources/dopaminergic_neuron>) ObjectSomeValuesFrom(ns1:part_of ns1:axon) ObjectSomeValuesFrom(ns1:part_of ns1:sn)))
+
+# Class: ns1:volume (ns1:volume)
+
+SubClassOf(ns1:volume ns1:physical_quality)
+
+
+############################
+#   Named Individuals
+############################
+
+# Individual: ns1:o1 (ns1:o1)
+
+ClassAssertion(ns1:organism ns1:o1)
+ClassAssertion(ObjectSomeValuesFrom(ns1:has ns1:pb_in_dg) ns1:o1)
+ObjectPropertyAssertion(ns1:has ns1:o1 ns1:o1p1)
+ObjectPropertyAssertion(ns1:has ns1:o1 ns1:o1p2)
+ObjectPropertyAssertion(ns1:has ns1:o1 ns1:o1p3)
+ObjectPropertyAssertion(ns1:has ns1:o1 ns1:o1p4)
+ObjectPropertyAssertion(ns1:has ns1:o1 ns1:o1p5)
+ObjectPropertyAssertion(ns1:has ns1:o1 ns1:o3p1)
+
+# Individual: ns1:o1p1 (ns1:o1p1)
+
+ClassAssertion(ns1:big_left_ear ns1:o1p1)
+
+# Individual: ns1:o1p2 (ns1:o1p2)
+
+ClassAssertion(ns1:retina_degenerates ns1:o1p2)
+
+# Individual: ns1:o1p3 (ns1:o1p3)
+
+ClassAssertion(ns1:axon_terminals_degenerated_in_ca2 ns1:o1p3)
+
+# Individual: ns1:o1p4 (ns1:o1p4)
+
+ClassAssertion(ns1:deformed_ca2 ns1:o1p4)
+
+# Individual: ns1:o1p5 (ns1:o1p5)
+
+ClassAssertion(ns1:thin_mm_in_axon_of_dn_of_sn ns1:o1p5)
+
+# Individual: ns1:o1p6 (ns1:o1p6)
+
+ClassAssertion(ns1:lewy_bodies_in_sn ns1:o1p6)
+
+# Individual: ns1:o2 (ns1:o2)
+
+ClassAssertion(ns1:organism ns1:o2)
+ClassAssertion(ObjectSomeValuesFrom(ns1:has ns1:lb_in_ns) ns1:o2)
+ObjectPropertyAssertion(ns1:has ns1:o2 ns1:o2p1)
+ObjectPropertyAssertion(ns1:has ns1:o2 ns1:o2p2)
+ObjectPropertyAssertion(ns1:has ns1:o2 ns1:o2p3)
+ObjectPropertyAssertion(ns1:has ns1:o2 ns1:o2p4)
+ObjectPropertyAssertion(ns1:has ns1:o2 ns1:o2p5)
+ObjectPropertyAssertion(ns1:has ns1:o2 ns1:o2p6)
+ObjectPropertyAssertion(ns1:has ns1:o2 ns1:o4p1)
+
+# Individual: ns1:o2p1 (ns1:o2p1)
+
+ClassAssertion(ns1:deformed_right_ear ns1:o2p1)
+
+# Individual: ns1:o2p2 (ns1:o2p2)
+
+ClassAssertion(ns1:axon_terminals_degenerated_in_ca3 ns1:o2p2)
+
+# Individual: ns1:o2p4 (ns1:o2p4)
+
+ClassAssertion(ns1:deformed_hippocampus ns1:o2p4)
+
+# Individual: ns1:o2p5 (ns1:o2p5)
+
+ClassAssertion(ns1:axon_terminals_degenerated_in_sn ns1:o2p5)
+
+# Individual: ns1:o2p6 (ns1:o2p6)
+
+ClassAssertion(ns1:lewy_bodies_in_sn ns1:o2p6)
+
+# Individual: ns1:o3p1 (ns1:o3p1)
+
+ClassAssertion(ns1:small_green_left_eye ns1:o3p1)
+
+# Individual: ns1:o4p1 (ns1:o4p1)
+
+ClassAssertion(ns1:deformed_blue_right_eye ns1:o4p1)
+
+
+SubObjectPropertyOf(ObjectPropertyChain(ns1:has_part ns1:part_of) ns1:overlaps)
+)

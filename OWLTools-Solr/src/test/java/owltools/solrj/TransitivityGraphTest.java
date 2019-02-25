@@ -81,8 +81,8 @@ public class TransitivityGraphTest {
 			});
 		}
 		assertEquals(2, foundProperties.size());
-		assertTrue(foundProperties.contains("regulates"));
-		assertTrue(foundProperties.contains("negatively_regulates"));
+		assertTrue(foundProperties.contains("RO:0002211"));
+		assertTrue(foundProperties.contains("RO:0002212"));
 	}
 	
 }

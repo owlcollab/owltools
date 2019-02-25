@@ -13,6 +13,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -87,6 +88,7 @@ public class OntologyAndGafLoaderIntegrationRunner {
 	}
 	
 	@Test
+	@Ignore("This test requires a missing resource.")
 	public void testLoadOntologiesAndGaf() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		pw.addIRIMapper(new CatalogXmlIRIMapper(catalogXml));
