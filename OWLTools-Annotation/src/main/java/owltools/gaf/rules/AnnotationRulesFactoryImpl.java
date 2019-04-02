@@ -72,7 +72,7 @@ public class AnnotationRulesFactoryImpl implements AnnotationRulesFactory {
 		Document doc = null;
 		try {
 			URI uri;
-			if(!(path.startsWith("http://") || path.startsWith("file:///") || path.startsWith("https://"))){
+			if(!(path.startsWith("http://") || path.startsWith("file://") || path.startsWith("https://"))){
 				File f = new File(path);
 				uri = f.toURI();
 			}

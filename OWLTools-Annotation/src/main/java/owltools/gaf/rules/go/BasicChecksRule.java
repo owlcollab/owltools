@@ -70,8 +70,9 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		LineIterator it = null;
 		try{
 			File destination = new File("/tmp/tmp.xrf_abbs");
+			destination.deleteOnExit();
 			if(path.startsWith("http://") || path.startsWith("https://")){
-				FileUtils.copyURLToFile(new URL(path), destination);
+				FileUtils.copyURLToFile(new URL(path), destination, 10000, 10000);
 			} else {
 				destination = new File(path);
 			}
@@ -97,6 +98,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		finally {
 			IOUtils.closeQuietly(is);
 			LineIterator.closeQuietly(it);
+
 		}
 		
 		return set;
