@@ -221,6 +221,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		else {
 			return null;
 		}
+		
 		for (OWLAnnotation a : anns) {
 			if (a.getValue() instanceof OWLLiteral) {
 				OWLLiteral val = (OWLLiteral) a.getValue();
@@ -623,7 +624,6 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 */
 	public String getNamespace(OWLObject c) {
 		OWLAnnotationProperty lap = getAnnotationProperty(OboFormatTag.TAG_NAMESPACE.getTag());
-
 		return getAnnotationValue(c, lap);
 	}
 
@@ -933,7 +933,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		}
 
 		// In the case where the input class does not have oboInOwl#id, we return its original URL.
-		LOG.warn("Unable to retrieve the value of oboInOw#id as the identifier for " + iriId + "; we will use an original iri as the identifier.");
+		// LOG.warn("Unable to retrieve the value of oboInOw#id as the identifier for " + iriId + "; we will use an original iri as the identifier.");
 		return (String) SerializationUtils.clone(iriId.toString());
 	}
 

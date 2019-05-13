@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.common.SolrInputDocument;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -17,8 +18,7 @@ public class MockModelAnnotationSolrDocumentLoader extends ModelAnnotationSolrDo
             OWLOntology model, OWLReasoner r, String modelUrl,
             Set<String> modelFilter, boolean skipDeprecatedModels,
             boolean skipTemplateModels) {
-        super(server, model, r, modelUrl, modelFilter, skipDeprecatedModels,
-                skipTemplateModels);
+        super(server, model, r, modelUrl, modelFilter, skipDeprecatedModels, skipTemplateModels);
         // TODO Auto-generated constructor stub
     }
 
@@ -26,8 +26,7 @@ public class MockModelAnnotationSolrDocumentLoader extends ModelAnnotationSolrDo
             OWLOntology model, OWLReasoner r, String modelUrl,
             Set<String> modelFilter, boolean skipDeprecatedModels,
             boolean skipTemplateModels) throws MalformedURLException {
-        super((SolrServer)null, model, r, modelUrl, modelFilter, skipDeprecatedModels,
-                skipTemplateModels);
+        super((SolrServer)null, model, r, modelUrl, modelFilter, skipDeprecatedModels, skipTemplateModels);
         // TODO Auto-generated constructor stub
     }
 
