@@ -20,7 +20,7 @@
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
-				<version>2.1.13</version>
+				<version>4.0.0</version>
 				<executions>
 					<execution>
 						<id>git-commit-id</id>
@@ -71,7 +71,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>3.2.0</version>
 				<executions>
 					<execution>
 						<goals>
@@ -83,7 +83,7 @@
 			<plugin>
 				<groupId>org.skife.maven</groupId>
 				<artifactId>really-executable-jar-maven-plugin</artifactId>
-				<version>1.4.1</version>
+				<version>1.5.0</version>
                 <executions>
                     <execution>
                         <id>owltools</id>
@@ -101,7 +101,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.2</version>
+				<version>3.1.0</version>
 				<executions>
 					<execution>
 						<id>copy-owltools</id>
