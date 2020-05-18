@@ -58,10 +58,10 @@ public class OWLServerMetadataTest {
 			HttpUriRequest httppost = createRequest();
 
 			// run request
-			Log.info("Executing="+httppost);
+			Log.getLog().info("Executing="+httppost);
 			//HttpResponse response = httpclient.execute(httpUriRequest);
 			HttpResponse response = httpclient.execute(httppost);
-			Log.info("Executed="+httpclient);
+			Log.getLog().info("Executed="+httpclient);
 			
 			// check response
 			HttpEntity entity = response.getEntity();
@@ -71,7 +71,7 @@ public class OWLServerMetadataTest {
 				handleResponse(responseContent);
 			}
 			else {
-				Log.info("Status="+statusLine.getStatusCode());
+				Log.getLog().info("Status="+statusLine.getStatusCode());
 				EntityUtils.consumeQuietly(entity);
 			}
 
@@ -103,9 +103,9 @@ public class OWLServerMetadataTest {
 			.setPath("/");
 			
 		URI uri = uriBuilder.build();
-		Log.info("Getting URL="+uri);
+		Log.getLog().info("Getting URL="+uri);
 		HttpUriRequest httpUriRequest = new HttpGet(uri);
-		Log.info("Got URL="+uri);
+		Log.getLog().info("Got URL="+uri);
 		return httpUriRequest;
 	}
 
