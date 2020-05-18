@@ -16,7 +16,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>3.2.0</version>
 				<executions>
 					<execution>
 						<goals>
@@ -103,10 +103,6 @@
 			<artifactId>gson</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>jline</groupId>
-			<artifactId>jline</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.geneontology</groupId>
 			<artifactId>expression-materializing-reasoner</artifactId>
 		</dependency>
@@ -118,7 +114,7 @@
 		<dependency>
 			<groupId>org.geneontology</groupId>
 			<artifactId>obographs</artifactId>
-			<version>0.1.0</version>
+			<version>0.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
