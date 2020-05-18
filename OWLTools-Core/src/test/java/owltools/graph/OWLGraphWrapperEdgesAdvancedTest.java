@@ -160,7 +160,7 @@ public class OWLGraphWrapperEdgesAdvancedTest extends OWLToolsTestBasics {
 		OWLShuntGraph neighbors = graph.getNeighbors(cls);
 		assertEquals(3, neighbors.nodes.size());
 		assertEquals(2, neighbors.edges.size());
-		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0004", "FOO:0003", "part_of")));
+		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0004", "FOO:0003", "BFO:0000050")));
 		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0003", "FOO:0001", "is_a")));
 		
 		cls = graph.getOWLClassByIdentifier("FOO:0007");
@@ -176,7 +176,7 @@ public class OWLGraphWrapperEdgesAdvancedTest extends OWLToolsTestBasics {
 		// is asserted. This means we can ignore the 'genus' (ie f5) in an equivalence axiom
 		assertFalse(neighbors.hasEdge(new OWLShuntEdge("FOO:0007", "FOO:0005", "is_a")));
 		
-		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0007", "FOO:0006", "part_of")));
+		assertTrue(neighbors.hasEdge(new OWLShuntEdge("FOO:0007", "FOO:0006", "BFO:0000050")));
 		
 		cls = graph.getOWLClassByIdentifier("FOO:0007");
 		neighbors = graph.getNeighborsLimited(cls, 1); //restrict to one edge, which edges is not guaranteed due to set properties
@@ -190,7 +190,7 @@ public class OWLGraphWrapperEdgesAdvancedTest extends OWLToolsTestBasics {
 		neighbors = graph.getNeighbors(cls);
 		assertEquals(3, neighbors.nodes.size());
 		assertEquals(2, neighbors.edges.size());
-		assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1904238", "CL:0000669", "results_in_acquisition_of_features_of")));
+		assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1904238", "CL:0000669", "RO:0002315")));
 		assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1904238", "GO:0030154", "is_a")));
 	}
 	
@@ -204,7 +204,7 @@ public class OWLGraphWrapperEdgesAdvancedTest extends OWLToolsTestBasics {
 	    OWLShuntGraph neighbors = graph.getNeighbors(cls);
 	    assertEquals(3, neighbors.nodes.size());
 	    assertEquals(2, neighbors.edges.size());
-	    assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1902401", "GO:0044773", "part_of")));
+	    assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1902401", "GO:0044773", "BFO:0000050")));
         assertTrue(neighbors.hasEdge(new OWLShuntEdge("GO:1902401", "GO:0072400", "is_a")));
         assertFalse(neighbors.hasEdge(new OWLShuntEdge("GO:1902401", "GO:0051606", "is_a")));
 	}

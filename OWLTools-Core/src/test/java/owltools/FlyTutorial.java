@@ -3,6 +3,7 @@ package owltools;
 import java.io.FileOutputStream;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -22,9 +23,10 @@ import owltools.util.OwlHelper;
 public class FlyTutorial extends OWLToolsTestBasics {
 
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void demo() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
-		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("FBbt.owl"));
+		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("fbbt.owl"));
 		OWLOntology ont = g.getSourceOntology();
 
 

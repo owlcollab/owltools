@@ -1,14 +1,9 @@
 language: java
 
 jdk:
-  - oraclejdk8
-
-# install
-before_install:
- - free -m
- - ls -la
- - cd OWLTools-Parent;mvn install -DskipTests=true;cd ..
+  - openjdk8
+  - openjdk11
 
 # run tests
 script:
-  - cd OWLTools-Parent;mvn clean compile
+  - cd OWLTools-Parent; mvn clean test

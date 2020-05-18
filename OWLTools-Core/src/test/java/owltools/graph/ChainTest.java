@@ -2,6 +2,7 @@ package owltools.graph;
 
 import static org.junit.Assert.*;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -11,6 +12,8 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import owltools.OWLToolsTestBasics;
 
 public class ChainTest extends OWLToolsTestBasics {
+
+	private static Logger LOG = Logger.getLogger(ChainTest.class);
 
 	@Test
 	public void testDescendants() throws Exception {
@@ -23,7 +26,7 @@ public class ChainTest extends OWLToolsTestBasics {
 		boolean ok1 = false;
 		boolean ok2 = false;
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosureReflexive(x1)) {
-			System.out.println(e);
+			LOG.debug(e);
 			if (e.getTarget().equals(z1)) {
 				if (e.getQuantifiedPropertyList().size() == 1) {
 					OWLQuantifiedProperty qp = e.getFirstQuantifiedProperty();
@@ -40,7 +43,7 @@ public class ChainTest extends OWLToolsTestBasics {
 
 		boolean ok3 = false;
 		for (OWLObject d : g.queryDescendants((OWLClass)z1)) {
-			System.out.println("z1 desc="+d);
+			LOG.debug("z1 desc="+d);
 			if (d.equals(x1)) {
 				ok3 = true;
 			}
@@ -50,9 +53,9 @@ public class ChainTest extends OWLToolsTestBasics {
 		ok3 = false;
 		OWLObjectSomeValuesFrom qe = 
 			g.getDataFactory().getOWLObjectSomeValuesFrom(g.getOWLObjectPropertyByIdentifier("BFO:0000050"), (OWLClassExpression) z1);
-		System.out.println("QE="+qe);
+		LOG.debug("QE="+qe);
 		for (OWLObject d : g.queryDescendants(qe)) {
-			System.out.println("part_of z1 desc="+d);
+			LOG.debug("part_of z1 desc="+d);
 			if (d.equals(x1)) {
 				ok3 = true;
 			}
@@ -63,7 +66,7 @@ public class ChainTest extends OWLToolsTestBasics {
 		ok2 = false;
 		for (OWLGraphEdge e : g.getOutgoingEdgesClosureReflexive(a1)) {
 
-			System.out.println("a1 anc="+e);
+			LOG.debug("a1 anc="+e);
 			if (e.getTarget().equals(y1)) {
 				if (e.getQuantifiedPropertyList().size() == 1) {
 					OWLQuantifiedProperty qp = e.getFirstQuantifiedProperty();
@@ -78,9 +81,9 @@ public class ChainTest extends OWLToolsTestBasics {
 		ok3 = false;
 		qe = 
 			g.getDataFactory().getOWLObjectSomeValuesFrom(g.getOWLObjectPropertyByIdentifier("RO:0002131"), (OWLClassExpression) y1);
-		System.out.println("QE="+qe);
+		LOG.debug("QE="+qe);
 		for (OWLObject d : g.queryDescendants(qe)) {
-			System.out.println("overlaps y1 desc="+d);
+			LOG.debug("overlaps y1 desc="+d);
 			if (d.equals(a1)) {
 				ok3 = true;
 			}

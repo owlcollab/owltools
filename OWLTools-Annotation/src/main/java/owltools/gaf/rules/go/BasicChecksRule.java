@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.log4j.Logger;
@@ -68,13 +69,15 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		InputStream is = null;
 		LineIterator it = null;
 		try{
-			if(path.startsWith("http://") || path.startsWith("file:/")){
-				is = new URL(path).openStream();
+			File destination = new File("/tmp/tmp.xrf_abbs");
+			destination.deleteOnExit();
+			if(path.startsWith("http://") || path.startsWith("https://")){
+				FileUtils.copyURLToFile(new URL(path), destination, 10000, 10000);
+			} else {
+				destination = new File(path);
 			}
-			else {
-				is = new FileInputStream(new File(path));
-			}
-			
+			// Copy from destination, always a file now.
+			is = new FileInputStream(destination);
 			it = new LineIterator(new InputStreamReader(is));
 			
 			while (it.hasNext()) {
@@ -95,6 +98,7 @@ public class BasicChecksRule extends AbstractAnnotationRule {
 		finally {
 			IOUtils.closeQuietly(is);
 			LineIterator.closeQuietly(it);
+
 		}
 		
 		return set;

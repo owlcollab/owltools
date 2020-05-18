@@ -41,7 +41,7 @@ public class RetrieveRelationByLabelTest extends OWLToolsTestBasics {
 		assertNotNull(bfo_50);
 		assertEquals(part_of, bfo_50);
 		
-		assertEquals("part_of", g.getIdentifier(part_of));
+		assertEquals("BFO:0000050", g.getIdentifier(part_of));
 		
 		OWLObject foo_bar1 = g.getOWLObjectByIdentifier("foo_bar");
 		assertNotNull(foo_bar1);

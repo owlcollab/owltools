@@ -63,6 +63,12 @@
     <!-- http://purl.obolibrary.org/obo/RO_0002345 -->
 
     <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0002345"/>
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0004007"/>
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0004009"/>
+
+    <owl:ObjectProperty rdf:about="http://purl.obolibrary.org/obo/RO_0004008"/>
     
 
 

@@ -47,7 +47,7 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<configuration>
 					<links>
-						<link>http://owlapi.sourceforge.net/javadoc/</link>
+						<link>http://owlcs.github.io/owlapi/apidocs_4/</link>
 					</links>
 				</configuration>
 			</plugin>

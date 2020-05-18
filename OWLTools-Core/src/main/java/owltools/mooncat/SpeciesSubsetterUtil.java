@@ -1,5 +1,6 @@
 package owltools.mooncat;
 
+import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,18 +14,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.obolibrary.macro.MacroExpansionVisitor;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.util.OWLEntityRemover;
 
@@ -124,20 +114,33 @@ public class SpeciesSubsetterUtil {
      * @param g {@code OWLGraphWrapper} wrapping the {@code OWLOntology} to use.
      */
 	public SpeciesSubsetterUtil(OWLGraphWrapper g) {
-		graph = g;
+        this(g, true);
+	}
 
+    /**
+     * Constructor providing the {@code OWLGraphWrapper} wrapping the {@code OWLOntology}
+     * used for species subsetting. This {@code OWLOntology} will be immediately modified
+     * to remove relations that could generate incorrect taxon constraints.
+     *
+     * @param g {@code OWLGraphWrapper} wrapping the {@code OWLOntology} to use.
+     * @param performMacroExpansion expand macros, such as 'never in taxon' annotations
+     */
+    public SpeciesSubsetterUtil(OWLGraphWrapper g, boolean performMacroExpansion) {
+        graph = g;
         ont = graph.getSourceOntology();
         mgr = ont.getOWLOntologyManager();
         fac = mgr.getOWLDataFactory();
         onlyInTaxon = graph.getOWLObjectPropertyByIdentifier(ONLY_IN_TAXON_ID);
         inTaxon = graph.getOWLObjectPropertyByIdentifier(IN_TAXON_ID);
-        
+
         //remove relations generating incorrect taxon constraints
         this.removeDefaultAxioms();
-        //will expand never_in_taxon annotation property into EC axioms to OWL:Nothing
-        MacroExpansionVisitor mev = new MacroExpansionVisitor(ont);
-        mev.expandAll();
-	}
+        if (performMacroExpansion) {
+            //will expand never_in_taxon annotation property into EC axioms to OWL:Nothing
+            MacroExpansionVisitor mev = new MacroExpansionVisitor(ont);
+            mev.expandAll();
+        }
+    }
 
 
 	/**

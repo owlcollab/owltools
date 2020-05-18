@@ -21,7 +21,7 @@ fi
 JAVA=`which java`
 
 # full command
-CMD="$JAVA -Xms2G $JVM_OPTIONS -DentityExmpansionLimit=4086000 -Djava.awt.headless=true -classpath $PATH_TO_SELF owltools.cli.CommandLineInterface"
+CMD="$JAVA -Xms2G $JVM_OPTIONS -DentityExpansionLimit=4086000 -Djava.awt.headless=true -jar $PATH_TO_SELF"
 
 if [ $DEBUG ]
 then
@@ -29,6 +29,6 @@ then
 fi
 
 # Run
-exec "$JAVA" -Xms2G $JVM_OPTIONS -DentityExmpansionLimit=4086000 -Djava.awt.headless=true -classpath $PATH_TO_SELF owltools.cli.CommandLineInterface "$@"
+exec "$JAVA" -Xms2G $JVM_OPTIONS -DentityExpansionLimit=4086000 -Djava.awt.headless=true -jar $PATH_TO_SELF "$@"
 
 exit 1

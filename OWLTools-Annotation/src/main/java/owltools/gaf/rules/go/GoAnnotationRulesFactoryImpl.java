@@ -1,5 +1,6 @@
 package owltools.gaf.rules.go;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -45,8 +46,8 @@ public class GoAnnotationRulesFactoryImpl extends AnnotationRulesFactoryImpl {
 	}
 	
 	public GoAnnotationRulesFactoryImpl(OWLGraphWrapper graph, TraversingEcoMapper eco, String taxonModule) {
-		this("http://www.geneontology.org/quality_control/annotation_checks/annotation_qc.xml",
-				"http://www.geneontology.org/doc/GO.xrf_abbs", graph, eco, taxonModule);
+		this("https://raw.githubusercontent.com/owlcollab/owltools/master/docs/legacy/annotation_qc.xml",
+				"http://current.geneontology.org/metadata/GO.xrf_abbs", graph, eco, taxonModule);
 	}
 
 	@Override

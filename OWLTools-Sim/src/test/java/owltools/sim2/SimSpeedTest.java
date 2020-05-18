@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
@@ -59,78 +60,96 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 	public enum Method {NAIVE, INTS, GUAVA, EFFICIENT, BITMAP};
 
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testNaiveWorm() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.NAIVE, "wbphenotype", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testNaiveMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.NAIVE, "mp", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testEfficientMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.EFFICIENT, "mp", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testIntsMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.INTS, "mp", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testGuavaIntsMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.GUAVA, "mp", 2000);
 	}
 
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testBitmapMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.BITMAP, "mp", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testNaiveUpheno() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.NAIVE, "upheno", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testIntsUpheno() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.INTS, "upheno", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testGuavaIntsUpheno() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.GUAVA, "upheno", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testBitmapUpheno() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.BITMAP, "upheno", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testNaiveMammal() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.NAIVE, "mammal-merged", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testGuavaIntsMammal() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.GUAVA, "mammal-merged", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testBitmapMammal() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.BITMAP, "mammal-merged", 2000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testBitmapMammal10k() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.BITMAP, "mammal-merged", 10000);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testGuavaIntsMammal10k() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		t(Method.GUAVA, "mammal-merged", 10000);
 	}
 	
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testLCSBitmapMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		testLCS(Method.BITMAP, "mammal-merged", 400);
 	}
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testLCSNaiveMouse() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		testLCS(Method.NAIVE, "mammal-merged", 400);
 	}
 
 	
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void bitmapTest() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		Set<Integer> ixs = new HashSet<Integer>();
 		ixs.add(99);
@@ -147,6 +166,7 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 	}
 
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 	public void testLCS() throws OWLOntologyCreationException, OBOFormatParserException, IOException {
 		String idspace="mp";
 		load(idspace);

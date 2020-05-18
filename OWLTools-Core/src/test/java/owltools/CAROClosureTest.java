@@ -2,6 +2,7 @@ package owltools;
 
 import static org.junit.Assert.*;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -13,15 +14,17 @@ import owltools.io.ParserWrapper;
 
 public class CAROClosureTest extends OWLToolsTestBasics {
 
+	private static Logger LOG = Logger.getLogger(CAROClosureTest.class);
+
 	@Test
 	public void testConvertXPs() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("caro.obo"));
 		OWLOntology ont = g.getSourceOntology();
 		for (OWLClass c : ont.getClassesInSignature()) {
-			System.out.println("c="+c+" "+g.getLabel(c));
+			LOG.debug("c="+c+" "+g.getLabel(c));
 			for (OWLGraphEdge e : g.getOutgoingEdges(c)) {
-				System.out.println(e);
+				LOG.debug(e);
 			}
 		}
 
@@ -30,9 +33,9 @@ public class CAROClosureTest extends OWLToolsTestBasics {
 
 		boolean ok1 = false;
 		for (OWLClass c : ont.getClassesInSignature()) {
-			System.out.println("getting ancestors for: "+c+" "+g.getLabel(c));
+			LOG.debug("getting ancestors for: "+c+" "+g.getLabel(c));
 			for (OWLGraphEdge e : g.getOutgoingEdgesClosure(c)) {
-				System.out.println("CLOSURE: "+e);
+				LOG.debug("CLOSURE: "+e);
 				if (c.equals(s) && e.getTarget().equals(t))
 					ok1 = true;
 						

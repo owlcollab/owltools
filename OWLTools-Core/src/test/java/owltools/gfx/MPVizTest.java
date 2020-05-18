@@ -14,8 +14,7 @@ public class MPVizTest extends OWLToolsTestBasics {
 	@Test
 	public void testRenderCARO() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
-		OWLGraphWrapper g =
-			pw.parseToOWLGraph("http://purl.org/obo/obo/MP.obo");
+		OWLGraphWrapper g = getGraph("mp.obo");
 		OWLGraphLayoutRenderer r = new OWLGraphLayoutRenderer(g);
 		OWLObject ob = g.getOWLObjectByIdentifier("MP:0001293");
 		System.out.println("drawing: "+ob);

@@ -1,5 +1,6 @@
 package sim1;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -10,6 +11,7 @@ import owltools.sim.SimEngine;
 public class PhenologSimTest extends AbstractSimEngineTest {
 
 	@Test
+	@Ignore("This test requires an external resource. This can lead to false positive failures.")
 //	@Ignore("takes a long time, add to separate test suite") // uncomment this line to deactivate the test
 	public void testSim() throws Exception{
 		OWLGraphWrapper  wrapper = 

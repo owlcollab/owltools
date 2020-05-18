@@ -11,6 +11,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.elk.owlapi.ElkReasonerFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -100,6 +101,7 @@ public class GafSolrDocumentLoaderIntegrationRunner {
 	}
 
 	@Test
+	@Ignore("This test requires a missing resource.")
 	public void test() throws Exception {
 		assertNotNull(graph);
 		assertNotNull(loader);

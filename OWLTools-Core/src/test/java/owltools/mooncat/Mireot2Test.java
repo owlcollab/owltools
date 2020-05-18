@@ -1,5 +1,6 @@
 package owltools.mooncat;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -12,6 +13,7 @@ import owltools.io.ParserWrapper;
 public class Mireot2Test extends OWLToolsTestBasics {
 
 	@Test
+	@Ignore("This test requires a missing resource.")
 	public void testMireot() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		

@@ -41,6 +41,8 @@ import owltools.sim2.scores.ScoreMatrix;
 import com.googlecode.javaewah.EWAHCompressedBitmap;
 import com.googlecode.javaewah.IntIterator;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * Faster implementation of OwlSim
  * 
@@ -2102,7 +2104,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 
 		FileInputStream s = new FileInputStream(fileName);
 		//List<String> lines = IOUtils.readLines(s);
-		LineIterator itr = IOUtils.lineIterator(s, null);
+		LineIterator itr = IOUtils.lineIterator(s, UTF_8);
 		while (itr.hasNext()) {
 			String line = itr.nextLine();
 			String[] vals = line.split("\t");

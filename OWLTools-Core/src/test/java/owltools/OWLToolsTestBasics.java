@@ -52,7 +52,7 @@ public class OWLToolsTestBasics {
 	}
 	
 	protected static void renderOBO(OBODoc oboDoc) throws IOException {
-		System.out.println(renderOBOtoString(oboDoc));
+		LOG.debug(renderOBOtoString(oboDoc));
 	}
 	
 	protected static String renderOBOtoString(OBODoc oboDoc) throws IOException {
