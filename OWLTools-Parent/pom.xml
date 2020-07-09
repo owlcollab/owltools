@@ -20,7 +20,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<!-- Needs fix to upgrade to 4.5.16; see failing test -->
 		<!-- Also, can't upgrade from 4.5.1 until this is fixed: https://github.com/owlcollab/owltools/issues/302 -->
-		<owlapi.version>4.5.1</owlapi.version>
+		<owlapi.version>4.5.17</owlapi.version>
 		<slf4j.version>1.7.30</slf4j.version>
 	</properties>
 
