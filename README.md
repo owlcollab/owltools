@@ -40,11 +40,7 @@ Use the provided Eclipse launch configurations to trigger the build. The configu
 
 ## Downloading OWLTools
 
-This option uses a pre-built JAR and script-wrapper instead of building owltools from the Java source. The JAR is built as part of the continuous building and test of the OWLTools project on a Jenkins server.
-
-Go to http://build.berkeleybop.org/userContent/owltools/
-
-Download [owltools](http://build.berkeleybop.org/userContent/owltools/owltools)
+You can download a pre-built JAR and script-wrapper instead of building owltools from the Java source. You can find releases on the [OWLTools GitHub releases page](https://github.com/owlcollab/owltools/releases).
 
 Note: you may need to make this file executable. Occasionally when downloaded files lose the "executable" permisison. You can do this with `chmod +x owltools`.
 
