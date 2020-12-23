@@ -21,12 +21,12 @@ public class OWLJSONFormat extends OWLDocumentFormatImpl {
 	}
 
 	@Override
-	public boolean isPrefixOWLOntologyFormat() {
+	public boolean isPrefixOWLDocumentFormat() {
 		return false;
 	}
 
 	@Override
-	public PrefixDocumentFormat asPrefixOWLOntologyFormat() {
+	public PrefixDocumentFormat asPrefixOWLDocumentFormat() {
 		throw new UnsupportedOperationException(getClass().getName()
 				+ " is not a PrefixDocumentFormat");
 	}

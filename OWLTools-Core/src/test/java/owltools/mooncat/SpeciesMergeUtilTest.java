@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.formats.OBODocumentFormat;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -29,7 +29,7 @@ public class SpeciesMergeUtilTest extends OWLToolsTestBasics {
 		ParserWrapper p = new ParserWrapper();
 		OWLOntology owlOntology = p.parse(getResourceIRIString("speciesMergeTest.obo"));
 		OWLGraphWrapper graph = new OWLGraphWrapper(owlOntology);
-		OWLReasonerFactory rf = new ElkReasonerFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(graph.getSourceOntology());
 		SpeciesMergeUtil smu = new SpeciesMergeUtil(graph);
 		smu.viewProperty = graph.getOWLObjectPropertyByIdentifier("BFO:0000050");
@@ -48,7 +48,7 @@ public class SpeciesMergeUtilTest extends OWLToolsTestBasics {
 		OWLOntology owlOntology = p.parse(getResourceIRIString("interneuron-fly.obo"));
 		Set<OWLClass> clsBefore = owlOntology.getClassesInSignature();
 		OWLGraphWrapper graph = new OWLGraphWrapper(owlOntology);
-		OWLReasonerFactory rf = new ElkReasonerFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(graph.getSourceOntology());
 		SpeciesMergeUtil smu = new SpeciesMergeUtil(graph);
 

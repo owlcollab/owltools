@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TimeZone;
@@ -43,22 +44,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Server;
-import org.geneontology.reasoner.ExpressionMaterializingReasoner;
-import org.geneontology.reasoner.ExpressionMaterializingReasonerFactory;
 import org.geneontology.reasoner.OWLExtendedReasoner;
 import org.obolibrary.macro.MacroExpansionVisitor;
 import org.obolibrary.macro.ManchesterSyntaxTool;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
-import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
@@ -83,11 +82,13 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLClassExpressionVisitor;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLEntityVisitor;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -120,16 +121,13 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
-import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
-import org.semanticweb.owlapi.util.OWLEntityVisitorAdapter;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
 import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -146,6 +144,8 @@ import owltools.InferenceBuilder.OWLClassFilter;
 import owltools.RedundantInferences;
 import owltools.RedundantInferences.RedundantAxiom;
 import owltools.cli.tools.CLIMethod;
+import owltools.geneontologyowlapi5.ExpressionMaterializingReasoner;
+import owltools.geneontologyowlapi5.ExpressionMaterializingReasonerFactory;
 import owltools.gfx.GraphicsConfig;
 import owltools.gfx.GraphicsConfig.RelationConfig;
 import owltools.gfx.OWLGraphLayoutRenderer;
@@ -259,12 +259,12 @@ public class CommandRunner extends CommandRunnerBase {
                 reasonerName = "elk";
             }
             else if (opts.nextEq("--jfact")) {
-                System.err.println("The JFact reasoner is no longer supported, use Hermit '--hermit', or ELK '--elk' instead");
+                System.err.println("The JFact reasoner is no longer supported, use Hermit '--hermit' instead");
                 exit(-1);
                 return;
             }
             else if (opts.nextEq("--more")) {
-                System.err.println("The MORE reasoner is no longer supported, use Hermit '--hermit', or ELK '--elk' instead");
+                System.err.println("The MORE reasoner is no longer supported, use Hermit '--hermit' instead");
                 exit(-1);
                 return;
             }
@@ -579,7 +579,7 @@ public class CommandRunner extends CommandRunnerBase {
                 }
                 if (!isAnonymous)
                     iri = IRI.create(opts.nextOpt());
-                OWLOntologyID oid = new OWLOntologyID(Optional.fromNullable(iri), Optional.fromNullable(v));
+                OWLOntologyID oid = new OWLOntologyID(Optional.ofNullable(iri), Optional.ofNullable(v));
                 SetOntologyID soid;
                 soid = new SetOntologyID(g.getSourceOntology(), oid);
                 g.getManager().applyChange(soid);
@@ -1829,7 +1829,7 @@ public class CommandRunner extends CommandRunnerBase {
                     }
                     if (addXref) {
                         // xref to OBO style ID
-                        String pid = Owl2Obo.getIdentifier(prop.getIRI());
+                        String pid = OWLAPIOwl2Obo.getIdentifier(prop.getIRI());
                         OWLAxiom ax = df.getOWLAnnotationAssertionAxiom(
                                 xrefProperty,
                                 prop.getIRI(), 
@@ -2754,7 +2754,7 @@ public class CommandRunner extends CommandRunnerBase {
                     }
                 }
                 ProvenanceReasonerWrapper pr = 
-                        new ProvenanceReasonerWrapper(g.getSourceOntology(), new ElkReasonerFactory());
+                        new ProvenanceReasonerWrapper(g.getSourceOntology(), new ReasonerFactory());
                 if (outputOntology != null) {
                     pr.outputOntology = outputOntology;
                 }
@@ -3698,7 +3698,7 @@ public class CommandRunner extends CommandRunnerBase {
                     }
                     else if (opts.nextEq("--prefix")) {
                         opts.info("PREFIX URIBASE","use PREFIX as prefix. Note: specify this sub-arg AFTER -f");
-                        ofmt.asPrefixOWLOntologyFormat().setPrefix(opts.nextOpt(), opts.nextOpt());
+                        ofmt.asPrefixOWLDocumentFormat().setPrefix(opts.nextOpt(), opts.nextOpt());
                     }
                     else {
                         break;
@@ -3772,7 +3772,7 @@ public class CommandRunner extends CommandRunnerBase {
                         " also assers superclasses");
                 boolean isTempReasoner = false;
                 if (reasoner == null) {
-                    reasoner = this.createReasoner(g.getSourceOntology(), "elk", g.getManager());
+                    reasoner = this.createReasoner(g.getSourceOntology(), "hermit", g.getManager());
                     isTempReasoner = true;
                 }
                 String idspacesStr = opts.nextOpt();
@@ -4969,8 +4969,8 @@ public class CommandRunner extends CommandRunnerBase {
         // setup date string and ontology version strings
         StringBuilder header = new StringBuilder();
         OWLOntology ont = g.getSourceOntology();
-        String ontologyId = Owl2Obo.getOntologyId(ont);
-        String dataVersion = Owl2Obo.getDataVersion(ont);
+        String ontologyId = OWLAPIOwl2Obo.getOntologyId(ont);
+        String dataVersion = OWLAPIOwl2Obo.getDataVersion(ont);
         header.append(commentPrefix);
         header.append(" Generated on ");
         TimeZone tz = TimeZone.getTimeZone("UTC");
@@ -5207,7 +5207,7 @@ public class CommandRunner extends CommandRunnerBase {
             final Set<OWLClass> directSuperClasses = reasoner.getSuperClasses(cls, true).getFlattened();
             Set<OWLSubClassOfAxiom> subClassAxioms = rootOntology.getSubClassAxiomsForSubClass(cls);
             for (final OWLSubClassOfAxiom subClassAxiom : subClassAxioms) {
-                subClassAxiom.getSuperClass().accept(new OWLClassExpressionVisitorAdapter(){
+                subClassAxiom.getSuperClass().accept(new OWLClassExpressionVisitor(){
 
                     @Override
                     public void visit(OWLClass desc) {
@@ -5584,11 +5584,11 @@ public class CommandRunner extends CommandRunnerBase {
         final Set<IRI> upperLevelIRIs = new HashSet<IRI>();
         final String matchPrefix = prefix;
         for (OWLEntity owlEntity : signature) {
-            owlEntity.accept(new OWLEntityVisitorAdapter(){
+            owlEntity.accept(new OWLEntityVisitor(){
 
                 @Override
                 public void visit(OWLClass cls) {
-                    String id = Owl2Obo.getIdentifier(cls.getIRI());
+                    String id = OWLAPIOwl2Obo.getIdentifier(cls.getIRI());
                     if (id.startsWith(matchPrefix) && !matchExceptions.contains(id)) {
                         upperLevelIRIs.add(cls.getIRI());
                     }
@@ -5596,7 +5596,7 @@ public class CommandRunner extends CommandRunnerBase {
 
                 @Override
                 public void visit(OWLObjectProperty property) {
-                    String id = Owl2Obo.getIdentifier(property.getIRI());
+                    String id = OWLAPIOwl2Obo.getIdentifier(property.getIRI());
                     if (id.startsWith(matchPrefix) && !matchExceptions.contains(id)) {
                         upperLevelIRIs.add(property.getIRI());
                     }
@@ -6120,7 +6120,7 @@ public class CommandRunner extends CommandRunnerBase {
             newID = new OWLOntologyID(Optional.of(newOntologyIRI), Optional.of(newVersionIRI));
         }
         else {
-            newID = new OWLOntologyID(Optional.of(newOntologyIRI), Optional.<IRI>absent());
+            newID = new OWLOntologyID(Optional.of(newOntologyIRI), Optional.empty());
         }
         final OWLOntologyManager m = g.getManager();
         final OWLOntology work = m.createOntology(newID);
@@ -6165,7 +6165,7 @@ public class CommandRunner extends CommandRunnerBase {
         }
         // obo
         if (outputFileObo != null) {
-            Owl2Obo owl2Obo = new Owl2Obo();
+            OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo(work.getOWLOntologyManager());
             OBODoc doc = owl2Obo.convert(work);
 
             OBOFormatWriter writer = new OBOFormatWriter();
@@ -6276,7 +6276,7 @@ public class CommandRunner extends CommandRunnerBase {
             newID = new OWLOntologyID(Optional.of(newOntologyIRI), Optional.of(oldVersionIRI));
         }
         else {
-            newID = new OWLOntologyID(Optional.of(newOntologyIRI), Optional.<IRI>absent());
+            newID = new OWLOntologyID(Optional.of(newOntologyIRI), Optional.empty());
         }
 
         // filter axioms
@@ -6307,7 +6307,7 @@ public class CommandRunner extends CommandRunnerBase {
         }
         // obo
         if (outputFileObo != null) {
-            Owl2Obo owl2Obo = new Owl2Obo();
+            OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo(filtered.getOWLOntologyManager());
             OBODoc doc = owl2Obo.convert(filtered);
 
             OBOFormatWriter writer = new OBOFormatWriter();
@@ -6486,7 +6486,7 @@ public class CommandRunner extends CommandRunnerBase {
             slim.getOWLOntologyManager().saveOntology(slim, IRI.create(outFile));
         }
         if (outputObo != null) {
-            Owl2Obo owl2Obo = new Owl2Obo();
+            OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo(slim.getOWLOntologyManager());
             OBODoc oboDoc = owl2Obo.convert(slim);
             OBOFormatWriter w = new OBOFormatWriter();
             w.write(oboDoc, outputObo);
@@ -6549,24 +6549,17 @@ public class CommandRunner extends CommandRunnerBase {
     private OWLReasonerFactory createReasonerFactory(String reasonerName) {
         OWLReasonerFactory reasonerFactory = null;
         if (reasonerName.equals("hermit")) {
-            reasonerFactory = new org.semanticweb.HermiT.ReasonerFactory();
+            reasonerFactory = new ReasonerFactory();
         }
         else if (reasonerName.equals("ogr")) {
             reasonerFactory = new GraphReasonerFactory();
         }
         else if (reasonerName.equals("mexr")) {
             if (reasonerFactory == null) {
-                // set default to ELK
-                reasonerFactory = new ElkReasonerFactory();
+                // set default to HermiT
+                reasonerFactory = new ReasonerFactory();
             }
             reasonerFactory = new ExpressionMaterializingReasonerFactory(reasonerFactory);
-        }
-        else if (reasonerName.equals("elk")) {
-            reasonerFactory = new ElkReasonerFactory();
-        }
-        else if (reasonerName.equals("welk")) {
-            System.out.println("The wrapping elk reasoner is deprecated, using normal elk instead");
-            reasonerFactory = new ElkReasonerFactory();
         }
         return reasonerFactory;
     }
@@ -6615,7 +6608,7 @@ public class CommandRunner extends CommandRunnerBase {
         m.removeDanglingAxioms();
         if (newURI != null) {
             SetOntologyID soi = new SetOntologyID(g.getSourceOntology(),
-                    new OWLOntologyID(Optional.of(IRI.create(newURI)), Optional.<IRI>absent()));
+                    new OWLOntologyID(Optional.of(IRI.create(newURI)), Optional.empty()));
             g.getManager().applyChange(soi);
             /*
 			HashSet<OWLOntology> cpOnts = new HashSet<OWLOntology>();

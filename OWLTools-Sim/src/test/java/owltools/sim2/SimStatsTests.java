@@ -8,7 +8,7 @@ import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -38,7 +38,7 @@ public class SimStatsTests extends AbstractOWLSimTest {
 		setOutput("target/basic-owlsim-test.out");
 
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 			this.createOwlSim();
 			owlsim.createElementAttributeMapFromOntology();
@@ -77,7 +77,7 @@ public class SimStatsTests extends AbstractOWLSimTest {
 		upperLevelClassIDs.add("MP:0002152"); //Abnormal Brain Morphology
 		upperLevelClassIDs.add("MP:0003631"); //Nervous System Phenotype
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 			this.createOwlSim();
 			owlsim.createElementAttributeMapFromOntology();
@@ -117,7 +117,7 @@ public class SimStatsTests extends AbstractOWLSimTest {
 		setOutput("target/basic-owlsim-test.out");
 
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 			this.createOwlSim();
 			owlsim.createElementAttributeMapFromOntology();
@@ -147,7 +147,7 @@ public class SimStatsTests extends AbstractOWLSimTest {
 		setOutput("target/basic-owlsim-test.out");
 
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 			this.createOwlSim();
 			owlsim.createElementAttributeMapFromOntology();

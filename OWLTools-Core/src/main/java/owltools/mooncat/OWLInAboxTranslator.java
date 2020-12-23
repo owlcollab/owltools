@@ -389,7 +389,7 @@ public class OWLInAboxTranslator {
 		}
 		if (p instanceof OWLObjectInverseOf) {
 			OWLObjectPropertyExpression p2 = trTypeLevel(((OWLObjectInverseOf)p).getInverse());
-			return getOWLDataFactory().getOWLObjectInverseOf(p2);
+			return getOWLDataFactory().getOWLObjectInverseOf(p2.asOWLObjectProperty());
 		}
 		else {
 			instanceLevelRelations.add((OWLObjectProperty)p);

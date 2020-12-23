@@ -27,7 +27,7 @@ public class CommandRunnerMaterializeExistentialsTest extends AbstractCommandRun
 	public void testRemoveRedundant() throws Exception {
 		run("--create-ontology test2");
 		load("forebrain-redundant.obo");
-		run("--merge-support-ontologies --reasoner elk --remove-redundant-svfs");
+		run("--merge-support-ontologies --reasoner hermit --remove-redundant-svfs");
 		run("-o -f obo target/forebrain-nr.obo");
 		
 		

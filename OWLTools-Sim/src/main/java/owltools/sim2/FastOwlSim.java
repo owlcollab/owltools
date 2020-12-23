@@ -18,7 +18,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.log4j.Logger;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -210,7 +210,7 @@ public class FastOwlSim extends AbstractOwlSim implements OwlSim {
 	 * @param sourceOntology
 	 */
 	public FastOwlSim(OWLOntology sourceOntology) {
-		reasoner = new ElkReasonerFactory().createReasoner(sourceOntology);
+		reasoner = new ReasonerFactory().createReasoner(sourceOntology);
 	}
 
 	/**

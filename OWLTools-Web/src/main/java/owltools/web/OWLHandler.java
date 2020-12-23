@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
@@ -71,7 +72,6 @@ import owltools.sim2.UnknownOWLClassException;
 import owltools.version.VersionInfo;
 import owltools.vocab.OBOUpperVocabulary;
 
-import com.google.common.base.Optional;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -1101,9 +1101,9 @@ public class OWLHandler {
 	}
 
 	public void headerOWL() {
-		if (isOWLOntologyFormat()) {
+		if (isOWLDocumentFormat()) {
 			LOG.info("using OWL ontology header");
-			OWLDocumentFormat ofmt = this.getOWLOntologyFormat();
+			OWLDocumentFormat ofmt = this.getOWLDocumentFormat();
 			if (ofmt instanceof RDFXMLDocumentFormat) {
 				response.setContentType("application/rdf+xml;charset-utf-8");
 			}
@@ -1128,7 +1128,7 @@ public class OWLHandler {
 			fmt = "";
 		if (fmt.equals("plain"))
 			outputLine(axiom.toString());
-		else if (isOWLOntologyFormat(fmt)) {
+		else if (isOWLDocumentFormat(fmt)) {
 			cache(axiom);
 		}
 		else if (fmt.equals("json")) {
@@ -1155,7 +1155,7 @@ public class OWLHandler {
 			//jsonp.render(obj);
 			cache(obj);
 		}
-		else if (isOWLOntologyFormat()) {
+		else if (isOWLDocumentFormat()) {
 			// TODO - place objects into ontology, eg as subclass of result
 			outputLine(obj.toString());
 		}
@@ -1175,7 +1175,7 @@ public class OWLHandler {
 	}
 
 	private void output(OWLGraphEdge e) throws IOException {
-		if (isOWLOntologyFormat() || getFormat().equals("json")) {
+		if (isOWLDocumentFormat() || getFormat().equals("json")) {
 			// todo - json format for edge
 			OWLObject x = graph.edgeToTargetExpression(e);
 			LOG.info("EdgeToX:"+x);
@@ -1218,7 +1218,7 @@ public class OWLHandler {
 				return;
 			OWLOntology tmpOnt = getTemporaryOntology();
 			graph.getManager().addAxioms(tmpOnt, cachedAxioms);
-			OWLDocumentFormat ofmt = getOWLOntologyFormat();
+			OWLDocumentFormat ofmt = getOWLDocumentFormat();
 			LOG.info("Format:"+ofmt);
 			ParserWrapper pw = new ParserWrapper();
 			//graph.getManager().saveOntology(tmpOnt, ofmt, response.getOutputStream());
@@ -1237,11 +1237,11 @@ public class OWLHandler {
 		return graph.getManager().createOntology(iri);
 	}
 
-	private OWLDocumentFormat getOWLOntologyFormat() {
-		return getOWLOntologyFormat(getFormat());
+	private OWLDocumentFormat getOWLDocumentFormat() {
+		return getOWLDocumentFormat(getFormat());
 	}
 
-	private OWLDocumentFormat getOWLOntologyFormat(String fmt) {
+	private OWLDocumentFormat getOWLDocumentFormat(String fmt) {
 		OWLDocumentFormat ofmt = null;
 		fmt = fmt.toLowerCase();
 		if (fmt.equals("rdfxml"))
@@ -1259,12 +1259,12 @@ public class OWLHandler {
 		return ofmt;
 	}
 
-	private boolean isOWLOntologyFormat() {
-		return isOWLOntologyFormat(getFormat());
+	private boolean isOWLDocumentFormat() {
+		return isOWLDocumentFormat(getFormat());
 	}
 
-	private boolean isOWLOntologyFormat(String fmt) {
-		return getOWLOntologyFormat(fmt) != null;
+	private boolean isOWLDocumentFormat(String fmt) {
+		return getOWLDocumentFormat(fmt) != null;
 	}
 
 	private OWLReasoner getReasoner() {

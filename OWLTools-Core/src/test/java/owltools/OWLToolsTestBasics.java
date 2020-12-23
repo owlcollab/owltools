@@ -9,15 +9,21 @@ import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import org.apache.log4j.Logger;
+import org.junit.BeforeClass;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
+import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OntologyConfigurator;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
@@ -25,8 +31,19 @@ import owltools.io.ParserWrapper;
 public class OWLToolsTestBasics {
     
     private static Logger LOG = Logger.getLogger(OWLToolsTestBasics.class);
+    protected static @Nonnull OntologyConfigurator masterConfigurator;
 
-	
+    @BeforeClass
+    public static void setupManagers() {
+        masterConfigurator = new OntologyConfigurator();
+    }
+    
+    protected static OWLOntologyManager setupManager() {
+        OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+        man.setOntologyConfigurator(masterConfigurator);
+        return man;
+    }
+    
 	protected static File getResource(String name) {
 		assertNotNull(name);
 		assertFalse(name.length() == 0);

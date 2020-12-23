@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
@@ -23,8 +24,6 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
-
-import com.google.common.base.Optional;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
@@ -281,7 +280,7 @@ public class ImportChainDotWriter {
 
 
 	private CharSequence nodeId(OWLOntology ont) {
-		return nodeId(ont.getOntologyID().getOntologyIRI().orNull());
+		return nodeId(ont.getOntologyID().getOntologyIRI().orElse(null));
 	}
 
 	private CharSequence nodeId(IRI iri) {

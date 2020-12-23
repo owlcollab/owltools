@@ -6,8 +6,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.elk.owlapi.ElkReasoner;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -23,9 +22,9 @@ import com.clarkparsia.owlapi.explanation.DefaultExplanationGenerator;
 import com.clarkparsia.owlapi.explanation.ExplanationGenerator;
 
 /**
- * This check using the {@link ElkReasoner} will not detect unsatisfiable
+ * Previously, this check using the {@link ElkReasoner} will not detect unsatisfiable
  * classes, which result from inverse_of object properties. ELK does not support
- * this at the moment.
+ * this. It has been replaced with HermiT because ELK does not support OWLAPI 5, needs to be checked.
  */
 public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 	
@@ -39,7 +38,7 @@ public class GenericReasonerValidationCheck extends AbstractAnnotationRule {
 	
 	private static final Logger logger = Logger.getLogger(GenericReasonerValidationCheck.class);
 
-	private final OWLReasonerFactory factory = new ElkReasonerFactory();
+	private final OWLReasonerFactory factory = new ReasonerFactory();
 
 	@Override
 	public Set<AnnotationRuleViolation> getRuleViolations(GeneAnnotation a) {

@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -18,8 +19,7 @@ import org.apache.log4j.lf5.util.StreamUtils;
 import org.geneontology.obographs.io.OgJsonGenerator;
 import org.geneontology.obographs.io.OgYamlGenerator;
 import org.geneontology.obographs.model.GraphDocument;
-import org.geneontology.obographs.owlapi.FromOwl;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.oboformat.model.Frame;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
@@ -43,8 +43,8 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.base.Optional;
 
+import owltools.geneontologyowlapi5.FromOwl;
 import owltools.graph.OWLGraphWrapper;
 
 /**
@@ -70,14 +70,14 @@ public class ParserWrapper {
 
             @Override
             public void startedLoadingOntology(LoadingStartedEvent event) {
-                IRI id = event.getOntologyID().getOntologyIRI().orNull();
+                IRI id = event.getOntologyID().getOntologyIRI().orElse(null);
                 IRI source = event.getDocumentIRI();
                 LOG.info("Start loading ontology: "+id+" from: "+source);
             }
 
             @Override
             public void finishedLoadingOntology(LoadingFinishedEvent event) {
-                IRI id = event.getOntologyID().getOntologyIRI().orNull();
+                IRI id = event.getOntologyID().getOntologyIRI().orElse(null);
                 IRI source = event.getDocumentIRI();
                 LOG.info("Finished loading ontology: "+id+" from: "+source);
             }
@@ -227,8 +227,8 @@ public class ParserWrapper {
         if (owlFormat instanceof OBODocumentFormat && this.isCheckOboDoc == false) {
             // special work-around for skipping the OBO validation before write
             // see also OWL-API issue: https://github.com/owlcs/owlapi/issues/290
-            // see also saveOWL(OWLOntology, OWLOntologyFormat, String) for redundant code
-            Owl2Obo bridge = new Owl2Obo();
+            // see also saveOWL(OWLOntology, OWLDocumentFormat, String) for redundant code
+            OWLAPIOwl2Obo bridge = new OWLAPIOwl2Obo(ont.getOWLOntologyManager());
             OBODoc doc;
             BufferedWriter bw = null;
             try {

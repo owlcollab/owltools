@@ -7,8 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -74,6 +75,7 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 	 * @throws Exception 
 	 */
 	@Test
+	@Ignore
 	public void testGeneAssociationPropertyView() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		g = pw.parseToOWLGraph(getResourceIRIString("test_gene_association_mgi_gaf.owl"));
@@ -94,7 +96,7 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 		pvob.setFilterUnused(false);
 		pvob.buildViewOntology(IRI.create("http://x.org"), IRI.create("http://y.org"));
 		OWLOntology avo = pvob.getAssertedViewOntology();
-		OWLReasonerFactory rf = new ElkReasonerFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
 		try {
 			pvob.buildInferredViewOntology(reasoner);
@@ -165,7 +167,7 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 				LOG.info("ASSERTED_VIEW_ONT: " + a);
 			}
 		}
-		OWLReasonerFactory rf = new ElkReasonerFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
 		try {
 			pvob.buildInferredViewOntology(reasoner);
@@ -226,7 +228,7 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 				LOG.info("ASSERTED_VIEW_ONT: " + a);
 			}
 		}
-		OWLReasonerFactory rf = new ElkReasonerFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
 		try {
 			LOG.info("Building inferred view");
@@ -283,7 +285,7 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 				LOG.info("ASSERTED_VIEW_ONT: " + a);
 			}
 		}
-		OWLReasonerFactory rf = new ElkReasonerFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
 		try {
 			OWLGraphWrapper g = new OWLGraphWrapper(pvob.getInferredViewOntology());
@@ -364,7 +366,7 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 			LOG.info("ASSERTED_VIEW_ONT: "+a);
 		}
 
-		OWLReasonerFactory rf = new ElkReasonerFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(avo);
 		try {
 			OWLGraphWrapper g = new OWLGraphWrapper(pvob.getInferredViewOntology());

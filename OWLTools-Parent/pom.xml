@@ -18,7 +18,7 @@
 	</issueManagement>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<owlapi.version>4.5.6</owlapi.version> <!-- Needs fix to upgrade to 4.5.16; see failing test-->
+		<owlapi.version>5.1.17</owlapi.version> <!-- Needs fix to upgrade to 4.5.16; see failing test-->
 		<slf4j.version>1.7.30</slf4j.version>
 	</properties>
 
@@ -174,7 +174,7 @@
 			<dependency>
 				<groupId>net.sourceforge.owlapi</groupId>
 				<artifactId>org.semanticweb.hermit</artifactId>
-				<version>1.4.5.456</version>
+				<version>1.4.5.519</version>
 			</dependency>
 			<dependency>
 				<groupId>org.bbop</groupId>
@@ -226,11 +226,6 @@
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-math3</artifactId>
 				<version>3.6.1</version>
-			</dependency>
-			<dependency>
-				<groupId>org.semanticweb.elk</groupId>
-				<artifactId>elk-owlapi</artifactId>
-				<version>0.4.3</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.code.gson</groupId>

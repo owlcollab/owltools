@@ -12,7 +12,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -44,7 +44,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 		final int truncLen = 200;
 		
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 
 			createOwlSim();
@@ -108,7 +108,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 		final int truncLen = 200;
 		
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 
 			createOwlSim();
@@ -149,7 +149,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 		final int truncLen = 200;
 		
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 
 			createOwlSim();
@@ -189,7 +189,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 		final int truncLen = 200;
 		
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 
 			createOwlSim();
@@ -227,7 +227,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 		final int truncLen = 200;
 		
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 
 			createOwlSim();
@@ -284,7 +284,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 
 		
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 
 			createOwlSim();
@@ -318,7 +318,7 @@ public class SimJSONTest extends AbstractOWLSimTest {
 		owlpp = new OWLPrettyPrinter(g);
 		
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 
 			createOwlSim();

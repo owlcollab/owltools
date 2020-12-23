@@ -15,8 +15,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.flex.FlexCollection;
 import owltools.gaf.EcoTools;
@@ -105,7 +106,7 @@ public class OntologyAndGafLoaderIntegrationRunner {
 		EcoTools ecoTools = new EcoTools(pw);
 		
 		// taxon information
-		ElkReasonerFactory factory = new ElkReasonerFactory();
+		OWLReasonerFactory factory = new ReasonerFactory();
 		OWLReasoner taxonReasoner = factory.createReasoner(g.getSourceOntology());
 		TaxonTools taxonTools = new TaxonTools(taxonReasoner, true);
 		try {

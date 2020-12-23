@@ -8,7 +8,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -31,7 +31,7 @@ public class OWLSimTest extends AbstractOWLSimTest {
 	private Logger LOG = Logger.getLogger(OWLSimTest.class);
 	OWLReasoner reasoner;
 	private void setup() throws UnknownOWLClassException {
-		reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		this.createOwlSim();
 		owlsim.createElementAttributeMapFromOntology();
 		Properties p = new Properties();

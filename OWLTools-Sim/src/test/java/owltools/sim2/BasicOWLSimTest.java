@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -35,7 +35,7 @@ public class BasicOWLSimTest extends AbstractOWLSimTest {
 		owlpp = new OWLPrettyPrinter(g);
 
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 
 			this.createOwlSim();
@@ -65,7 +65,7 @@ public class BasicOWLSimTest extends AbstractOWLSimTest {
 		owlpp = new OWLPrettyPrinter(g);
 
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 
 			owlsim = new SimpleOwlSim(sourceOntol);

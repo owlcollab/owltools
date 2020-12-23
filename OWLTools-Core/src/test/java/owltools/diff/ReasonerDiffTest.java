@@ -24,7 +24,7 @@ public class ReasonerDiffTest extends OWLToolsTestBasics {
 		OWLGraphWrapper baseLine = pw.parseToOWLGraph(getResourceIRIString("regulation_of_anti_apoptosis_xp-baseline.obo"));
 		
 		OWLGraphWrapper change = pw.parseToOWLGraph(getResourceIRIString("regulation_of_anti_apoptosis_xp_addon.obo"));
-		ReasonerDiff diff = ReasonerDiff.createReasonerDiff(baseLine, change, InferenceBuilder.REASONER_ELK);
+		ReasonerDiff diff = ReasonerDiff.createReasonerDiff(baseLine, change, InferenceBuilder.REASONER_HERMIT);
 		
 		List<OWLAxiom> newAxioms = diff.getNewAxioms();
 		List<OWLAxiom> rmAxioms = diff.getRemovedInferredAxioms();

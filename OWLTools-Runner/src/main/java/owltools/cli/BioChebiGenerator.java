@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -28,8 +29,6 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.model.parameters.Imports;
-
-import com.google.common.base.Optional;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;

@@ -5,12 +5,13 @@ import static org.junit.Assert.*;
 import java.util.Set;
 
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
@@ -29,7 +30,7 @@ public class GCIUtilTest extends AbstractReasonerTest {
 	@Test
 	public void testOrganismPair() throws Exception{
 		g =  getOntologyWrapper("limb_gci.owl");
-		ElkReasonerFactory rf = new ElkReasonerFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
 		OWLReasoner r = rf.createReasoner(g.getSourceOntology());
 		try {
 			Set<OWLSubClassOfAxiom> axioms = GCIUtil.getSubClassOfSomeValuesFromAxioms(r);

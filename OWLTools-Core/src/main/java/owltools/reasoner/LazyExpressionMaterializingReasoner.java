@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -100,7 +100,7 @@ public class LazyExpressionMaterializingReasoner extends OWLReasonerBase impleme
 	public OWLReasoner getWrappedReasoner() {
 		if (wrappedReasoner == null) {
 			if (wrappedReasonerFactory == null) {
-				wrappedReasonerFactory = new ElkReasonerFactory();
+				wrappedReasonerFactory = new ReasonerFactory();
 			}
 			wrappedReasoner = wrappedReasonerFactory.createReasoner(ontology, this.getReasonerConfiguration());
 		}

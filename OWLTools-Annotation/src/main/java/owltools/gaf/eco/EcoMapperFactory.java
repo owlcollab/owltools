@@ -13,12 +13,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLException;
@@ -28,8 +29,6 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import com.google.common.base.Optional;
-
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
@@ -38,7 +37,7 @@ import owltools.io.ParserWrapper;
  */
 public class EcoMapperFactory {
 	
-	private static final OWLReasonerFactory reasonerFactor = new ElkReasonerFactory();
+	private static final OWLReasonerFactory reasonerFactor = new ReasonerFactory();
 
 	private EcoMapperFactory() {
 		// private constructor, no instances allowed
@@ -200,8 +199,8 @@ public class EcoMapperFactory {
 	 * {@link ParserWrapper} to load ECO. ECO and the mappings are retrieved
 	 * using their PURLs.
 	 * <p>
-	 * Creates an ELK reasoner to be used in the traversal methods. Use
-	 * {@link TraversingEcoMapper#dispose()} to ensure proper cleanup of the ELK
+	 * Creates a HermiT reasoner to be used in the traversal methods. Use
+	 * {@link TraversingEcoMapper#dispose()} to ensure proper cleanup of the HermiT
 	 * worker thread pool.
 	 * 
 	 * @return mapper pair
@@ -220,8 +219,8 @@ public class EcoMapperFactory {
 	 * {@link ParserWrapper} to load ECO. ECO and the mappings are retrieved
 	 * using their PURLs.
 	 * <p>
-	 * Creates an ELK reasoner to be used in the traversal methods. Use
-	 * {@link TraversingEcoMapper#dispose()} to ensure proper cleanup of the ELK
+	 * Creates a HermiT reasoner to be used in the traversal methods. Use
+	 * {@link TraversingEcoMapper#dispose()} to ensure proper cleanup of the HermiT
 	 * worker thread pool.
 	 * 
 	 * @param p
@@ -241,8 +240,8 @@ public class EcoMapperFactory {
 	 * {@link ParserWrapper} to load ECO from the given location. The mappings
 	 * are retrieved using the PURL.
 	 * <p>
-	 * Creates an ELK reasoner to be used in the traversal methods. Use
-	 * {@link TraversingEcoMapper#dispose()} to ensure proper cleanup of the ELK
+	 * Creates an HermiT reasoner to be used in the traversal methods. Use
+	 * {@link TraversingEcoMapper#dispose()} to ensure proper cleanup of the HermiT
 	 * worker thread pool.
 	 * 
 	 * @param p

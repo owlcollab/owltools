@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -28,7 +28,7 @@ public class OwlSimVarianceTest extends AbstractOWLSimTest {
 
 		LOG.info("Initialize OwlSim ..");
 
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		reasoner.flush();
 		
 		try {
@@ -75,7 +75,7 @@ public class OwlSimVarianceTest extends AbstractOWLSimTest {
 
 		LOG.info("Initialize OwlSim ..");
 
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		reasoner.flush();
 		
 		try {

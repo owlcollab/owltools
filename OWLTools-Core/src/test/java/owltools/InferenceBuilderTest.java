@@ -67,7 +67,7 @@ public class InferenceBuilderTest extends OWLToolsTestBasics {
 		OWLOntology ontology = pw.parseOWL(getResourceIRI("inference_builder_test.omn"));
 		
 		OWLGraphWrapper graph  = new OWLGraphWrapper(ontology);
-		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
+		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_HERMIT);
 		try {
 			List<OWLAxiom> newInferences = builder.buildInferences();
 			assertEquals(2, newInferences.size());

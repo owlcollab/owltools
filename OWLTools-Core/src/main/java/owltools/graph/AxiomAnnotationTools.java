@@ -6,8 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.obolibrary.obo2owl.Obo2Owl;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -63,9 +63,13 @@ import org.semanticweb.owlapi.model.SWRLRule;
  * The main focus is the axiom annotation marking axioms as inferred by. Currently, the 
  * only supported annotation for this use-case is: is_inferred="true"^xsd:string
  */
-public class AxiomAnnotationTools {
+public class AxiomAnnotationTools extends OWLAPIObo2Owl {
 
-	/**
+	public AxiomAnnotationTools(OWLOntologyManager manager) {
+        super(manager);
+    }
+
+    /**
 	 * IRI for the default annotation marking an axiom as inferred.
 	 * Axiom annotation with such annotations are also recognized 
 	 * and translated as OBO annotations in obo2owl and owl2obo conversions.
@@ -348,7 +352,7 @@ public class AxiomAnnotationTools {
 				 * if the property IRI is not in a predefined annotation property in 
 				 * Obo2Owl assume that it's not OBO-Basic
 				 */
-				if (Obo2Owl.ANNOTATIONPROPERTYMAP.containsValue(iri) == false) {
+				if (OWLAPIObo2Owl.ANNOTATIONPROPERTYMAP.containsValue(iri) == false) {
 					// remove axiom annotation
 					changed = true;
 				}

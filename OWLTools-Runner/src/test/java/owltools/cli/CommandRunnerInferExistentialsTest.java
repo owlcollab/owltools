@@ -25,7 +25,7 @@ public class CommandRunnerInferExistentialsTest extends AbstractCommandRunnerTes
 	@Test
 	public void testInferGCI() throws Exception {
 		load("limb_gci.owl");
-		run("--reasoner elk --materialize-gcis");
+		run("--reasoner hermit --materialize-gcis");
 		run("-o target/limb-inferred-by-gci.owl");
 		
 		

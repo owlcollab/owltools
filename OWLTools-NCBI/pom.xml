@@ -59,9 +59,5 @@
 			<groupId>net.sourceforge.owlapi</groupId>
 			<artifactId>owlapi-distribution</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.bbop</groupId>
-			<artifactId>oboformat-tools</artifactId>
-		</dependency>
 	</dependencies>
 </project>

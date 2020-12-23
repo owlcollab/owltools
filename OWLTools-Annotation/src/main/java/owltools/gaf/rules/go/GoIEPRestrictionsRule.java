@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -45,7 +45,7 @@ public class GoIEPRestrictionsRule extends AbstractAnnotationRule {
 		classSubSet = new HashSet<String>();
 		
 		OWLClass rootClass = graph.getOWLClassByIdentifier("GO:0008150");
-		OWLReasonerFactory factory = new ElkReasonerFactory();
+		OWLReasonerFactory factory = new ReasonerFactory();
 		OWLReasoner reasoner = factory.createReasoner(graph.getSourceOntology());
 		try {
 			NodeSet<OWLClass> nodeSet = reasoner.getSubClasses(rootClass, false);

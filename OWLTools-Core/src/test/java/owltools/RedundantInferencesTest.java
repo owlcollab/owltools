@@ -8,7 +8,7 @@ import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -28,7 +28,7 @@ public class RedundantInferencesTest extends OWLToolsTestBasics {
 	public static void setUpBeforeClass() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		graph = pw.parseToOWLGraph(getResourceIRIString("remove-redundant-inferences.obo"));
-		OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+		OWLReasonerFactory reasonerFactory = new ReasonerFactory();
 		reasoner = reasonerFactory.createReasoner(graph.getSourceOntology());
 	}
 

@@ -25,10 +25,10 @@ public class MapAboxTest extends AbstractCommandRunnerTest {
 	public void testSimRunnerSubset() throws Exception {
 		init();
 		load("mgi-test-ns.owl");
-		//run("--reasoner elk");
-		run("--init-reasoner -r elk");
+		//run("--reasoner hermit");
+		run("--init-reasoner -r hermit");
 		System.out.println("reasonerX = "+runner.reasoner);
-		//run("--reasoner-query -r elk MP_0002064");
+		//run("--reasoner-query -r hermit MP_0002064");
 		run("--reasoner-query MP_0002064");
 		System.out.println("reasonerY = "+runner.reasoner);
 		//run("-a MP:0002064");

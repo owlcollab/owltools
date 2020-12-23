@@ -7,7 +7,7 @@ import java.io.IOException;
 import org.junit.Test;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.formats.OBODocumentFormat;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
@@ -15,6 +15,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import owltools.OWLToolsTestBasics;
@@ -29,7 +30,7 @@ public class EquivalenceSetMergeUtilTest extends OWLToolsTestBasics {
         OWLGraphWrapper g =
                 pw.parseToOWLGraph(getResourceIRIString("equivalence-set-merge-util-test.obo"));
         OWLOntology ont1 = g.getSourceOntology();
-        ElkReasonerFactory rf = new ElkReasonerFactory();
+        OWLReasonerFactory rf = new ReasonerFactory();
         OWLReasoner reasoner = rf.createReasoner(ont1);
         EquivalenceSetMergeUtil esmu = new EquivalenceSetMergeUtil(g, reasoner);
         esmu.setPrefixScore("A", 8.0);

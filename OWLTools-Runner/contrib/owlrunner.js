@@ -12,7 +12,7 @@ importPackage(Packages.com.google.gson);
 var runner;
 var reasoner;
 var mst;
-var isElk = true;
+var isElk = false;
 var objmap;
 var changes = [];
 var currentFile;

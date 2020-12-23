@@ -9,7 +9,7 @@ import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -44,7 +44,7 @@ public class TaxonToolsTest extends OWLToolsTestBasics{
 		for (OWLOntology ont : g.getSupportOntologySet())
 			g.mergeOntology(ont);
 		
-		OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+		OWLReasonerFactory reasonerFactory = new ReasonerFactory();
 		r = reasonerFactory.createReasoner(g.getSourceOntology());
 		g.setReasoner(r);
 	}

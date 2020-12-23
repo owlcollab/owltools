@@ -396,12 +396,7 @@ public class OortGuiAdvancedPanel extends SizedJPanel {
 		}
 		
 		String reasoner = configuration.getReasonerName();
-		if (InferenceBuilder.REASONER_ELK.equals(reasoner)) {
-			elkRadioButton.setSelected(true);
-		}
-		else {
-			hermitRadioButton.setSelected(true);
-		}
+		hermitRadioButton.setSelected(true);
 		
 		for(Entry<OntologyCheck, JCheckBox> entry : ontologyCheckBoxes.entrySet()) {
 			entry.getValue().setSelected(false);

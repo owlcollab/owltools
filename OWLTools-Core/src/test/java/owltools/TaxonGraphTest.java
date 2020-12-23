@@ -10,7 +10,7 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
-import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.oboformat.model.FrameMergeException;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
@@ -35,7 +35,7 @@ public class TaxonGraphTest extends OWLToolsTestBasics {
 		files.add(getResource("taxon_union_terms.obo").getAbsolutePath());
 
 		OBOFormatParser p = new OBOFormatParser();
-		Obo2Owl obo2Owl = new Obo2Owl();
+		OWLAPIObo2Owl obo2Owl = new OWLAPIObo2Owl(setupManager());
 		OBODoc merged = null;
 		for(String file : files) {
 			OBODoc oboDoc = p.parse(file);

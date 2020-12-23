@@ -17,9 +17,9 @@ public class CommandRunnerMergeEquivTest extends AbstractCommandRunnerTest {
 		load("merge-equiv-test.obo");
 		//run("--list-class-axioms NCBITaxon:7954");
 		
-		//run("--reasoner elk --merge-equivalent-classes -f MA -f FMA -t U");
+		//run("--reasoner hermit --merge-equivalent-classes -f MA -f FMA -t U");
 		run("--merge-equivalent-classes -f MA -f FMA -t U");
-		run("--reasoner elk");
+		run("--reasoner hermit");
 		run("--merge-equivalent-classes -f HP -t MP");
 		run("-o -f obo --no-check target/equiv-merged.obo");
 
@@ -31,9 +31,9 @@ public class CommandRunnerMergeEquivTest extends AbstractCommandRunnerTest {
 		load("merge-equiv-test.obo");
 		//run("--list-class-axioms NCBITaxon:7954");
 		
-		//run("--reasoner elk --merge-equivalent-classes -f MA -f FMA -t U");
+		//run("--reasoner hermit --merge-equivalent-classes -f MA -f FMA -t U");
 		run("--merge-equivalent-classes -f MA -f FMA -t U -sa");
-		run("--reasoner elk");
+		run("--reasoner hermit");
 		run("--merge-equivalent-classes -f HP -t MP -sa");
 		run("-o -f obo --no-check target/equiv-merged2.obo");
 

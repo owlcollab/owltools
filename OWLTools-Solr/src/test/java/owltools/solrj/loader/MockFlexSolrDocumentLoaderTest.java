@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -32,7 +33,7 @@ public class MockFlexSolrDocumentLoaderTest {
         final OWLGraphWrapper g = new OWLGraphWrapper(testOwl);
         FlexCollection flex = new FlexCollection(aconf, g);
 
-        ElkReasonerFactory rf = new ElkReasonerFactory();
+        OWLReasonerFactory rf = new ReasonerFactory();
 
         MockFlexSolrDocumentLoader l = new MockFlexSolrDocumentLoader(flex);
         l.load();

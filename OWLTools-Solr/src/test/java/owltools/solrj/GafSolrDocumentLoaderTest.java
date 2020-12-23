@@ -11,9 +11,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.gaf.EcoTools;
 import owltools.gaf.GafDocument;
@@ -57,7 +58,7 @@ public class GafSolrDocumentLoaderTest {
 		loader.setEcoTools(ecoTools);
 		
 		// taxon information
-		ElkReasonerFactory factory = new ElkReasonerFactory();
+		OWLReasonerFactory factory = new ReasonerFactory();
 		OWLReasoner taxonReasoner = factory.createReasoner(taxonOwl);
 		taxonTools = new TaxonTools(taxonReasoner, true);
 		loader.setTaxonTools(taxonTools);

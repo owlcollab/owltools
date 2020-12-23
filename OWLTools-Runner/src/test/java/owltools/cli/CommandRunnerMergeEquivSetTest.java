@@ -19,7 +19,7 @@ public class CommandRunnerMergeEquivSetTest extends AbstractCommandRunnerTest {
 	public void testMergeEquivalent() throws Exception {
 		load("merge-equiv-test.obo");
 		
-		run("--reasoner elk");
+		run("--reasoner hermit");
 		// note: ID space is actually "U" in file
 		run("--merge-equivalence-sets -s MA 1 -s FMA 2 -s U 3 -s HP 1 -s MP 2");
 		run("-o -f obo --no-check target/equiv-set-merged.obo");
@@ -30,7 +30,7 @@ public class CommandRunnerMergeEquivSetTest extends AbstractCommandRunnerTest {
 	public void testMergeEquivalentUniqLabel() throws Exception {
 		load("merge-equiv-test.obo");
 		
-		run("--reasoner elk");
+		run("--reasoner hermit");
 		// note: ID space is actually "U" in file
 		run("--merge-equivalence-sets -s MA 1 -s FMA 2 -s U 3 -s HP 1 -s MP 2 -l U 5 -l MP 2 -d MP 1 -d HP 2 -d U 5 -c FMA 1 -c U 5");
 		run("-o -f obo target/equiv-set-merged2.obo");
@@ -63,7 +63,7 @@ public class CommandRunnerMergeEquivSetTest extends AbstractCommandRunnerTest {
 	    load("merge-equiv-test.obo");
 
 	    boolean ok = false;
-	    run("--reasoner elk");
+	    run("--reasoner hermit");
 	    // note: ID space is actually "U" in file
 	    try {
 	        run("--merge-equivalence-sets -P ZZ -s ZZ 0 -s MA 10 -s UBERON 5 -s FMA 1");
@@ -82,7 +82,7 @@ public class CommandRunnerMergeEquivSetTest extends AbstractCommandRunnerTest {
         load("merge-equiv-test.obo");
 
         run("--add-xref-axiom-annotations -l");
-        run("--reasoner elk");
+        run("--reasoner hermit");
         // note: ID space is actually "U" in file
         run("--merge-equivalence-sets -s MA 1 -s FMA 2 -s U 3 -s HP 1 -s MP 2");
         run("--merge-axiom-annotations");

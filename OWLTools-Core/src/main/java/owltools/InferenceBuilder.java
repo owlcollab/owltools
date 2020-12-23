@@ -6,10 +6,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -35,8 +36,6 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import com.google.common.base.Optional;
-
 import owltools.graph.OWLGraphWrapper;
 import owltools.graph.OWLQuantifiedProperty.Quantifier;
 import owltools.util.OwlHelper;
@@ -51,7 +50,6 @@ public class InferenceBuilder{
 	protected final static Logger logger = Logger .getLogger(InferenceBuilder.class);
 
 	public static final String REASONER_HERMIT = "hermit";
-	public static final String REASONER_ELK = "elk";
 
 	private final OWLReasonerFactory reasonerFactory;
 	private volatile OWLReasoner reasoner = null;
@@ -61,7 +59,7 @@ public class InferenceBuilder{
 	List<OWLEquivalentClassesAxiom> equivalentNamedClassPairs = new ArrayList<OWLEquivalentClassesAxiom>();
 	
 	public InferenceBuilder(OWLGraphWrapper graph){
-		this(graph, new org.semanticweb.HermiT.ReasonerFactory(), false);
+		this(graph, new ReasonerFactory(), false);
 	}
 	
 	public InferenceBuilder(OWLGraphWrapper graph, String reasonerName){
@@ -82,10 +80,7 @@ public class InferenceBuilder{
 	
 	public static OWLReasonerFactory getFactory(String reasonerName) {
 		if (REASONER_HERMIT.equals(reasonerName)) {
-			return new org.semanticweb.HermiT.ReasonerFactory();
-		}
-		else if (REASONER_ELK.equals(reasonerName)) {
-			return new ElkReasonerFactory();
+			return new ReasonerFactory();
 		}
 		throw new IllegalArgumentException("Unknown reasoner: "+reasonerName);
 	}

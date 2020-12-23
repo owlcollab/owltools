@@ -14,7 +14,7 @@ public class CommandRunnerDisjointTest extends AbstractCommandRunnerTest {
 	@Test
 	public void testQueryCE() throws Exception {
 		load("forebrain-disjoint-violations.obo");
-		run("--no-debug --expand-macros --reasoner welk --check-disjointness-axioms");
+		run("--no-debug --expand-macros --reasoner hermit --check-disjointness-axioms");
 	}
 	
 }

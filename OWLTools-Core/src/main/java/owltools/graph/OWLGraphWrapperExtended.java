@@ -7,19 +7,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.log4j.Logger;
 import org.geneontology.obographs.io.OgJsonGenerator;
 import org.geneontology.obographs.model.GraphDocument;
-import org.geneontology.obographs.owlapi.FromOwl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.obolibrary.obo2owl.Obo2Owl;
-import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -42,6 +43,7 @@ import org.semanticweb.owlapi.model.OWLNamedObject;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
+import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -51,13 +53,12 @@ import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.search.EntitySearcher;
-import org.semanticweb.owlapi.util.OWLObjectVisitorExAdapter;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
+import owltools.geneontologyowlapi5.FromOwl;
 import owltools.util.OwlHelper;
 
 /**
@@ -609,7 +610,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return {@link OWLAnnotationProperty}
 	 */
 	public OWLAnnotationProperty getAnnotationProperty(String tag){
-		return getDataFactory().getOWLAnnotationProperty(Obo2Owl.trTagToIRI(tag));
+		return getDataFactory().getOWLAnnotationProperty(OWLAPIObo2Owl.trTagToIRI(tag));
 	}
 
 
@@ -848,13 +849,16 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return OBO-style identifier, using obo2owl mapping
 	 */
 	public String getIdentifier(OWLObject owlObject) {
+	    if (owlObject == null) {
+	        return null;
+	    }
 	    if (owlObject instanceof OWLNamedObject) {
 	        // https://github.com/owlcollab/owltools/pull/247
 	        IRI iri = ((OWLNamedObject)owlObject).getIRI();
 	        return getIdentifier(iri);
 	    }
     
-    	String identifier = Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
+    	String identifier = OWLAPIOwl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
 		  return (String) SerializationUtils.clone(identifier);
 	}
 
@@ -872,7 +876,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 			return getIdentifier(owlObject);
 		}
 		if (owlObject instanceof OWLNamedObject) {
-			String identifier = Owl2Obo.getIdentifier(((OWLNamedObject) owlObject).getIRI());
+			String identifier = OWLAPIOwl2Obo.getIdentifier(((OWLNamedObject) owlObject).getIRI());
 			return (String) SerializationUtils.clone(identifier);
 		}
 		return null;
@@ -902,11 +906,11 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 */
 	public String getIdentifier(IRI iriId) {
 		if (iriId.toString().startsWith(Obo2OWLConstants.DEFAULT_IRI_PREFIX))
-			return (String) SerializationUtils.clone(Owl2Obo.getIdentifier(iriId));
+			return (String) SerializationUtils.clone(OWLAPIOwl2Obo.getIdentifier(iriId));
 
-		final OWLAnnotationProperty oboIdInOwl = getDataFactory().getOWLAnnotationProperty(Obo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
+		final OWLAnnotationProperty oboIdInOwl = getDataFactory().getOWLAnnotationProperty(OWLAPIObo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
 		for (OWLOntology o : getAllOntologies()) {
-			Collection<OWLAnnotation> oas = EntitySearcher.getAnnotations(iriId, o);
+			Collection<OWLAnnotation> oas = EntitySearcher.getAnnotations(iriId, o).collect(Collectors.toSet());
 			if (oas == null) continue;
 
 			for (OWLAnnotation oa: oas) {
@@ -956,7 +960,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		Set<IRI> candIRISet = Sets.newHashSet();
 		if (!id.contains(":")) {
 			final OWLAnnotationProperty shortHand = getDataFactory().getOWLAnnotationProperty(Obo2OWLVocabulary.IRI_OIO_shorthand.getIRI());
-			final OWLAnnotationProperty oboIdInOwl = getDataFactory().getOWLAnnotationProperty(Obo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
+			final OWLAnnotationProperty oboIdInOwl = getDataFactory().getOWLAnnotationProperty(OWLAPIObo2Owl.trTagToIRI(OboFormatTag.TAG_ID.getTag()));
 			for (OWLOntology o : getAllOntologies()) {
 				for(OWLObjectProperty p : o.getObjectPropertiesInSignature()) {
 					// check for short hand or obo ID in owl
@@ -1006,7 +1010,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 		}
 
 		// otherwise use the obo2owl method
-		Obo2Owl b = new Obo2Owl(getManager()); // re-use manager, creating a new one can be expensive as this is a highly used code path
+		OWLAPIObo2Owl b = new OWLAPIObo2Owl(getManager()); // re-use manager, creating a new one can be expensive as this is a highly used code path
 		b.setObodoc(new OBODoc());
 		return b.oboIdToIRI(id);
 	}
@@ -1459,7 +1463,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return id of source ontology
 	 */
 	public String getOntologyId(){
-		return Owl2Obo.getOntologyId(this.getSourceOntology());
+		return OWLAPIOwl2Obo.getOntologyId(this.getSourceOntology());
 	}
 
 	/**
@@ -1473,9 +1477,9 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	public Map<String, String> getVersions() {
 		Map<String, String> versions = new HashMap<String, String>();
 		for (OWLOntology o : getAllOntologies()) {
-			String oid = Owl2Obo.getOntologyId(o);
+			String oid = OWLAPIOwl2Obo.getOntologyId(o);
 			if (oid != null) {
-				String dataVersion = Owl2Obo.getDataVersion(o);
+				String dataVersion = OWLAPIOwl2Obo.getDataVersion(o);
 				if (dataVersion != null) {
 					versions.put(oid, dataVersion);
 				}
@@ -1501,7 +1505,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	}
 
 	private String getOntologyAnnotationValue(OWLOntology o, OboFormatTag tag) {
-		IRI dateTagIRI = Obo2Owl.trTagToIRI(tag.getTag());
+		IRI dateTagIRI = OWLAPIObo2Owl.trTagToIRI(tag.getTag());
 		Set<OWLAnnotation> annotations = o.getAnnotations();
 		for (OWLAnnotation annotation : annotations) {
 			OWLAnnotationProperty property = annotation.getProperty();
@@ -1531,7 +1535,7 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	 * @return id space or null
 	 */
 	public String getIdSpace(OWLObject obj) {
-		String idSpace = obj.accept(new OWLObjectVisitorExAdapter<String>(null){
+		String idSpace = obj.accept(new OWLObjectVisitorEx<String>(){
 
 			@Override
 			public String visit(final OWLClass cls) {

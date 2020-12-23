@@ -38,14 +38,14 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 	private static TraversingEcoMapper eco = null;
 	private static AnnotationRulesEngine engine = null;
 	
-	private static Level elkLogLevel = null;
-	private static Logger elkLogger = null;
+	private static Level logLevel = null;
+	private static Logger logger = null;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		elkLogger = Logger.getLogger("org.semanticweb.elk");
-		elkLogLevel = elkLogger.getLevel();
-		elkLogger.setLevel(Level.ERROR);
+		logger = Logger.getLogger("org.semanticweb.hermit");
+		logLevel = logger.getLevel();
+		logger.setLevel(Level.ERROR);
 		
 		String qcfile = LOCATION + "annotation_qc.xml";
 		String xrfabbslocation = LOCATION + "GO.xrf_abbs";
@@ -111,10 +111,10 @@ public class AnnotationRulesEngineTest extends OWLToolsTestBasics {
 			eco.dispose();
 			eco = null;
 		}
-		if (elkLogLevel != null && elkLogger != null) {
-			elkLogger.setLevel(elkLogLevel);
-			elkLogger = null;
-			elkLogLevel = null;
+		if (logLevel != null && logger != null) {
+			logger.setLevel(logLevel);
+			logger = null;
+			logLevel = null;
 		}
 	}
 }

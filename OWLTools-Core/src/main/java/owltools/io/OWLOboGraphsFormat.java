@@ -19,12 +19,12 @@ public class OWLOboGraphsFormat extends OWLDocumentFormatImpl {
 	}
 
 	@Override
-	public boolean isPrefixOWLOntologyFormat() {
+	public boolean isPrefixOWLDocumentFormat() {
 		return true;
 	}
 
 	@Override
-	public PrefixDocumentFormat asPrefixOWLOntologyFormat() {
+	public PrefixDocumentFormat asPrefixOWLDocumentFormat() {
 		throw new UnsupportedOperationException(getClass().getName()
 				+ " is not a PrefixDocumentFormat");
 	}

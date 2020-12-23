@@ -312,7 +312,7 @@ public class TemplatedTransformer {
 		if (p instanceof OWLObjectInverseOf) {
 			return getOWLDataFactory().getOWLObjectInverseOf(
 					 replaceVariables(((OWLObjectInverseOf)p).getInverse(),
-							 bset));
+							 bset).asOWLObjectProperty());
 		}
 		return null;
 	}

@@ -5,10 +5,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.gaf.GeneAnnotation;
 import owltools.gaf.rules.AbstractAnnotationRule;
@@ -41,7 +42,7 @@ public class GoMultipleTaxonRule extends AbstractAnnotationRule {
 			throw new RuntimeException("Could not find class for 'multi-organism process' id: "+GO_ID_MULTI_ORGANISM_PROCESS);
 		}
 		multiOrganismClasses.add(mop);
-		ElkReasonerFactory factory = new ElkReasonerFactory();
+		OWLReasonerFactory factory = new ReasonerFactory();
 		OWLReasoner reasoner = null;
 		try {
 			reasoner = factory.createReasoner(graph.getSourceOntology());

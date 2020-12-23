@@ -16,7 +16,7 @@ import java.util.Vector;
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 import org.apache.log4j.Logger;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -159,7 +159,7 @@ public class OldSimpleOwlSim {
 	}
 
 	private void init() {
-		reasonerFactory = new ElkReasonerFactory();
+		reasonerFactory = new ReasonerFactory();
 		elementToAttributesMap = new HashMap<OWLEntity,Set<OWLClass>>();
 		attributeToElementsMap = new HashMap<OWLClass,Set<OWLEntity>>();
 		expressionToClassMap = new HashMap<OWLClassExpression, OWLClass>();

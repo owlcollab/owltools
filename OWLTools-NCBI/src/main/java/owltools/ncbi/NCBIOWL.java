@@ -6,8 +6,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
-import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -212,7 +212,7 @@ public class NCBIOWL extends NCBIConverter {
 	 * @see NCBIOWL#addAltId(OWLOntology, String, String, OWLAnnotationProperty)
 	 */
 	public static OWLAnnotationProperty setupAltIdProperty(OWLOntology ontology) {
-		IRI iri = Obo2Owl.trTagToIRI(OboFormatTag.TAG_ALT_ID.getTag());
+		IRI iri = OWLAPIObo2Owl.trTagToIRI(OboFormatTag.TAG_ALT_ID.getTag());
 		OWLAnnotationProperty ap = createAnnotationProperty(ontology, iri);
 		OWLAnnotationProperty prop = dataFactory.getRDFSLabel();
 		OWLLiteral value = dataFactory.getOWLLiteral(Obo2OWLVocabulary.hasAlternativeId.getLabel());

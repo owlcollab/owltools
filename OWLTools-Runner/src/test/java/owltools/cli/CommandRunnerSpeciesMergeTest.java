@@ -17,7 +17,7 @@ public class CommandRunnerSpeciesMergeTest extends AbstractCommandRunnerTest {
 		load("forebrain.obo");
 		//run("--list-class-axioms NCBITaxon:7954");
 		
-		run("--reasoner elk --merge-species-ontology -s Danio -t NCBITaxon:7954");
+		run("--reasoner hermit --merge-species-ontology -s Danio -t NCBITaxon:7954");
 		run("-o -f obo target/forebrain-merged.obo");
 		run("--assert-inferred-subclass-axioms --removeRedundant --allowEquivalencies");
 		run("-o -f obo target/forebrain-merged-trimmed.obo");

@@ -15,7 +15,7 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
@@ -26,6 +26,7 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
@@ -83,7 +84,7 @@ public class BasicAnnotationPropagator extends AbstractAnnotationPredictor imple
 	private boolean init() {
 		LOG.info("Start preparing propagation rules");
 		OWLGraphWrapper graph = getGraph();
-		ElkReasonerFactory factory = new ElkReasonerFactory();
+		OWLReasonerFactory factory = new ReasonerFactory();
 		// assumes that all support ontologies have either been merged into or added as import
 		reasoner = factory.createReasoner(graph.getSourceOntology());
 		if (reasoner.isConsistent() == false) {

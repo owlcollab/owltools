@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,7 +25,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -43,7 +44,6 @@ import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
-import com.google.common.base.Optional;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -621,7 +621,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 
 			// Some sanity checks--some of the generated ones are problematic.
 			// We need a consistent ontology for the closure calculations!
-			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+			OWLReasonerFactory reasonerFactory = new ReasonerFactory();
 			currentReasoner = reasonerFactory.createReasoner(tModel);
 			boolean consistent = currentReasoner.isConsistent();
 			if(consistent == false){
@@ -719,7 +719,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 				pw.addIRIMapper(new CatalogXmlIRIMapper(legoCatalog));				
 			}
 			OWLOntologyManager manager = pw.getManager();
-			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+			OWLReasonerFactory reasonerFactory = new ReasonerFactory();
 
 			// Actual loading--iterate over our list and load individually.
 			for( File legoFile : legoFiles ){
@@ -798,7 +798,7 @@ public class SolrCommandRunner extends TaxonCommandRunner {
 			// NOTE: These two lines are remainders from old code, and I'm not sure of their place in this world of ours.
 			// I wish there was an arcitecture diagram somehwere...
 			OWLOntologyManager manager = pw.getManager();
-			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+			OWLReasonerFactory reasonerFactory = new ReasonerFactory();
 
 			// Actual loading--iterate over our list and load individually.
 			for( String fname : caFiles ){

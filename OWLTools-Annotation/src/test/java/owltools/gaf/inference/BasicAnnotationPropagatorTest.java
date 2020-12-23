@@ -11,11 +11,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.OWLToolsTestBasics;
 import owltools.gaf.GafDocument;
@@ -33,7 +34,7 @@ public class BasicAnnotationPropagatorTest extends OWLToolsTestBasics {
 	public void test1() throws Exception {
 		ParserWrapper pw = new ParserWrapper();
 		OWLGraphWrapper g = pw.parseToOWLGraph(getResourceIRIString("rules/ontology/annotation-propagation-module.obo"));
-		ElkReasonerFactory f = new ElkReasonerFactory();
+		OWLReasonerFactory f = new ReasonerFactory();
 		OWLReasoner reasoner = f.createReasoner(g.getSourceOntology());
 		
 		assertMapping("GO:0035556", "occurs_in", g, reasoner, 'F', "GO:0005622");

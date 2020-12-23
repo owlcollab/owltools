@@ -8,7 +8,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.math.MathException;
-import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
@@ -94,7 +94,7 @@ public class OwlSimUtil {
 		if (file.getPath().endsWith(".obo")) {
 			OBOFormatParser p = new OBOFormatParser();
 			OBODoc obodoc = p.parse(file);
-			Obo2Owl bridge = new Obo2Owl(m);
+			OWLAPIObo2Owl bridge = new OWLAPIObo2Owl(m);
 			ont = bridge.convert(obodoc);
 		}
 		else {

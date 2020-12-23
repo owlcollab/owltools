@@ -28,7 +28,7 @@ public class MockSolrLoadCommandRunnerTest extends AbstractCommandRunnerTest {
 	    
 		init();
 		load("go_sample_mf_subset.obo");
-		run("--reasoner elk");
+		run("--reasoner hermit");
         run("--solr-url mock");
 		String gafpath = getResource("test_gene_association_mgi.gaf").getAbsolutePath();
 		run("--solr-load-gafs "+gafpath);
@@ -46,7 +46,7 @@ public class MockSolrLoadCommandRunnerTest extends AbstractCommandRunnerTest {
 	    
 	    init();    
 	    load("obo-ids-test.owl");
-	    run("--reasoner elk");
+	    run("--reasoner hermit");
 	    run("--solr-url mock");
         run("--solr-config "+ confpath);
         run("--solr-load-ontology");

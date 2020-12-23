@@ -25,8 +25,7 @@ public class ResonerDiffCommandLine {
 				" ONTOLOGY resource to be used as base ontology\n" +
 				" --report output file with the report (OPTIONAL)\n" +
 				" --catalog-xml specify an catalog.xml file for IRI mapping (OPTIONAL)\n" +
-				" --reasoner ["+InferenceBuilder.REASONER_HERMIT+"|"+
-					InferenceBuilder.REASONER_ELK+"] (OPTIONAL)\n");
+				" --reasoner ["+InferenceBuilder.REASONER_HERMIT+"] (OPTIONAL)\n");
 	}
 
 	public static void main(String[] args) throws Exception {

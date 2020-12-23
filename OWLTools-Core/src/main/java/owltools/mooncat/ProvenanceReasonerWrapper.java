@@ -125,7 +125,7 @@ public class ProvenanceReasonerWrapper {
 			}
 			//LOG.info("Testing "+e); 
 			if (!isEdgeEntailed(e, ont2, reasoner)) {
-				IRI req = leaveOutOntology.getOntologyID().getOntologyIRI().orNull();
+				IRI req = leaveOutOntology.getOntologyID().getOntologyIRI().orElse(null);
 				LOG.info(e + " requires "+req);
 				e.requires.add(req);
 				

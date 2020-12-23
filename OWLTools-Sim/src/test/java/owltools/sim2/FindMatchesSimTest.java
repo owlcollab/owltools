@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
@@ -35,7 +35,7 @@ public class FindMatchesSimTest extends AbstractOWLSimTest {
 		owlpp = new OWLPrettyPrinter(g);
 
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 
 			this.createOwlSim();

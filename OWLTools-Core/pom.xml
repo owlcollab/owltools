@@ -65,10 +65,6 @@
 			<artifactId>org.semanticweb.hermit</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.bbop</groupId>
-			<artifactId>oboformat-tools</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>uk.ac.ebi.interpro</groupId>
 			<artifactId>graphdraw</artifactId>
 		</dependency>
@@ -93,10 +89,6 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.semanticweb.elk</groupId>
-			<artifactId>elk-owlapi</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>

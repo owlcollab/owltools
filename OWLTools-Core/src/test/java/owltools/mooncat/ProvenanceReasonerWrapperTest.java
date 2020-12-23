@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import java.io.FileOutputStream;
 
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 import owltools.OWLToolsTestBasics;
@@ -27,7 +27,7 @@ public class ProvenanceReasonerWrapperTest extends OWLToolsTestBasics {
 
 		OWLOntology o = pw.parseOWL(getResourceIRIString("mooncat/eq-lattice/eq-with-imports.owl"));
 		
-		ProvenanceReasonerWrapper pr = new ProvenanceReasonerWrapper(o, new ElkReasonerFactory());
+		ProvenanceReasonerWrapper pr = new ProvenanceReasonerWrapper(o, new ReasonerFactory());
 		pr.reason();
 		
 		// OWLEdge [c=<http://example.org/test/BCell-size>, p=<http://example.org/test/ImmuneCell-size>] REQUIRES: [http://example.org/test/auto, http://example.org/test/entity.owl]

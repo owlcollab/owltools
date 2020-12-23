@@ -56,7 +56,7 @@ public class EnrichmentTest extends AbstractOWLSimTest {
 		ttac.config.isSwitchSubjectObject = true;
 		ttac.parse("src/test/resources/simplegaf-t1.txt");
 		// assume buffering
-		//OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		//OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 
 		g.getManager().removeAxioms(sourceOntol,
 				sourceOntol.getAxioms(AxiomType.DISJOINT_CLASSES));

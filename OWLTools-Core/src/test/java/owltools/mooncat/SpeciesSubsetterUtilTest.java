@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.formats.OBODocumentFormat;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -32,7 +32,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
 		p.setCheckOboDoc(false);
 		OWLOntology owlOntology = p.parse(getResourceIRIString("speciesMergeTest.obo"));
 		OWLGraphWrapper graph = new OWLGraphWrapper(owlOntology);
-		OWLReasonerFactory rf = new ElkReasonerFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
 		OWLReasoner reasoner = rf.createReasoner(graph.getSourceOntology());
 		SpeciesSubsetterUtil smu = new SpeciesSubsetterUtil(graph);
 		//smu.viewProperty = graph.getOWLObjectPropertyByIdentifier("BFO:0000050");
@@ -55,7 +55,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
         OWLOntology owlOntology = new ParserWrapper().parse(getResourceIRIString("speciesRemoveTest.obo"));
         OWLDataFactory fac = owlOntology.getOWLOntologyManager().getOWLDataFactory();
         OWLGraphWrapper graph = new OWLGraphWrapper(owlOntology);
-        OWLReasonerFactory rf = new ElkReasonerFactory();
+        OWLReasonerFactory rf = new ReasonerFactory();
         OWLReasoner reasoner = rf.createReasoner(graph.getSourceOntology());
         SpeciesSubsetterUtil smu = new SpeciesSubsetterUtil(graph);
         smu.taxClass = graph.getOWLClassByIdentifier("T:2");
@@ -73,7 +73,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
         owlOntology = new ParserWrapper().parse(getResourceIRIString("speciesRemoveTest.obo"));
         fac = owlOntology.getOWLOntologyManager().getOWLDataFactory();
         graph = new OWLGraphWrapper(owlOntology);
-        rf = new ElkReasonerFactory();
+        rf = new ReasonerFactory();
         reasoner = rf.createReasoner(graph.getSourceOntology());
         smu = new SpeciesSubsetterUtil(graph);
         smu.taxClass = graph.getOWLClassByIdentifier("T:3");
@@ -90,7 +90,7 @@ public class SpeciesSubsetterUtilTest extends OWLToolsTestBasics {
         owlOntology = new ParserWrapper().parse(getResourceIRIString("speciesRemoveTest.obo"));
         fac = owlOntology.getOWLOntologyManager().getOWLDataFactory();
         graph = new OWLGraphWrapper(owlOntology);
-        rf = new ElkReasonerFactory();
+        rf = new ReasonerFactory();
         reasoner = rf.createReasoner(graph.getSourceOntology());
         smu = new SpeciesSubsetterUtil(graph);
         smu.taxClass = graph.getOWLClassByIdentifier("T:1");

@@ -7,8 +7,8 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-import org.obolibrary.obo2owl.Obo2Owl;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -32,9 +32,9 @@ public class AxiomAnnotationToolsTest extends OWLToolsTestBasics {
 		
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc inputOboDoc = p.parse(inputFile);
-		Obo2Owl obo2Owl = new Obo2Owl();
+		OWLAPIObo2Owl obo2Owl = new OWLAPIObo2Owl(setupManager());
 		OWLOntology owlOntology = obo2Owl.convert(inputOboDoc);
-		Owl2Obo owl2Obo = new Owl2Obo();
+		OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo(setupManager());
 		
 		// check round-trip first before removing
 		equals(inputFile, owl2Obo.convert(owlOntology));

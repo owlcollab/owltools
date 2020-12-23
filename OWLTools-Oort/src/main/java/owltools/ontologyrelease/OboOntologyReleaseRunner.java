@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Vector;
 
@@ -20,20 +21,19 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.obolibrary.macro.MacroExpansionGCIVisitor;
 import org.obolibrary.macro.MacroExpansionVisitor;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.obolibrary.obo2owl.Obo2Owl;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools;
 import org.obolibrary.obo2owl.OboInOwlCardinalityTools.AnnotationCardinalityException;
-import org.obolibrary.obo2owl.Owl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.InvalidXrefMapException;
 import org.obolibrary.oboformat.parser.OBOFormatConstants.OboFormatTag;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
 import org.obolibrary.oboformat.parser.XrefExpander;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
-import org.obolibrary.owl.LabelFunctionalSyntaxStorerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.functional.renderer.FunctionalSyntaxStorerFactory;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -55,6 +55,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.OntologyConfigurator;
 import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveImport;
 import org.semanticweb.owlapi.model.SetOntologyID;
@@ -63,8 +64,6 @@ import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
-
-import com.google.common.base.Optional;
 
 import owltools.InferenceBuilder;
 import owltools.InferenceBuilder.ConsistencyReport;
@@ -672,7 +671,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 		final String version = handleVersion(ontologyId);
 
 		if (oortConfig.isWriteLabelOWL()) {
-			mooncat.getManager().getOntologyStorers().add(new LabelFunctionalSyntaxStorerFactory());
+			mooncat.getManager().getOntologyStorers().add(new FunctionalSyntaxStorerFactory());
 		}
 		
 		// ----------------------------------------
@@ -687,7 +686,6 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					new MacroExpansionGCIVisitor(mooncat.getOntology(), mooncat.getManager(), false);
 				gciOntology = gciVisitor.createGCIOntology();
 				logInfo("GCI Ontology has "+gciOntology.getAxiomCount()+" axioms");
-				gciVisitor.dispose();
 			}
 			else {
 				OWLOntology ont = mooncat.getOntology();
@@ -730,7 +728,9 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 					for (OBODoc tdoc : parser.getOBOdoc().getImportedOBODocs()) {
 						String tOntId = tdoc.getHeaderFrame().getClause(OboFormatTag.TAG_ONTOLOGY).getValue().toString();
 						logInfo("Generating bridge ontology:"+tOntId);
-						Obo2Owl obo2owl = new Obo2Owl();
+						OWLOntologyManager man = OWLManager.createOWLOntologyManager();
+						man.setOntologyConfigurator(new OntologyConfigurator());
+						OWLAPIObo2Owl obo2owl = new OWLAPIObo2Owl(man);
 						OWLOntology tOnt = obo2owl.convert(tdoc);
 						saveOntologyInAllFormats(ontologyId, tOntId, version, tOnt, null, true);
 					}
@@ -1313,7 +1313,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	}
 
 	private String handleOntologyId() {
-		String ontologyId = Owl2Obo.getOntologyId(mooncat.getOntology());
+		String ontologyId = OWLAPIOwl2Obo.getOntologyId(mooncat.getOntology());
 		ontologyId = ontologyId.replaceAll(".obo$", ""); // TODO temp workaround
 		return ontologyId;
 	}
@@ -1712,7 +1712,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 
 		if (!oortConfig.isSkipFormat("obo")) {
 
-			Owl2Obo owl2obo = new Owl2Obo();
+			OWLAPIOwl2Obo owl2obo = new OWLAPIOwl2Obo(ontologyToSave.getOWLOntologyManager());
 			OBODoc doc = owl2obo.convert(ontologyToSave);
 
 			OBOFormatWriter writer = new OBOFormatWriter();

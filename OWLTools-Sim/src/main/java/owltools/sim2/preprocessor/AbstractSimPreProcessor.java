@@ -12,9 +12,9 @@ import java.util.Set;
 import java.util.Stack;
 
 import org.apache.log4j.Logger;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.obolibrary.obo2owl.Owl2Obo;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
@@ -65,7 +65,7 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 
 
 	protected Logger LOG = Logger.getLogger(AbstractSimPreProcessor.class);
-	private OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+	private OWLReasonerFactory reasonerFactory = new ReasonerFactory();
 
 	@Override
 	public OWLOntology getInputOntology() {
@@ -343,8 +343,8 @@ public abstract class AbstractSimPreProcessor implements SimPreProcessor {
 		if (!isUseOriginalClassIRIs) {
 			String vcIRIstr = vcIRI.toString();
 			if (isAssumeOBOStyleIRIs) {
-				String baseId = Owl2Obo.getIdentifier(vcIRI);
-				String relId = Owl2Obo.getIdentifier(vpIRI);
+				String baseId = OWLAPIOwl2Obo.getIdentifier(vcIRI);
+				String relId = OWLAPIOwl2Obo.getIdentifier(vpIRI);
 				vcIRIstr = Obo2OWLConstants.DEFAULT_IRI_PREFIX
 					+ baseId.replace(":", "_") + sep
 					+ relId.replace("_", "-").replace(":", "-");

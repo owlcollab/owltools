@@ -66,6 +66,10 @@
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
+            <groupId>org.bbop</groupId>
+            <artifactId>oboformat-tools</artifactId>
+        </dependency>
+		<dependency>
 			<groupId>org.bbop</groupId>
 			<artifactId>OWLTools-Annotation</artifactId>
 			<version>${project.parent.version}</version>

@@ -8,18 +8,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.geneontology.reasoner.ExpressionMaterializingReasoner;
-import org.geneontology.reasoner.ExpressionMaterializingReasonerFactory;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLClassExpressionVisitor;
+import org.semanticweb.owlapi.model.OWLClassExpressionVisitorEx;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
-import org.semanticweb.owlapi.util.OWLClassExpressionVisitorExAdapter;
 
+import owltools.geneontologyowlapi5.ExpressionMaterializingReasoner;
+import owltools.geneontologyowlapi5.ExpressionMaterializingReasonerFactory;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.CatalogXmlIRIMapper;
 import owltools.io.OWLPrettyPrinter;
@@ -36,7 +36,7 @@ public class AssertInferredClassExpressions {
 	}
 	
 	public static Map<OWLClass, Set<OWLObjectSomeValuesFrom>> getExpressions(OWLOntology ontology, Set<OWLObjectProperty> properties, OWLClassFilter filter) {
-		final ExpressionMaterializingReasonerFactory rf = new ExpressionMaterializingReasonerFactory(new ElkReasonerFactory());
+		final ExpressionMaterializingReasonerFactory rf = new ExpressionMaterializingReasonerFactory(new ReasonerFactory());
 		final ExpressionMaterializingReasoner reasoner = rf.createReasoner(ontology);
 		try {
 			reasoner.materializeExpressions(properties);
@@ -79,7 +79,7 @@ public class AssertInferredClassExpressions {
 			@Override
 			public boolean apply(OWLObjectSomeValuesFrom input) {
 				OWLClassExpression filler = input.getFiller();
-				Boolean result = filler.accept(new OWLClassExpressionVisitorExAdapter<Boolean>(Boolean.FALSE){
+				Boolean result = filler.accept(new OWLClassExpressionVisitorEx<Boolean>(){
 					@Override
 					public Boolean visit(OWLClass cls) {
 						return clsFilter.use(cls);
@@ -99,7 +99,7 @@ public class AssertInferredClassExpressions {
 		final Set<OWLObjectSomeValuesFrom> svfs = new HashSet<OWLObjectSomeValuesFrom>();
 		for (OWLSubClassOfAxiom existing : axioms) {
 			OWLClassExpression superCE = existing.getSuperClass();
-			superCE.accept(new OWLClassExpressionVisitorAdapter() {
+			superCE.accept(new OWLClassExpressionVisitor() {
 				@Override
 				public void visit(OWLObjectSomeValuesFrom svf) {
 					svfs.add(svf);
@@ -114,7 +114,7 @@ public class AssertInferredClassExpressions {
 	private static Set<OWLObjectSomeValuesFrom> getSVFs(Set<OWLClassExpression> expressions) {
 		final Set<OWLObjectSomeValuesFrom> svfs = new HashSet<OWLObjectSomeValuesFrom>();
 		for(OWLClassExpression ce : expressions) {
-			ce.accept(new OWLClassExpressionVisitorAdapter(){
+			ce.accept(new OWLClassExpressionVisitor(){
 				@Override
 				public void visit(OWLObjectSomeValuesFrom svf) {
 					svfs.add(svf);

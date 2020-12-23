@@ -27,7 +27,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.obolibrary.obo2owl.Obo2OWLConstants;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -950,7 +950,7 @@ public class GafCommandRunner extends CommandRunner {
 		try {
 			if (currentReasoner == null) {
 				disposeReasoner = true;
-				currentReasoner = new ElkReasonerFactory().createReasoner(g.getSourceOntology());
+				currentReasoner = new ReasonerFactory().createReasoner(g.getSourceOntology());
 			}
 			boolean consistent = currentReasoner.isConsistent();
 			if (consistent == false) {
@@ -993,12 +993,12 @@ public class GafCommandRunner extends CommandRunner {
 			AnnotationRulesEngine ruleEngine = null;
 			AnnotationRulesEngineResult result;
 			ExtendAnnotationRulesReportWriter reportWriter = null;
-			Level elkLogLevel = null;
-			Logger elkLogger = null;
+			Level logLevel = null;
+			Logger logger = null;
 			try {
-				elkLogger = Logger.getLogger("org.semanticweb.elk");
-				elkLogLevel = elkLogger.getLevel();
-				elkLogger.setLevel(Level.ERROR);
+				logger = Logger.getLogger("org.semanticweb.hermit");
+				logLevel = logger.getLevel();
+				logger.setLevel(Level.ERROR);
 				
 				// pre-check ontology
 				int code = preCheckOntology("Can't validate with an inconsistent ontology", 
@@ -1030,10 +1030,10 @@ public class GafCommandRunner extends CommandRunner {
 				if (ruleEngine != null) {
 					ruleEngine = null;
 				}
-				if (elkLogLevel != null && elkLogger != null) {
-					elkLogger.setLevel(elkLogLevel);
-					elkLogger = null;
-					elkLogLevel = null;
+				if (logLevel != null && logger != null) {
+					logger.setLevel(logLevel);
+					logger = null;
+					logLevel = null;
 				}
 			}
 
@@ -1497,7 +1497,7 @@ public class GafCommandRunner extends CommandRunner {
 //
 //		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(true);
 //
-//		OWLReasonerFactory factory = new ElkReasonerFactory();
+//		OWLReasonerFactory factory = new ReasonerFactory();
 //
 //		final OWLReasoner reasoner = factory.createReasoner(ontology);
 //		try {

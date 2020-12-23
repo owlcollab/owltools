@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
+import org.semanticweb.owlapi.model.OWLObjectVisitor;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -50,10 +52,8 @@ import org.semanticweb.owlapi.model.RemoveAxiom;
 import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
-import org.semanticweb.owlapi.util.OWLObjectVisitorAdapter;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 import owltools.graph.OWLGraphEdge;
@@ -1096,7 +1096,7 @@ public class Mooncat {
 			final Set<OWLAxiom> toRemove = new HashSet<OWLAxiom>();
 			// find all annotations
 			for(final OWLObject obj : entities) {
-				obj.accept(new OWLObjectVisitorAdapter(){
+				obj.accept(new OWLObjectVisitor(){
 
 					@Override
 					public void visit(OWLClass cls) {

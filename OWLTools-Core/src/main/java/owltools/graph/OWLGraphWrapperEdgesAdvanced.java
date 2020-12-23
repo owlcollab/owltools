@@ -13,13 +13,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
-import org.geneontology.reasoner.ExpressionMaterializingReasoner;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLClassExpressionVisitor;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
@@ -35,8 +35,8 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import org.semanticweb.owlapi.model.OWLPropertyExpressionVisitor;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
+import owltools.geneontologyowlapi5.ExpressionMaterializingReasoner;
 import owltools.graph.shunt.OWLShuntEdge;
 import owltools.graph.shunt.OWLShuntGraph;
 import owltools.graph.shunt.OWLShuntNode;
@@ -106,7 +106,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 	
 	private synchronized ExpressionMaterializingReasoner getMaterializingReasoner() {
 		if (reasoner == null) {
-			reasoner = new ExpressionMaterializingReasoner(getSourceOntology(), new ElkReasonerFactory());
+			reasoner = new ExpressionMaterializingReasoner(getSourceOntology(), new ReasonerFactory());
 			reasoner.materializeExpressions(materializationPropertySet);
 			isSynchronized = true;
 		}
@@ -321,7 +321,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		ExpressionMaterializingReasoner materializingReasoner = getMaterializingReasoner();
 		Set<OWLClassExpression> classExpressions = materializingReasoner.getSuperClassExpressions(cls, false);
 		for (OWLClassExpression ce : classExpressions) {
-			ce.accept(new OWLClassExpressionVisitorAdapter(){
+			ce.accept(new OWLClassExpressionVisitor(){
 
 				@Override
 				public void visit(OWLClass cls) {
@@ -692,7 +692,7 @@ public class OWLGraphWrapperEdgesAdvanced extends OWLGraphWrapperEdgesExtended i
 		// see https://github.com/geneontology/amigo/issues/395
 		classExpressions = classExpressions.stream().filter(x -> !x.getSignature().contains(owlThing)).collect(Collectors.toSet());
 		for (OWLClassExpression ce : classExpressions) {
-			ce.accept(new OWLClassExpressionVisitorAdapter(){
+			ce.accept(new OWLClassExpressionVisitor(){
 
 				@Override
 				public void visit(OWLClass cls) {

@@ -136,7 +136,7 @@ public abstract class Similarity {
 				s.print(")");
 		}
 		else if (x instanceof OWLQuantifiedRestriction) {
-			OWLPropertyRange y = ((OWLQuantifiedRestriction)x).getFiller();
+			OWLPropertyRange y = ((OWLQuantifiedRestriction<?>)x).getFiller();
 			if (depth>0)
 				s.print("(");
 			printDescription(s,((OWLQuantifiedRestriction)x).getProperty());

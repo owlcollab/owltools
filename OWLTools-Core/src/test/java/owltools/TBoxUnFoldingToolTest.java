@@ -26,7 +26,7 @@ public class TBoxUnFoldingToolTest extends OWLToolsTestBasics {
 	public void testUnfold() throws Exception {
 		
 		Set<String> parents = Collections.singleton("GO:0008150"); // biological_process
-		TBoxUnFoldingTool unFoldingTool = new TBoxUnFoldingTool(graph, parents, InferenceBuilder.REASONER_ELK);
+		TBoxUnFoldingTool unFoldingTool = new TBoxUnFoldingTool(graph, parents, InferenceBuilder.REASONER_HERMIT);
 		
 		String id = "GO:2000606"; // regulation of cell proliferation involved in mesonephros development
 		

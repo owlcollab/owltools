@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
-import org.obolibrary.obo2owl.Obo2Owl;
+import org.obolibrary.obo2owl.OWLAPIObo2Owl;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.parser.OBOFormatParser;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
@@ -22,12 +22,13 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
+import owltools.OWLToolsTestBasics;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 import owltools.yaml.golrconfig.ConfigManager;
 import owltools.yaml.golrconfig.GOlrField;
 
-public class FlexTest {
+public class FlexTest extends OWLToolsTestBasics {
 
 	@Test
 	public void testFlexReflectionLoading() throws IOException, OWLOntologyCreationException, OBOFormatParserException{
@@ -39,7 +40,7 @@ public class FlexTest {
 
 		OBOFormatParser p = new OBOFormatParser();
 		OBODoc obodoc = p.parse(fstr);
-		Obo2Owl bridge = new Obo2Owl();
+		OWLAPIObo2Owl bridge = new OWLAPIObo2Owl(setupManager());
 		OWLOntology ont = bridge.convert(obodoc);
 		OWLGraphWrapper g = new OWLGraphWrapper(ont);
 		

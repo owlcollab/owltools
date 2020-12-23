@@ -7,7 +7,7 @@ import org.apache.commons.math.MathException;
 import org.apache.log4j.Logger;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -55,7 +55,7 @@ public class PhenoSimHQETest extends OWLToolsTestBasics {
 		 owlpp = new OWLPrettyPrinter(g);
 		
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 			pproc = new PhenoSimHQEPreProcessor();
 			pproc.setInputOntology(sourceOntol);
@@ -95,7 +95,7 @@ public class PhenoSimHQETest extends OWLToolsTestBasics {
 		 owlpp = new OWLPrettyPrinter(g);
 		
 		// assume buffering
-		OWLReasoner reasoner = new ElkReasonerFactory().createReasoner(sourceOntol);
+		OWLReasoner reasoner = new ReasonerFactory().createReasoner(sourceOntol);
 		try {
 			pproc = new PhenoSimHQEPreProcessor();
 			pproc.setInputOntology(sourceOntol);

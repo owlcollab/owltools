@@ -4,11 +4,10 @@ import static org.junit.Assert.*;
 
 import java.util.Set;
 
-import org.geneontology.reasoner.ExpressionMaterializingReasoner;
 import org.geneontology.reasoner.OWLExtendedReasoner;
 import org.junit.Test;
 import org.obolibrary.macro.ManchesterSyntaxTool;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.io.OWLParserException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -21,6 +20,7 @@ import org.semanticweb.owlapi.reasoner.InconsistentOntologyException;
 import org.semanticweb.owlapi.reasoner.ReasonerInterruptedException;
 import org.semanticweb.owlapi.reasoner.TimeOutException;
 
+import owltools.geneontologyowlapi5.ExpressionMaterializingReasoner;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.OWLPrettyPrinter;
 
@@ -59,7 +59,7 @@ public class ExtendedReasonerTest extends AbstractReasonerTest {
 		g =  getOntologyWrapper("extended-reasoner-test.omn");
 		parser = new ManchesterSyntaxTool(g.getSourceOntology(), g.getSupportOntologySet());
 		reasoner = new ExpressionMaterializingReasoner(g.getSourceOntology(),
-				new ElkReasonerFactory(), BufferingMode.NON_BUFFERING);
+				new ReasonerFactory(), BufferingMode.NON_BUFFERING);
 		reasoner.flush();
 		IRI  piri;
 		piri = IRI.create("http://x.org/part_of");

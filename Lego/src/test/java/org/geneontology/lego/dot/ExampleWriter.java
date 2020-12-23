@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -32,7 +32,7 @@ public class ExampleWriter {
 
 		Set<OWLNamedIndividual> individuals = ontology.getIndividualsInSignature(Imports.INCLUDED);
 
-		OWLReasonerFactory factory = new ElkReasonerFactory();
+		OWLReasonerFactory factory = new ReasonerFactory();
 		
 		final OWLReasoner reasoner = factory.createReasoner(ontology);
 		try {

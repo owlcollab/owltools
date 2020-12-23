@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -63,7 +63,7 @@ public class AxiomCopier {
      * We have 2 strategies; see below
      */
     public boolean isUseConservative = true;
-    public OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+    public OWLReasonerFactory reasonerFactory = new ReasonerFactory();
     
     
     
@@ -336,7 +336,7 @@ public class AxiomCopier {
      * @param isXrefAnn if true use hasDbXref not source
      * @return annotations
      */
-    private Set<? extends OWLAnnotation> anns(OWLDataFactory df, OWLClass srcClass, boolean isXrefAnn) {
+    private Set<OWLAnnotation> anns(OWLDataFactory df, OWLClass srcClass, boolean isXrefAnn) {
         String iri = srcClass.getIRI().toString();
         iri = iri.replaceAll(".*/", "");
         iri = iri.replaceAll("_", ":");

@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -23,11 +24,11 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.obolibrary.obo2owl.Owl2Obo;
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.oboformat.model.OBODoc;
 import org.obolibrary.oboformat.writer.OBOFormatWriter;
 import org.obolibrary.oboformat.writer.OBOFormatWriter.NameProvider;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
@@ -36,6 +37,7 @@ import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLAxiomVisitor;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -56,9 +58,6 @@ import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
-import org.semanticweb.owlapi.util.OWLAxiomVisitorAdapter;
-
-import com.google.common.base.Optional;
 
 import owltools.InferenceBuilder;
 import owltools.InferenceBuilder.ConsistencyReport;
@@ -155,14 +154,14 @@ public class AssertInferenceTool {
 			else if (opts.nextEq("--all")) {
 				// check all classes for un-marked inferred links
 				all = true;
-				Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
+				Logger.getLogger("org.semanticweb.hermit").setLevel(Level.ERROR);
 			}
 			else if (opts.nextEq("--all-ids-input-file")) {
 				// check all classes (from the id file, one per line)
 				// for un-marked inferred links
 				idsInputFile = opts.nextOpt();
 				all = true;
-				Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
+				Logger.getLogger("org.semanticweb.hermit").setLevel(Level.ERROR);
 			}
 			else if (opts.nextEq("--ignorePotentialRedundant")) {
 				checkForPotentialRedundant = false;
@@ -251,7 +250,7 @@ public class AssertInferenceTool {
 								
 								@Override
 								public boolean useOWLClass(OWLClass cls, OWLOntology ont) {
-									String id = Owl2Obo.getIdentifierFromObject(cls, ont, null);
+									String id = OWLAPIOwl2Obo.getIdentifierFromObject(cls, ont, null);
 									boolean use = id != null && id.startsWith(prefix);
 									return use;
 								}
@@ -329,7 +328,7 @@ public class AssertInferenceTool {
 		if ("obo".equals(outputFileFormat)) {
 			BufferedWriter bufferedWriter = null;
 			try {
-				Owl2Obo owl2Obo = new Owl2Obo();
+				OWLAPIOwl2Obo owl2Obo = new OWLAPIOwl2Obo(ontology.getOWLOntologyManager());
 				OBODoc oboDoc = owl2Obo.convert(ontology);
 				OBOFormatWriter oboWriter = new OBOFormatWriter();
 				bufferedWriter = new BufferedWriter(new FileWriter(outputFile));
@@ -403,7 +402,7 @@ public class AssertInferenceTool {
 		final Set<OWLSubClassOfAxiom> regulationExistsNotEntailed = new HashSet<OWLSubClassOfAxiom>();
 		manager.removeAxioms(ontology, filteredAllSubClassAxioms);
 		try {
-			OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+			OWLReasonerFactory reasonerFactory = new ReasonerFactory();
 			OWLReasoner reasoner = null;
 			try {
 				reasoner = reasonerFactory.createReasoner(ontology);
@@ -533,7 +532,7 @@ public class AssertInferenceTool {
 		Set<OWLAxiom> newAxioms;
 		
 		// Inference builder
-		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_ELK);
+		InferenceBuilder builder = new InferenceBuilder(graph, InferenceBuilder.REASONER_HERMIT);
 		builder.addFilter(filter);
 		try {
 			logger.info("Start building inferences");
@@ -802,7 +801,7 @@ public class AssertInferenceTool {
 		}
 		
 		public void putAxiom(OWLAxiom ax, final String type) {
-			ax.accept(new OWLAxiomVisitorAdapter(){
+			ax.accept(new OWLAxiomVisitor(){
 
 				@Override
 				public void visit(OWLEquivalentClassesAxiom axiom) {
@@ -924,7 +923,7 @@ public class AssertInferenceTool {
 		
 		Set<String> ids = loadIdsInputFile(idsInputFile);
 		
-		final OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+		final OWLReasonerFactory reasonerFactory = new ReasonerFactory();
 		final OWLReasoner reasoner = reasonerFactory.createReasoner(ontology);
 		try {
 			logger.info("Start check all");
@@ -1000,7 +999,7 @@ public class AssertInferenceTool {
 		for (OWLClassAxiom axiom : axioms) {
 			// only check the axiom if it isn't marked
 			if (AxiomAnnotationTools.isMarkedAsInferredAxiom(axiom) == false) {
-				axiom.accept(new OWLAxiomVisitorAdapter(){
+				axiom.accept(new OWLAxiomVisitor(){
 
 					@Override
 					public void visit(OWLSubClassOfAxiom axiom) {

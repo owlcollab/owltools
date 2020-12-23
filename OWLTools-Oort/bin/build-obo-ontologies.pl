@@ -160,7 +160,7 @@ foreach my $k (keys %ont_info) {
     # Method: obo2owl -- Build entire package from single obo file using OORT
     if ($method eq 'obo2owl') {
         my $SRC = "src/$ont.obo";
-        my @OORT_ARGS = "--no-subsets --reasoner elk";
+        my @OORT_ARGS = "--no-subsets --reasoner hermit";
         if ($info->{oort_args}) {
             @OORT_ARGS = $info->{oort_args};
         }
@@ -210,7 +210,7 @@ foreach my $k (keys %ont_info) {
 
         # TODO - reuse code with obo2owl. Keep separate for now, as owl2obo may require extra configuration
         my $SRC = "src/$ont.owl";
-        my @OORT_ARGS = "--reasoner elk";
+        my @OORT_ARGS = "--reasoner hermit";
         if ($info->{oort_args}) {
             @OORT_ARGS = $info->{oort_args};
         }

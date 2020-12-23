@@ -9,18 +9,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.geneontology.reasoner.ExpressionMaterializingReasoner;
-import org.geneontology.reasoner.ExpressionMaterializingReasonerFactory;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLClassExpressionVisitor;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -31,14 +31,13 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
-import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
-
-import com.google.common.base.Optional;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.ExtensionExpression;
 import owltools.gaf.GafDocument;
 import owltools.gaf.GeneAnnotation;
+import owltools.geneontologyowlapi5.ExpressionMaterializingReasoner;
+import owltools.geneontologyowlapi5.ExpressionMaterializingReasonerFactory;
 import owltools.graph.OWLGraphWrapper;
 import owltools.vocab.OBOUpperVocabulary;
 
@@ -66,7 +65,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 		super(gafDocument, graph);
 		this.throwExceptions = throwExceptions;
 		isInitialized = init();
-		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
+		Logger.getLogger("org.semanticweb.hermit").setLevel(Level.ERROR);
 	}
 
 	@Override
@@ -75,7 +74,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 	}
 
 	public boolean init() {
-		OWLReasonerFactory reasonerFactory = new ElkReasonerFactory();
+		OWLReasonerFactory reasonerFactory = new ReasonerFactory();
 		reasoner = reasonerFactory.createReasoner(getGraph().getSourceOntology());
 		boolean consistent = reasoner.isConsistent();
 		if (!consistent) {
@@ -169,7 +168,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 			final Map<Bioentity, Set<OWLClass>> allGeneratedClasses = generateAxioms(generatedContainer, annMap, allExistingAnnotations, sourceData);
 			
 			// step 2: reasoner
-			reasoner = new ExpressionMaterializingReasonerFactory(new ElkReasonerFactory()).createReasoner(generatedContainer);
+			reasoner = new ExpressionMaterializingReasonerFactory(new ReasonerFactory()).createReasoner(generatedContainer);
 			reasoner.setIncludeImports(true);
 			reasoner.materializeExpressions(defaultProperties);
 			
@@ -237,7 +236,7 @@ public class FoldBasedPredictor extends AbstractAnnotationPredictor implements A
 					// check also for occurs_in and part_of
 					Set<OWLClassExpression> superClassesExpressions = reasoner.getSuperClassExpressions(generated, true);
 					for (final OWLClassExpression ce : superClassesExpressions) {
-						ce.accept(new OWLClassExpressionVisitorAdapter(){
+						ce.accept(new OWLClassExpressionVisitor(){
 
 							@Override
 							public void visit(OWLObjectSomeValuesFrom svf) {

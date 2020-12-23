@@ -10,17 +10,17 @@ import java.util.Set;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.geneontology.reasoner.ExpressionMaterializingReasoner;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLClassExpressionVisitor;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
-import org.semanticweb.owlapi.util.OWLClassExpressionVisitorAdapter;
 
+import owltools.geneontologyowlapi5.ExpressionMaterializingReasoner;
 import owltools.graph.OWLGraphWrapper;
 import owltools.io.ParserWrapper;
 
@@ -54,15 +54,15 @@ public class TransitivityGraphTest {
 				"RO:0002215", "RO:0002216");
 		Set<OWLObjectProperty> props = graph.relationshipIDsToPropertySet(propIds);
 		
-		ExpressionMaterializingReasoner r = new ExpressionMaterializingReasoner(graph.getSourceOntology(), new ElkReasonerFactory());
+		ExpressionMaterializingReasoner r = new ExpressionMaterializingReasoner(graph.getSourceOntology(), new ReasonerFactory());
 		Logger.getLogger(ExpressionMaterializingReasoner.class).setLevel(Level.ERROR);
-		Logger.getLogger("org.semanticweb.elk").setLevel(Level.ERROR);
+		Logger.getLogger("org.semanticweb.hermit").setLevel(Level.ERROR);
 		r.materializeExpressions(props);
 		
 		Set<OWLClassExpression> superClassExpressions = r.getSuperClassExpressions(in, false);
 		final Set<String> foundProperties = new HashSet<String>();
 		for (OWLClassExpression ce : superClassExpressions) {
-			ce.accept(new OWLClassExpressionVisitorAdapter(){
+			ce.accept(new OWLClassExpressionVisitor(){
 
 				@Override
 				public void visit(OWLClass cls) {

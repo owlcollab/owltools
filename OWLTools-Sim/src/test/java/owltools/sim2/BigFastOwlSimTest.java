@@ -340,7 +340,7 @@ public class BigFastOwlSimTest extends OWLToolsTestBasics{
 		//base = "/Users/cjm/repos/phenotype-ontologies/src/ontology/";
 		base = "http://purl.obolibrary.org/obo/";
 		OWLOntology ontology = pw.parseOBO(base+idspace+".obo");
-		//ElkReasonerFactory reasonerFactory = new ElkReasonerFactory();
+		//OWLReasonerFactory reasonerFactory = new ReasonerFactory();
 		//OWLReasoner reasoner = reasonerFactory.createReasoner(ontology);
 		owlsim = simfactory.createOwlSim(ontology);
 		msg("Loaded. Root = " + owlsim.getSourceOntology());

@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -61,7 +61,7 @@ public class MooncatTest extends OWLToolsTestBasics {
     
     @Test
     public void testRollUpPropsHermit() throws Exception {
-        rollUpProps(new org.semanticweb.HermiT.ReasonerFactory());
+        rollUpProps(new ReasonerFactory());
     }
 
     public void rollUpProps(OWLReasonerFactory rf) throws Exception {

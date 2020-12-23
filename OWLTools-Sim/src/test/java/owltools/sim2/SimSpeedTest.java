@@ -13,7 +13,7 @@ import java.util.Vector;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -585,7 +585,7 @@ public class SimSpeedTest extends OWLToolsTestBasics{
 		msg("Loading");
 		ParserWrapper pw = new ParserWrapper();
 		ontology = pw.parseOBO("/Users/cjm/repos/phenotype-ontologies/src/ontology/"+idspace+".obo");
-		reasonerFactory = new ElkReasonerFactory();
+		reasonerFactory = new ReasonerFactory();
 		reasoner = reasonerFactory.createReasoner(ontology);
 		msg("Loaded. Root = " + reasoner.getRootOntology());
 	}

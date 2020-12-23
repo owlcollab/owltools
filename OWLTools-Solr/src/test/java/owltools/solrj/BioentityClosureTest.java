@@ -9,9 +9,10 @@ import java.util.List;
 
 import org.apache.solr.common.SolrInputDocument;
 import org.junit.Test;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.gaf.EcoTools;
 import owltools.gaf.GafDocument;
@@ -33,7 +34,7 @@ public class BioentityClosureTest {
 		final OWLGraphWrapper g = new OWLGraphWrapper(testOwl);
 		
 		OWLOntology slimOWL = pw.parse(TaxonTools.TAXON_PURL);
-		ElkReasonerFactory rf = new ElkReasonerFactory();
+		OWLReasonerFactory rf = new ReasonerFactory();
 		
 		final List<SolrInputDocument> result = new ArrayList<SolrInputDocument>();
 		GafSolrDocumentLoader l = new GafSolrDocumentLoader(null, 100) {

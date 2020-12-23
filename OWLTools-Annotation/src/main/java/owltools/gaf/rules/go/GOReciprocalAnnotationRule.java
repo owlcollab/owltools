@@ -9,9 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
+import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
 import owltools.gaf.Bioentity;
 import owltools.gaf.GafDocument;
@@ -47,7 +48,7 @@ public class GOReciprocalAnnotationRule extends AbstractAnnotationRule {
 		if (proteinBindingCls == null) {
 			throw new RuntimeException("No class found for identifier: "+PROTEIN_BINDING_GO_ID);
 		}
-		ElkReasonerFactory factory = new ElkReasonerFactory();
+		OWLReasonerFactory factory = new ReasonerFactory();
 		OWLReasoner reasoner = null;
 		try {
 			reasoner = factory.createReasoner(graph.getSourceOntology());

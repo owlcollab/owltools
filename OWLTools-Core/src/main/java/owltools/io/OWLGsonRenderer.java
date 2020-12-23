@@ -3,6 +3,7 @@ package owltools.io;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -27,7 +28,6 @@ import org.semanticweb.owlapi.model.OWLUnaryPropertyAxiom;
 import owltools.graph.OWLGraphEdge;
 import owltools.graph.OWLQuantifiedProperty;
 
-import com.google.common.base.Optional;
 import com.google.gson.Gson;
 
 public class OWLGsonRenderer {

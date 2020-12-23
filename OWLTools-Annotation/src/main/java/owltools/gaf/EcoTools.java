@@ -7,10 +7,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.obolibrary.oboformat.parser.OBOFormatParserException;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -22,8 +23,6 @@ import org.semanticweb.owlapi.reasoner.Node;
 import org.semanticweb.owlapi.reasoner.NodeSet;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
-
-import com.google.common.base.Optional;
 
 import owltools.gaf.eco.EcoMapper;
 import owltools.gaf.eco.EcoMapperFactory;
@@ -109,7 +108,7 @@ public class EcoTools {
 	 */
 	public EcoTools(OWLGraphWrapper eco) {
 		this.eco = eco;
-		OWLReasonerFactory factory = new ElkReasonerFactory();
+		OWLReasonerFactory factory = new ReasonerFactory();
 		final OWLOntology sourceOntology = eco.getSourceOntology();
 		reasoner = factory.createReasoner(sourceOntology);
 		disposeReasonerP = true;
@@ -342,7 +341,7 @@ public class EcoTools {
 		
 		if (includeDescendants) {
 			// use reasoner to infer descendants
-			OWLReasonerFactory factory = new ElkReasonerFactory();
+			OWLReasonerFactory factory = new ReasonerFactory();
 			final OWLOntology sourceOntology = eco.getSourceOntology();
 			OWLReasoner reasoner = factory.createReasoner(sourceOntology);
 			try {

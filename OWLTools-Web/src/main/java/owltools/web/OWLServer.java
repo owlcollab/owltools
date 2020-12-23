@@ -19,7 +19,7 @@ import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.util.URIUtil;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
@@ -221,13 +221,10 @@ public class OWLServer extends AbstractHandler
 		if (reasonerName == null || reasonerName.equals("default")) {
 			if (graph.getReasoner() != null)
 				return graph.getReasoner();
-			reasonerFactory = new ElkReasonerFactory();
+			reasonerFactory = new ReasonerFactory();
 		}
 		else if (reasonerName.equals("hermit")) {
-			reasonerFactory = new org.semanticweb.HermiT.ReasonerFactory();
-		}
-		else if (reasonerName.equals("elk")) {
-			reasonerFactory = new ElkReasonerFactory();	
+			reasonerFactory = new ReasonerFactory();	
 		}
 		else if (reasonerName.equals("structural")) {
 			reasonerFactory = new StructuralReasonerFactory();

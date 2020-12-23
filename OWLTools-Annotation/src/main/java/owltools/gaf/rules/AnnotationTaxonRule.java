@@ -9,7 +9,7 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.semanticweb.HermiT.Configuration;
-import org.semanticweb.elk.owlapi.ElkReasonerFactory;
+import org.semanticweb.HermiT.ReasonerFactory;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
@@ -97,7 +97,7 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 		
 //		OWLReasoner reasoner = createHermit(ontology);
 //		OWLReasoner reasoner = createMore(ontology);
-		Pair<OWLReasoner, OWLReasonerFactory> reasonerPair = createElk(ontology);
+		Pair<OWLReasoner, OWLReasonerFactory> reasonerPair = createHermit(ontology);
 		OWLReasoner reasoner = reasonerPair.getLeft();
 //		OWLReasonerFactory reasonerFactory = reasonerPair.getRight();
 		try {
@@ -166,16 +166,10 @@ public class AnnotationTaxonRule extends AbstractAnnotationRule {
 		// do nothing
 	}
 
-	private Pair<OWLReasoner, OWLReasonerFactory> createElk(OWLOntology ontology) {
-		OWLReasonerFactory factory = new ElkReasonerFactory();
-		OWLReasoner reasoner = factory.createReasoner(ontology);
-		return Pair.of(reasoner, factory);
-	}
-
 	@SuppressWarnings("unused")
 	private Pair<OWLReasoner, OWLReasonerFactory> createHermit(final OWLOntology ontology) {
 		// use Hermit, as GO has inverse_of relations between part_of and has_part
-		OWLReasonerFactory factory = new org.semanticweb.HermiT.ReasonerFactory();
+		OWLReasonerFactory factory = new ReasonerFactory();
 		
 		final Configuration configuration = new Configuration();
 		configuration.reasonerProgressMonitor = new ReasonerProgressMonitor() {

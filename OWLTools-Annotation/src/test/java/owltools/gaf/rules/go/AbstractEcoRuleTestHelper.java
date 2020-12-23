@@ -17,14 +17,14 @@ public abstract class AbstractEcoRuleTestHelper extends OWLToolsTestBasics {
 
 	protected static TraversingEcoMapper eco = null;
 	protected static OWLGraphWrapper ecoGraph = null;
-	private static Level elkLogLevel = null;
-	private static Logger elkLogger = null;
+	private static Level logLevel = null;
+	private static Logger logger = null;
 	
 	@BeforeClass
 	public static void beforeClass() throws Exception {
-		elkLogger = Logger.getLogger("org.semanticweb.elk");
-		elkLogLevel = elkLogger.getLevel();
-		elkLogger.setLevel(Level.ERROR);
+		logger = Logger.getLogger("org.semanticweb.hermit");
+		logLevel = logger.getLevel();
+		logger.setLevel(Level.ERROR);
 		final OntologyMapperPair<TraversingEcoMapper> pair = EcoMapperFactory.createTraversingEcoMapper();
 		eco = pair.getMapper();
 		ecoGraph = pair.getGraph();
@@ -46,10 +46,10 @@ public abstract class AbstractEcoRuleTestHelper extends OWLToolsTestBasics {
 			eco.dispose();
 			eco = null;
 		}
-		if (elkLogLevel != null && elkLogger != null) {
-			elkLogger.setLevel(elkLogLevel);
-			elkLogger = null;
-			elkLogLevel = null;
+		if (logLevel != null && logger != null) {
+		    logger.setLevel(logLevel);
+		    logger = null;
+		    logLevel = null;
 		}
 	}
 }

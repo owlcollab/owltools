@@ -80,7 +80,7 @@ public class OntologyMetadataMarkdownWriter {
 	}
 
 	private static String rurl(OWLOntology im) {
-		return rurl(im.getOntologyID().getOntologyIRI().orNull());
+		return rurl(im.getOntologyID().getOntologyIRI().orElse(null));
 	}
 
 	private static String rurl(IRI iri) {
