@@ -77,7 +77,6 @@ public class TraversingEcoMapperTest extends OWLToolsTestBasics{
 	    ///                - genetic interaction evidence used in manual assertion
 	    ///
 
-
 	    OWLClass igi = eco.getEcoClassForCode("IGI");
 	    assertNotNull("IGI must map to one OWLClass", igi);
 	    assertEquals("http://purl.obolibrary.org/obo/ECO_0000316", igi.getIRI().toString());
