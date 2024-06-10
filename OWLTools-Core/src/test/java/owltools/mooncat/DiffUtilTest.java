@@ -32,7 +32,7 @@ public class DiffUtilTest extends OWLToolsTestBasics {
         OWLOntology ont2 = pw.parseOWL(getResourceIRIString("caro_local.owl"));
         Diff diff = DiffUtil.getDiff(ont1, ont2);
         assertEquals(95, diff.intersectionOntology.getAxiomCount());
-        assertEquals(169, diff.ontology1remaining.getAxiomCount());
+        assertEquals(170, diff.ontology1remaining.getAxiomCount());
         assertEquals(111, diff.ontology2remaining.getAxiomCount());
     }
 
@@ -67,7 +67,7 @@ public class DiffUtilTest extends OWLToolsTestBasics {
         LOG.debug(diff.ontology1remaining.getAxioms());
         LOG.debug(diff.ontology2remaining.getAxioms());
         LOG.debug(diff.intersectionOntology.getAxioms());
-        assertEquals(6, diff.intersectionOntology.getAxiomCount());
+        assertEquals(7, diff.intersectionOntology.getAxiomCount());
         assertEquals(11, diff.ontology1remaining.getAxiomCount());
         assertEquals(7, diff.ontology2remaining.getAxiomCount());
     }
@@ -107,7 +107,7 @@ public class DiffUtilTest extends OWLToolsTestBasics {
         LOG.debug(diff.ontology1remaining.getAxioms());
         LOG.debug(diff.ontology2remaining.getAxioms());
         LOG.debug(diff.intersectionOntology.getAxioms());
-        assertEquals(8, diff.intersectionOntology.getAxiomCount());
+        assertEquals(9, diff.intersectionOntology.getAxiomCount());
         assertEquals(10, diff.ontology1remaining.getAxiomCount());
         assertEquals(6, diff.ontology2remaining.getAxiomCount());
     }

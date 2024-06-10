@@ -176,7 +176,7 @@ public class PropertyViewOntologyBuilderTest extends OWLToolsTestBasics {
 			}
 			// TODO - less dumb way
 			Set<String> m = new HashSet<String>();
-			m.add("EquivalentClasses(<http://purl.obolibrary.org/obo/#left_autopod-RO_0002206> <http://purl.obolibrary.org/obo/#right_autopod-RO_0002206> )");
+			m.add("EquivalentClasses(<http://purl.obolibrary.org/obo/#left_autopod-RO_0002206> <http://purl.obolibrary.org/obo/#right_autopod-RO_0002206>)");
 
 
 			OWLOntology ivo = pvob.getInferredViewOntology();

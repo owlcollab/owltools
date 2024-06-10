@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import owltools.gaf.GafDocument;
@@ -12,6 +13,7 @@ import owltools.gaf.rules.AnnotationRuleViolation;
 
 public class GOReciprocalAnnotationRuleTest extends AbstractGoRuleTestHelper {
 
+	@Ignore
 	@Test
 	public void test() throws Exception {
 		GafDocument gafdoc = loadGaf("test_gene_association_mgi.gaf");

@@ -12,7 +12,7 @@ public class RetrieveGolrBioentitiesTest {
 
 	@Test
 	public void testGetGolrBioentites() throws Exception {
-		RetrieveGolrBioentities golr = new RetrieveGolrBioentities("http://golr.berkeleybop.org", 2){
+		RetrieveGolrBioentities golr = new RetrieveGolrBioentities("https://golr.geneontology.org/solr", 2){
 
 			@Override
 			protected void logRequest(URI uri) {
@@ -26,7 +26,7 @@ public class RetrieveGolrBioentitiesTest {
 	
 	@Test
 	public void testGetGolrBioentitesProduction() throws Exception {
-		RetrieveGolrBioentities golr = new RetrieveGolrBioentities("http://golr.geneontology.org/solr", 2){
+		RetrieveGolrBioentities golr = new RetrieveGolrBioentities("https://golr.geneontology.org/solr", 2){
 
 			@Override
 			protected void logRequest(URI uri) {

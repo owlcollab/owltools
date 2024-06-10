@@ -6,12 +6,12 @@ Ontology: <http://purl.obolibrary.org/obo/go/nothing-test>
 Class: owl:Thing
 
 Class: GO:0000001
-  SubClassOf: owl:Thing
   Annotations: rdfs:label "t1"
+  SubClassOf: owl:Thing
 
 Class: GO:0000002
-  SubClassOf: owl:Thing
   Annotations: rdfs:label "t1"
+  SubClassOf: owl:Thing
   SubClassOf: GO:0000001
 
 Class: owl:Nothing

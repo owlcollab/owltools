@@ -1,6 +1,6 @@
 format-version: 1.4
 ontology: foo
-import: OWLGraphManipulatorTest_2.obo ! to test the merge of imported ontologies
+import: src/test/resources/graph/OWLGraphManipulatorTest_2.obo ! to test the merge of imported ontologies
 
 [Term]
 id: FOO:0001

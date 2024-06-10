@@ -104,9 +104,9 @@ Class: :foot
  EquivalentTo: :autopod and part_of: some :hindlimb
 
 Class: quality:
-  SubClassOf: inheres_in: some owl:Thing
   Annotations: rdfs:label "quality"^^xsd:string,
-   oio:inSubset <http://x.org#upper_level>
+     oio:inSubset <http://x.org#upper_level>
+  SubClassOf: inheres_in: some owl:Thing
 
 Class: :abnormal
  SubClassOf: quality:

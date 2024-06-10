@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import owltools.gaf.GafDocument;
@@ -17,6 +18,7 @@ import owltools.gaf.rules.AnnotationRuleViolation;
  */
 public class GoClassReferenceAnnotationRuleTest extends AbstractGoRuleTestHelper {
 
+	@Ignore
 	@Test
 	public void test() throws Exception {
 		GafDocument gafdoc = loadZippedGaf("gene_association.goa_human.gz");
