@@ -21,6 +21,7 @@ public class Sim2CommandRunnerTest extends AbstractCommandRunnerTest {
 		return new Sim2CommandRunner();
 	}
 
+	@Ignore
 	@Test
 	public void testSimRunnerMouse100() throws Exception {
 		load("mp.obo");

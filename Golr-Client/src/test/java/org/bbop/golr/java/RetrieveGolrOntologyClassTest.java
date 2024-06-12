@@ -12,7 +12,7 @@ public class RetrieveGolrOntologyClassTest {
 
 	@Test
 	public void testGet() throws Exception {
-		RetrieveGolrOntologyClass golr = new RetrieveGolrOntologyClass("http://golr.berkeleybop.org", 2){
+		RetrieveGolrOntologyClass golr = new RetrieveGolrOntologyClass("https://golr.geneontology.org/solr", 2){
 
 			@Override
 			protected void logRequest(URI uri) {
@@ -26,7 +26,7 @@ public class RetrieveGolrOntologyClassTest {
 	
 	@Test
 	public void testGetProduction() throws Exception {
-		RetrieveGolrOntologyClass golr = new RetrieveGolrOntologyClass("http://golr.geneontology.org/solr", 2){
+		RetrieveGolrOntologyClass golr = new RetrieveGolrOntologyClass("https://golr.geneontology.org/solr", 2){
 
 			@Override
 			protected void logRequest(URI uri) {

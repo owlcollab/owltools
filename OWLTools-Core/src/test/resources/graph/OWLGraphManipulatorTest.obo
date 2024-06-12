@@ -2,7 +2,7 @@ format-version: 1.4
 ontology: foo
 subsetdef: test_subset1 "used to test method removeRelsToSubsets"
 subsetdef: test_subset2 "used to test method removeRelsToSubsets"
-import: OWLGraphManipulatorTest_2.obo ! to test the merge of imported ontologies
+import: src/test/resources/graph/OWLGraphManipulatorTest_2.obo ! to test the merge of imported ontologies
 
 [Term]
 id: FOO:0001

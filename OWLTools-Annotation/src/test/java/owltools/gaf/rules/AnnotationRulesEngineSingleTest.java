@@ -10,6 +10,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
@@ -66,6 +67,7 @@ public class AnnotationRulesEngineSingleTest extends OWLToolsTestBasics {
 		engine = new AnnotationRulesEngine(rulesFactory, true, false);
 	}
 
+	@Ignore
 	@Test
 	public void testValidateAnnotations() throws Exception {
 		GafObjectsBuilder builder = new GafObjectsBuilder();

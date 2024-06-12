@@ -34,6 +34,7 @@
     <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-stimulus.owl" uri="x-stimulus.owl"/>
     <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-taxon-importer.owl" uri="x-taxon-importer.owl"/>
     <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-taxon.owl" uri="x-taxon.owl"/>
+    <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/bio-chebi.owl" uri="bio-chebi.owl"/>
     <uri id="foo" name="http://purl.obolibrary.org/obo/go/extensions/x-upper-anatomy.owl" uri="x-upper-anatomy.owl"/>
     <uri id="foo" name="http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim.owl" uri="../external/ncbitaxon-subsets/taxslim.owl"/>
     <uri id="foo" name="http://purl.obolibrary.org/obo/ncbitaxon/subsets/taxslim-disjoint-over-in-taxon.owl" uri="../external/ncbitaxon-subsets/taxslim-disjoint-over-in-taxon.owl"/>

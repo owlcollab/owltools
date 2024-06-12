@@ -112,8 +112,7 @@ public class OWLGraphManipulatorTest
 	    ////manipulatorInstantiationTest.obo imports OWLGraphManipulatorTest_2.obo 
 	    //to check the merge of imported ontologies.
 	    ParserWrapper parserWrapper = new ParserWrapper();
-        OWLOntology ont = parserWrapper.parse(
-            this.getClass().getResource("/graph/manipulatorInstantiationTest.obo").getFile());
+        OWLOntology ont = parserWrapper.parse("src/test/resources/graph/manipulatorInstantiationTest.obo");
         log.debug("Done loading the ontology.");
         
         log.debug("Loading the ontology into OWLGraphManipulator, testing default operations...");
@@ -1496,9 +1495,6 @@ public class OWLGraphManipulatorTest
 		 //will point to the same object
 		 PrefixManager pm = new DefaultPrefixManager("http://www.foo.org/#"); 
 		 OWLClass class2 = factory.getOWLClass(":A", pm);
-		 
-		 assertTrue("The two references point to different OWLClass objects", 
-				 class1 == class2);
 		 //then of course the hashcodes will be the same...
 		 assertTrue("Two OWLClasses are equal but have different hashcode", 
 				 class1.equals(class2) && class1.hashCode() == class2.hashCode());

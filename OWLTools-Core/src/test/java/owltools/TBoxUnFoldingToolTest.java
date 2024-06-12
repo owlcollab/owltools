@@ -32,7 +32,7 @@ public class TBoxUnFoldingToolTest extends OWLToolsTestBasics {
 		
 		String unfold = unFoldingTool.unfoldToString(id);
 		
-		assertEquals("EquivalentClasses(GO:2000606 'regulation of cell proliferation involved in mesonephros development' ObjectIntersectionOf(GO:0065007 'biological regulation' ObjectSomeValuesFrom(RO:0002211 'regulates' ObjectIntersectionOf(GO:0008283 'cell proliferation' ObjectSomeValuesFrom(BFO:0000050 'part_of' GO:0001823 'mesonephros development')))) )",
+		assertEquals("EquivalentClasses(GO:2000606 'regulation of cell proliferation involved in mesonephros development' ObjectIntersectionOf(GO:0065007 'biological regulation' ObjectSomeValuesFrom(RO:0002211 'regulates' ObjectIntersectionOf(GO:0008283 'cell proliferation' ObjectSomeValuesFrom(BFO:0000050 'part_of' GO:0001823 'mesonephros development')))))",
 				unfold);
 	}
 	

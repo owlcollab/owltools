@@ -251,7 +251,7 @@ public class AssertInferenceTool {
 								
 								@Override
 								public boolean useOWLClass(OWLClass cls, OWLOntology ont) {
-									String id = Owl2Obo.getIdentifierFromObject(cls, ont, null);
+									String id = Owl2Obo.getIdentifierFromObject(cls, ont, cls.getIRI().toString());
 									boolean use = id != null && id.startsWith(prefix);
 									return use;
 								}

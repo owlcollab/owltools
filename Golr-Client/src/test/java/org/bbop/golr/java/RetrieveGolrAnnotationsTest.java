@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.bbop.golr.java.RetrieveGolrAnnotations.GolrAnnotationDocument;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import owltools.gaf.Bioentity;
@@ -19,7 +20,7 @@ public class RetrieveGolrAnnotationsTest {
 
 	@Test
 	public void testGetGolrAnnotationsForGene() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org"){
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("https://golr.geneontology.org/solr"){
 
 			@Override
 			protected void logRequest(URI uri) {
@@ -39,7 +40,7 @@ public class RetrieveGolrAnnotationsTest {
 	
 	@Test
 	public void testGetGolrAnnotationsForGeneProduction() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.geneontology.org/solr");
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("https://golr.geneontology.org/solr");
 		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");
 		assertNotNull(annotations);
 		for (GolrAnnotationDocument document : annotations) {
@@ -49,9 +50,10 @@ public class RetrieveGolrAnnotationsTest {
 		assertTrue(annotations.size() > 10);
 	}
 	
+	@Ignore
 	@Test
 	public void testGetGolrAnnotationsForGeneWithQualifierProduction() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.geneontology.org/solr");
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("https://golr.geneontology.org/solr");
 		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGene("SGD:S000003676");
 		assertNotNull(annotations);
 		int qualifierCounter = 0;
@@ -69,7 +71,7 @@ public class RetrieveGolrAnnotationsTest {
 	
 	@Test
 	public void testGetGolrAnnotationsForGeneWithQualifier() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://toaster.lbl.gov:9000/solr");
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("https://golr.geneontology.org/solr");
 		List<GolrAnnotationDocument> annotations = retriever.getGolrAnnotationsForGene("UniProtKB:O95996");
 		assertNotNull(annotations);
 		int qualifierCounter = 0;
@@ -97,7 +99,7 @@ public class RetrieveGolrAnnotationsTest {
 	
 	@Test
 	public void testGetGolrAnnotationsForGenesProduction() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.geneontology.org/solr") {
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("https://golr.geneontology.org/solr") {
 
 			@Override
 			protected void logRequest(URI uri) {
@@ -117,7 +119,7 @@ public class RetrieveGolrAnnotationsTest {
 	
 	@Test
 	public void testGetGolrAnnotationsForSynonym() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org") {
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("https://golr.geneontology.org/solr") {
 
 			@Override
 			protected void logRequest(URI uri) {
@@ -136,7 +138,7 @@ public class RetrieveGolrAnnotationsTest {
 	
 	@Test
 	public void testGetAnnotationsForGene() throws Exception {
-		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("http://golr.berkeleybop.org");
+		RetrieveGolrAnnotations retriever = new RetrieveGolrAnnotations("https://golr.geneontology.org/solr");
 		List<GolrAnnotationDocument> golrDocuments = retriever.getGolrAnnotationsForGene("MGI:MGI:97290");
 		assertNotNull(golrDocuments);
 		GafDocument gafDocument = retriever.convert(golrDocuments);

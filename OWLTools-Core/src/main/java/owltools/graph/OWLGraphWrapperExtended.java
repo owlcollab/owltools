@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.obolibrary.obo2owl.OWLAPIOwl2Obo;
 import org.obolibrary.obo2owl.Obo2OWLConstants.Obo2OWLVocabulary;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.log4j.Logger;
@@ -853,9 +854,14 @@ public class OWLGraphWrapperExtended extends OWLGraphWrapperBasic {
 	        IRI iri = ((OWLNamedObject)owlObject).getIRI();
 	        return getIdentifier(iri);
 	    }
-    
-    	String identifier = Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology, null);
-		  return (String) SerializationUtils.clone(identifier);
+
+		String identifier = null;
+		try {
+			identifier = Owl2Obo.getIdentifierFromObject(owlObject, this.sourceOntology);
+		} catch (OWLAPIOwl2Obo.UntranslatableAxiomException e) {
+			throw new RuntimeException(e);
+		}
+		return (String) SerializationUtils.clone(identifier);
 	}
 
 	/**

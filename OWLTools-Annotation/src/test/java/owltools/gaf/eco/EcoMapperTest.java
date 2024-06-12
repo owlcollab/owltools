@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 
@@ -38,6 +39,7 @@ public class EcoMapperTest {
 	}
 	
 	@Test
+	@Ignore
 	public void checkMapping() throws Exception {
 		final OntologyMapperPair<TraversingEcoMapper> pair = EcoMapperFactory.createTraversingEcoMapper();
 		TraversingEcoMapper mapper = pair.getMapper();

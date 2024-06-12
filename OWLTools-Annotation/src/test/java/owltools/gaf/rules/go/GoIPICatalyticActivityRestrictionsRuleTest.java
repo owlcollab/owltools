@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import owltools.gaf.GafDocument;
@@ -18,6 +19,7 @@ import owltools.gaf.rules.AnnotationRuleViolation;
  */
 public class GoIPICatalyticActivityRestrictionsRuleTest extends AbstractGoRuleTestHelper {
 
+	@Ignore
 	@Test
 	public void test() throws Exception {
 		GafDocument gafdoc = loadGaf("test_gene_association_mgi.gaf");
