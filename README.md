@@ -28,7 +28,7 @@ During the build process, we extract the git version and branch information. The
 
 2a) Run command: `mvn clean install`: This will trigger a complete build of all OWLTools projects and generate the required jars for execution. Remark: As part of the build the tests are executed. Any failed test will stop the build.
 
-2b) Build without test execution (Not Recommended): Run command: mvn clean install -DskipTests
+2b) Build without test execution (Not Recommended): Run command: `mvn clean install -DskipTests`
 
 #### Option 2: Eclipse
 
