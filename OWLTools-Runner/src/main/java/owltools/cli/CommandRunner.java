@@ -3695,6 +3695,7 @@ public class CommandRunner extends CommandRunnerBase {
                             }
                             ofmt = new OBODocumentFormat();
                         }
+                        copyPrefixDefinitionsToOutputFormat(g.getSourceOntology(), ofmt);
                     }
                     else if (opts.nextEq("--prefix")) {
                         opts.info("PREFIX URIBASE","use PREFIX as prefix. Note: specify this sub-arg AFTER -f");
@@ -6634,6 +6635,17 @@ public class CommandRunner extends CommandRunnerBase {
         OWLPrettyPrinter owlpp = new OWLPrettyPrinter(g);
         for (OWLGraphEdge e : edges) {
             System.out.println(owlpp.render(e));
+        }
+    }
+
+    private void copyPrefixDefinitionsToOutputFormat(OWLOntology ont, OWLDocumentFormat format) {
+        OWLDocumentFormat previousFormat = ont.getOWLOntologyManager().getOntologyFormat(ont);
+        if (format != null && format.isPrefixOWLOntologyFormat()
+                && previousFormat != null
+                && previousFormat.isPrefixOWLOntologyFormat()) {
+            String defaultNamespace = format.asPrefixOWLOntologyFormat().getDefaultPrefix();
+            format.asPrefixOWLOntologyFormat().copyPrefixesFrom(previousFormat.asPrefixOWLOntologyFormat());
+            format.asPrefixOWLOntologyFormat().setDefaultPrefix(defaultNamespace);
         }
     }
 

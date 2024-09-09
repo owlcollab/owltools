@@ -20,7 +20,7 @@ public class OWLOboGraphsYamlFormat extends OWLDocumentFormatImpl {
 
 	@Override
 	public boolean isPrefixOWLOntologyFormat() {
-		return true;
+		return false;
 	}
 
 	@Override
