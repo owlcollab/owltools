@@ -47,7 +47,7 @@ public abstract class AbstractMappingParser {
 		
 		InputStream is = null;
 		
-		if(file.startsWith("http://")){
+		if(file.startsWith("http://") || file.startsWith("https://")){
 			URL url = new URL(file);
 			is = url.openStream();
 		}else if(file.startsWith("file:/")){

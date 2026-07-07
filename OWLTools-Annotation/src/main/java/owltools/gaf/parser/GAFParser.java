@@ -286,7 +286,7 @@ public class GAFParser implements AnnotationParserMessages {
 		
 		InputStream is = null;
 		
-		if(file.startsWith("http://")) {
+		if(file.startsWith("http://") || file.startsWith("https://")) {
 			URL url = new URL(file);
 			is = url.openStream();
 			LOG.info("Open stream as URL");
