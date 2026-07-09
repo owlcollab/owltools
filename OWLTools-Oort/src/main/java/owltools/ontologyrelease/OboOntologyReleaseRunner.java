@@ -1752,6 +1752,7 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 	
 	private void write(OWLOntologyManager manager, OWLOntology ont, OWLDocumentFormat format, OutputStream out) throws OWLOntologyStorageException {
 		try {
+			copyPrefixDefinitionsToOutputFormat(ont, format);
 			manager.saveOntology(ont, format, out);
 		} finally {
 			try {
@@ -1761,6 +1762,17 @@ public class OboOntologyReleaseRunner extends ReleaseRunnerFileTools {
 			} 
 		}
 		
+	}
+
+	private void copyPrefixDefinitionsToOutputFormat(OWLOntology ont, OWLDocumentFormat format) {
+		OWLDocumentFormat previousFormat = ont.getOWLOntologyManager().getOntologyFormat(ont);
+		if (format != null && format.isPrefixOWLOntologyFormat()
+				&& previousFormat != null
+				&& previousFormat.isPrefixOWLOntologyFormat()) {
+			String defaultNamespace = format.asPrefixOWLOntologyFormat().getDefaultPrefix();
+			format.asPrefixOWLOntologyFormat().copyPrefixesFrom(previousFormat.asPrefixOWLOntologyFormat());
+			format.asPrefixOWLOntologyFormat().setDefaultPrefix(defaultNamespace);
+		}
 	}
 
 	private void saveReasonerReport(String ontologyId,
